@@ -6,6 +6,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Sparkles, ChevronDown, ChevronUp, RefreshCw, BarChart3, Lightbulb, MessageCircle } from 'lucide-react';
 import { Client, SessionData } from '@/types/coaching';
+import { FeedbackCollector } from '@/components/FeedbackCollector';
 
 interface ResultsViewProps {
   session: SessionData;
@@ -23,8 +24,8 @@ export const ResultsView = ({
   onContinueSession 
 }: ResultsViewProps) => {
   const [expandedCards, setExpandedCards] = useState<number[]>([]);
-  const [showFeedback, setShowFeedback] = useState(true);
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(!session.feedback_submitted_at);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(!!session.feedback_submitted_at);
   const [activeTab, setActiveTab] = useState('results');
 
   const toggleCard = (index: number) => {
@@ -106,9 +107,9 @@ export const ResultsView = ({
                 <Sparkles className="w-4 h-4" />
                 <span>Your Playbook</span>
               </TabsTrigger>
-              <TabsTrigger value="analytics" className="flex items-center space-x-2 text-sm">
+              <TabsTrigger value="feedback" className="flex items-center space-x-2 text-sm">
                 <BarChart3 className="w-4 h-4" />
-                <span>Analytics</span>
+                <span>Share Feedback</span>
               </TabsTrigger>
               <TabsTrigger value="insights" className="flex items-center space-x-2 text-sm">
                 <Lightbulb className="w-4 h-4" />
@@ -238,12 +239,36 @@ export const ResultsView = ({
               </div>
             </TabsContent>
 
-            <TabsContent value="analytics" className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">Feedback Analytics</h2>
-                <p className="text-slate-600 dark:text-slate-400 text-sm">Track your coaching progress and strategy effectiveness</p>
+            <TabsContent value="feedback" className="space-y-6">
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">Share Your Experience</h2>
+                <p className="text-slate-600 dark:text-slate-400 text-sm">
+                  Your feedback helps us improve the coaching experience for everyone
+                </p>
               </div>
-              {/* FeedbackAnalytics component would be rendered here */}
+              
+              {showFeedback && !feedbackSubmitted ? (
+                <FeedbackCollector
+                  session={session}
+                  client={client}
+                  onFeedbackSubmitted={handleFeedbackSubmitted}
+                />
+              ) : (
+                <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-lg animate-fade-in">
+                  <CardContent className="p-8 text-center">
+                    <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Sparkles className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-green-800 mb-2">Thank You!</h3>
+                    <p className="text-green-700 mb-4">
+                      {feedbackSubmitted ? 
+                        "Your feedback has been submitted and helps us improve your coaching experience." :
+                        "You've already provided feedback for this session."
+                      }
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
 
             <TabsContent value="insights" className="space-y-6">
@@ -251,7 +276,18 @@ export const ResultsView = ({
                 <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">Personal Insights</h2>
                 <p className="text-slate-600 dark:text-slate-400 text-sm">Discover patterns and trends in your coaching journey</p>
               </div>
-              {/* FeedbackInsights component would be rendered here */}
+              
+              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-lg">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Lightbulb className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-blue-800 mb-2">Coming Soon</h3>
+                  <p className="text-blue-700 text-sm">
+                    Personal insights and analytics will be available soon to help you track your progress and identify patterns.
+                  </p>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>

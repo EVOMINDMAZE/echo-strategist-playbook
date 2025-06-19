@@ -7,6 +7,10 @@ import { Client, SessionData, ChatMessage, SessionStatus } from '@/types/coachin
 import { ThinkingAnimation } from '@/components/ThinkingAnimation';
 import { ResultsView } from '@/components/ResultsView';
 import { StrategistTriggerButton } from '@/components/StrategistTriggerButton';
+import { InformativeMessages } from '@/components/InformativeMessages';
+import { SystemExplanation } from '@/components/SystemExplanation';
+import { PrivacyWarning } from '@/components/PrivacyWarning';
+import { SmartReplySuggestions } from '@/components/SmartReplySuggestions';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -29,6 +33,10 @@ export const ChatView = ({
   const [isThinking, setIsThinking] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
+  const [dismissedMessages, setDismissedMessages] = useState<string[]>([]);
+  const [showSystemExplanation, setShowSystemExplanation] = useState(true);
+  const [showPrivacyWarning, setShowPrivacyWarning] = useState(true);
+  const [showReplySuggestions, setShowReplySuggestions] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -44,6 +52,24 @@ export const ChatView = ({
     const timer = setTimeout(scrollToBottom, 100);
     return () => clearTimeout(timer);
   }, [session.messages, isThinking, isAnalyzing]);
+
+  // Manage guidance visibility based on message count
+  useEffect(() => {
+    const messageCount = session.messages.filter(msg => msg.sender === 'user').length;
+    
+    // Hide system explanation after user has sent 2 messages
+    if (messageCount >= 2) {
+      setShowSystemExplanation(false);
+    }
+    
+    // Hide privacy warning after user has sent 1 message
+    if (messageCount >= 1) {
+      setShowPrivacyWarning(false);
+    }
+    
+    // Show reply suggestions only during active conversation
+    setShowReplySuggestions(messageCount < 8 && session.status === 'gathering_info');
+  }, [session.messages, session.status]);
 
   // Poll for session updates when analyzing
   useEffect(() => {
@@ -218,7 +244,16 @@ export const ChatView = ({
     window.location.href = `/chats`;
   };
 
+  const handleSuggestionClick = (suggestion: string) => {
+    setInputMessage(suggestion);
+  };
+
+  const handleDismissMessage = (messageType: string) => {
+    setDismissedMessages(prev => [...prev, messageType]);
+  };
+
   const userMessageCount = session.messages.filter(msg => msg.sender === 'user').length;
+  const lastAiMessage = session.messages.filter(msg => msg.sender === 'ai').slice(-1)[0]?.content;
 
   // Show results view if session is complete
   if (session.status === 'complete' && session.strategist_output) {
@@ -294,6 +329,22 @@ export const ChatView = ({
         }}
       >
         <div className={`max-w-4xl mx-auto space-y-${isCompact ? '3' : '6'}`}>
+          {/* System Explanation - Show at the beginning */}
+          {session.messages.length === 0 && (
+            <SystemExplanation
+              isVisible={showSystemExplanation}
+              onDismiss={() => setShowSystemExplanation(false)}
+            />
+          )}
+
+          {/* Privacy Warning - Show early in conversation */}
+          {session.messages.length <= 2 && (
+            <PrivacyWarning
+              isVisible={showPrivacyWarning}
+              onDismiss={() => setShowPrivacyWarning(false)}
+            />
+          )}
+
           {session.messages.length === 0 && (
             <div className="text-center py-16 animate-fade-in">
               <div className="relative mb-8">
@@ -312,6 +363,13 @@ export const ChatView = ({
               </p>
             </div>
           )}
+
+          {/* Informative Messages */}
+          <InformativeMessages
+            messageCount={userMessageCount}
+            onDismiss={handleDismissMessage}
+            dismissedMessages={dismissedMessages}
+          />
 
           {session.messages.map((message, index) => (
             <div key={message.id} className="animate-fade-in">
@@ -352,6 +410,17 @@ export const ChatView = ({
               )}
             </div>
           ))}
+
+          {/* Smart Reply Suggestions */}
+          {session.status === 'gathering_info' && !isThinking && !isAnalyzing && (
+            <SmartReplySuggestions
+              messageCount={userMessageCount}
+              lastAiMessage={lastAiMessage}
+              onSuggestionClick={handleSuggestionClick}
+              onDismiss={() => setShowReplySuggestions(false)}
+              isVisible={showReplySuggestions}
+            />
+          )}
 
           {/* Manual Strategist Trigger Button */}
           <StrategistTriggerButton
