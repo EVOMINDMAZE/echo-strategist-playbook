@@ -27,25 +27,21 @@ export const ChatView = ({
   const [isThinking, setIsThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const { toast } = useToast();
 
   const scrollToBottom = () => {
-    if (shouldAutoScroll && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleScroll = () => {
-    if (messagesContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
-      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 100;
-      setShouldAutoScroll(isAtBottom);
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
   };
 
   useEffect(() => {
-    scrollToBottom();
+    // Always scroll to bottom when messages change or thinking state changes
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [session.messages, isThinking]);
 
   const handleSendMessage = async (content: string) => {
@@ -66,7 +62,6 @@ export const ChatView = ({
     onSessionUpdate(updatedSession);
     setInputMessage('');
     setIsThinking(true);
-    setShouldAutoScroll(true);
 
     try {
       // Call the Edge Function
@@ -117,9 +112,9 @@ export const ChatView = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 flex flex-col">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 to-indigo-50">
       {/* Header */}
-      <div className="bg-white/90 backdrop-blur-sm border-b border-slate-200/50 p-4 shadow-sm sticky top-0 z-10">
+      <div className="bg-white/90 backdrop-blur-sm border-b border-slate-200/50 p-4 shadow-sm flex-shrink-0">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
@@ -151,103 +146,88 @@ export const ChatView = ({
         </div>
       </div>
 
-      {/* Messages */}
+      {/* Messages Container - Fixed height with proper scrolling */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4"
-        onScroll={handleScroll}
-        style={{ scrollBehavior: 'auto' }}
+        className="flex-1 overflow-y-auto"
+        style={{ height: 'calc(100vh - 140px)' }}
       >
-        <div className="max-w-4xl mx-auto space-y-6">
-          {session.messages.length === 0 && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Bot className="w-8 h-8 text-white" />
+        <div className="p-4">
+          <div className="max-w-4xl mx-auto space-y-6">
+            {session.messages.length === 0 && (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Bot className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-800 mb-2">Start your coaching session</h3>
+                <p className="text-slate-600">Begin the conversation with {target.name} to start gathering insights.</p>
               </div>
-              <h3 className="text-lg font-semibold text-slate-800 mb-2">Start your coaching session</h3>
-              <p className="text-slate-600">Begin the conversation with {target.name} to start gathering insights.</p>
-            </div>
-          )}
+            )}
 
-          {session.messages.map((message) => (
-            <div key={message.id} className="animate-fade-in">
-              {message.sender === 'ai' ? (
-                <div className="flex items-start space-x-4">
-                  <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="bg-white rounded-2xl rounded-tl-sm p-4 shadow-sm border border-slate-200/50 max-w-2xl">
-                      <p className="text-slate-700 leading-relaxed">{message.content}</p>
+            {session.messages.map((message) => (
+              <div key={message.id} className="animate-fade-in">
+                {message.sender === 'ai' ? (
+                  <div className="flex items-start space-x-4">
+                    <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Bot className="w-5 h-5 text-white" />
                     </div>
-                    {message.options && message.options.length > 0 && (
-                      <div className="mt-4 space-y-2 max-w-2xl">
-                        {message.options.map((option, index) => (
-                          <Button
-                            key={index}
-                            variant="outline"
-                            onClick={() => handleOptionClick(option)}
-                            className="w-full justify-start text-left hover:bg-indigo-50 hover:border-indigo-300 transition-colors"
-                          >
-                            {option}
-                          </Button>
-                        ))}
+                    <div className="flex-1">
+                      <div className="bg-white rounded-2xl rounded-tl-sm p-4 shadow-sm border border-slate-200/50 max-w-2xl">
+                        <p className="text-slate-700 leading-relaxed">{message.content}</p>
                       </div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-start space-x-4 justify-end">
-                  <div className="flex-1 flex justify-end">
-                    <div className="bg-gradient-to-r from-indigo-500 to-blue-600 rounded-2xl rounded-tr-sm p-4 shadow-sm max-w-2xl">
-                      <p className="text-white leading-relaxed">{message.content}</p>
+                      {message.options && message.options.length > 0 && (
+                        <div className="mt-4 space-y-2 max-w-2xl">
+                          {message.options.map((option, index) => (
+                            <Button
+                              key={index}
+                              variant="outline"
+                              onClick={() => handleOptionClick(option)}
+                              className="w-full justify-start text-left hover:bg-indigo-50 hover:border-indigo-300 transition-colors"
+                            >
+                              {option}
+                            </Button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="w-10 h-10 bg-slate-300 rounded-full flex items-center justify-center flex-shrink-0">
-                    <User className="w-5 h-5 text-slate-600" />
+                ) : (
+                  <div className="flex items-start space-x-4 justify-end">
+                    <div className="flex-1 flex justify-end">
+                      <div className="bg-gradient-to-r from-indigo-500 to-blue-600 rounded-2xl rounded-tr-sm p-4 shadow-sm max-w-2xl">
+                        <p className="text-white leading-relaxed">{message.content}</p>
+                      </div>
+                    </div>
+                    <div className="w-10 h-10 bg-slate-300 rounded-full flex items-center justify-center flex-shrink-0">
+                      <User className="w-5 h-5 text-slate-600" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Thinking Animation */}
+            {isThinking && (
+              <div className="flex items-start space-x-4 animate-fade-in">
+                <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Bot className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="bg-white rounded-2xl rounded-tl-sm p-4 shadow-sm border border-slate-200/50 max-w-2xl">
+                    <ThinkingAnimation />
                   </div>
                 </div>
-              )}
-            </div>
-          ))}
-
-          {/* Thinking Animation */}
-          {isThinking && (
-            <div className="flex items-start space-x-4 animate-fade-in">
-              <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <Bot className="w-5 h-5 text-white" />
               </div>
-              <div className="flex-1">
-                <div className="bg-white rounded-2xl rounded-tl-sm p-4 shadow-sm border border-slate-200/50 max-w-2xl">
-                  <ThinkingAnimation />
-                </div>
-              </div>
-            </div>
-          )}
+            )}
 
-          <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} />
+          </div>
         </div>
       </div>
 
-      {/* Scroll to bottom indicator */}
-      {!shouldAutoScroll && (
-        <div className="absolute bottom-20 right-8">
-          <Button
-            size="sm"
-            onClick={() => {
-              setShouldAutoScroll(true);
-              scrollToBottom();
-            }}
-            className="rounded-full shadow-lg"
-          >
-            ↓ New messages
-          </Button>
-        </div>
-      )}
-
-      {/* Input */}
+      {/* Input - Fixed at bottom */}
       {session.status === 'gathering_info' && !isThinking && (
-        <div className="bg-white/90 backdrop-blur-sm border-t border-slate-200/50 p-4 sticky bottom-0">
+        <div className="bg-white/90 backdrop-blur-sm border-t border-slate-200/50 p-4 flex-shrink-0">
           <div className="max-w-4xl mx-auto">
             <form onSubmit={handleInputSubmit} className="flex space-x-4">
               <Input
