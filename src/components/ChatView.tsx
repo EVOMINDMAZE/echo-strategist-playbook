@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Bot, User, Minimize2, Maximize2 } from 'lucide-react';
+import { ArrowLeft, Send, Bot, User, Minimize2, Maximize2, MessageCircle } from 'lucide-react';
 import { Client, SessionData, ChatMessage, SessionStatus } from '@/types/coaching';
 import { ThinkingAnimation } from '@/components/ThinkingAnimation';
 import { ResultsView } from '@/components/ResultsView';
@@ -234,31 +234,35 @@ export const ChatView = ({
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50/80 via-white to-indigo-50/60 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Header */}
-      <div className="flex-shrink-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-700/60 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div className="flex flex-col h-screen bg-gradient-to-b from-slate-50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+      {/* Modern Header */}
+      <div className="flex-shrink-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-b border-slate-200/50 dark:border-slate-700/50 shadow-sm">
+        <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onBackToTargets}
-                className="hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
+                className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all duration-200 rounded-lg"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Chats
               </Button>
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
-                  {target.name.charAt(0).toUpperCase()}
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg ring-2 ring-white/20">
+                    {target.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
                 </div>
                 <div>
-                  <h2 className="font-semibold text-slate-800 dark:text-slate-200">
-                    Chat with {target.name}
+                  <h2 className="font-bold text-xl text-slate-900 dark:text-slate-100">
+                    {target.name}
                   </h2>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {session.status.replace('_', ' ')} • {session.messages.length} messages
+                  <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center">
+                    <MessageCircle className="w-3 h-3 mr-1" />
+                    {session.messages.length} messages • {session.status.replace('_', ' ')}
                   </p>
                 </div>
               </div>
@@ -268,11 +272,11 @@ export const ChatView = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsCompact(!isCompact)}
-                className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 rounded-lg"
               >
                 {isCompact ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
               </Button>
-              <div className="text-xs text-slate-400 dark:text-slate-500 font-mono">
+              <div className="text-xs text-slate-400 dark:text-slate-500 font-mono bg-slate-100/50 dark:bg-slate-800/50 px-2 py-1 rounded-md">
                 {session.id.slice(0, 8)}...
               </div>
             </div>
@@ -283,23 +287,28 @@ export const ChatView = ({
       {/* Messages Container */}
       <div 
         ref={messagesContainerRef}
-        className={`flex-1 overflow-y-auto ${isCompact ? 'px-2 py-2' : 'px-4 py-6'} scroll-smooth`}
+        className={`flex-1 overflow-y-auto custom-scrollbar ${isCompact ? 'px-4 py-3' : 'px-6 py-8'}`}
         style={{ 
-          maxHeight: isCompact ? 'calc(100vh - 160px)' : 'calc(100vh - 200px)',
+          maxHeight: isCompact ? 'calc(100vh - 180px)' : 'calc(100vh - 220px)',
           minHeight: '400px'
         }}
       >
-        <div className={`max-w-4xl mx-auto space-y-${isCompact ? '2' : '4'}`}>
+        <div className={`max-w-4xl mx-auto space-y-${isCompact ? '3' : '6'}`}>
           {session.messages.length === 0 && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <Bot className="w-8 h-8 text-white" />
+            <div className="text-center py-16 animate-fade-in">
+              <div className="relative mb-8">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-2xl ring-4 ring-indigo-100 dark:ring-indigo-900/50">
+                  <Bot className="w-10 h-10 text-white" />
+                </div>
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mb-3">
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">
                 Start your coaching session
               </h3>
-              <p className="text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-                Tell me about your situation with {target.name} and what you'd like to achieve in this relationship.
+              <p className="text-slate-600 dark:text-slate-400 max-w-lg mx-auto text-lg leading-relaxed">
+                Tell me about your situation with <span className="font-semibold text-indigo-600 dark:text-indigo-400">{target.name}</span> and what you'd like to achieve in this relationship.
               </p>
             </div>
           )}
@@ -307,35 +316,37 @@ export const ChatView = ({
           {session.messages.map((message, index) => (
             <div key={message.id} className="animate-fade-in">
               {message.sender === 'ai' ? (
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-md">
-                    <Bot className="w-4 h-4 text-white" />
+                <div className="flex items-start space-x-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 shadow-lg ring-2 ring-white/20">
+                    <Bot className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1 max-w-3xl">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl rounded-tl-md px-4 py-3 shadow-sm border border-slate-200/50 dark:border-slate-700/50 transition-all duration-200 hover:shadow-md">
-                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+                    <div className="bg-white dark:bg-slate-800/90 rounded-2xl rounded-tl-lg px-6 py-4 shadow-sm border border-slate-200/60 dark:border-slate-700/60 backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-slate-300/60 dark:hover:border-slate-600/60">
+                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-[15px]">
                         {message.content}
                       </p>
                     </div>
-                    <div className="text-xs text-slate-400 dark:text-slate-500 mt-1 ml-4">
+                    <div className="text-xs text-slate-400 dark:text-slate-500 mt-2 ml-6 flex items-center">
+                      <div className="w-1 h-1 bg-slate-300 dark:bg-slate-600 rounded-full mr-2"></div>
                       {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-start space-x-3 justify-end">
+                <div className="flex items-start space-x-4 justify-end">
                   <div className="flex-1 max-w-3xl flex justify-end">
                     <div>
-                      <div className="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl rounded-tr-md px-4 py-3 shadow-sm transition-all duration-200 hover:shadow-md">
-                        <p className="text-white leading-relaxed">{message.content}</p>
+                      <div className="bg-gradient-to-br from-indigo-500 via-blue-500 to-purple-600 rounded-2xl rounded-tr-lg px-6 py-4 shadow-lg transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5">
+                        <p className="text-white leading-relaxed text-[15px] font-medium">{message.content}</p>
                       </div>
-                      <div className="text-xs text-slate-400 dark:text-slate-500 mt-1 mr-4 text-right">
+                      <div className="text-xs text-slate-400 dark:text-slate-500 mt-2 mr-6 text-right flex items-center justify-end">
                         {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <div className="w-1 h-1 bg-slate-300 dark:bg-slate-600 rounded-full ml-2"></div>
                       </div>
                     </div>
                   </div>
-                  <div className="w-8 h-8 bg-slate-200 dark:bg-slate-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <User className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-600 dark:to-slate-700 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 shadow-md">
+                    <User className="w-5 h-5 text-slate-600 dark:text-slate-300" />
                   </div>
                 </div>
               )}
@@ -351,15 +362,16 @@ export const ChatView = ({
 
           {/* Thinking Animation */}
           {(isThinking || isAnalyzing) && (
-            <div className="flex items-start space-x-3 animate-fade-in">
-              <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-md">
-                <Bot className="w-4 h-4 text-white" />
+            <div className="flex items-start space-x-4 animate-fade-in">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 shadow-lg ring-2 ring-white/20">
+                <Bot className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 max-w-3xl">
-                <div className="bg-white dark:bg-slate-800 rounded-2xl rounded-tl-md px-4 py-3 shadow-sm border border-slate-200/50 dark:border-slate-700/50">
+                <div className="bg-white dark:bg-slate-800/90 rounded-2xl rounded-tl-lg px-6 py-4 shadow-sm border border-slate-200/60 dark:border-slate-700/60 backdrop-blur-sm">
                   <ThinkingAnimation />
                   {isAnalyzing && (
-                    <p className="text-slate-600 dark:text-slate-400 text-sm mt-2">
+                    <p className="text-slate-600 dark:text-slate-400 text-sm mt-3 flex items-center">
+                      <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse mr-2"></div>
                       Analyzing your conversation to create a personalized strategy...
                     </p>
                   )}
@@ -372,24 +384,30 @@ export const ChatView = ({
         </div>
       </div>
 
-      {/* Input Area */}
+      {/* Modern Input Area */}
       {session.status === 'gathering_info' && !isThinking && !isAnalyzing && (
-        <div className="flex-shrink-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/60 dark:border-slate-700/60 shadow-sm">
-          <div className="max-w-4xl mx-auto px-4 py-4">
-            <form onSubmit={handleInputSubmit} className="flex space-x-3">
-              <Input
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Share more about your situation..."
-                className="flex-1 h-11 text-sm border-slate-300 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20 focus:ring-2 dark:bg-slate-800 dark:text-slate-200 rounded-xl transition-all duration-200"
-                disabled={isThinking || isAnalyzing}
-              />
+        <div className="flex-shrink-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200/50 dark:border-slate-700/50 shadow-lg">
+          <div className="max-w-4xl mx-auto px-6 py-5">
+            <form onSubmit={handleInputSubmit} className="flex space-x-4">
+              <div className="flex-1 relative">
+                <Input
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder="Share more about your situation..."
+                  className="h-12 text-[15px] border-slate-300/60 dark:border-slate-600/60 focus:border-indigo-400 focus:ring-indigo-400/30 focus:ring-4 dark:bg-slate-800/90 dark:text-slate-200 rounded-xl pr-4 pl-4 shadow-sm transition-all duration-200 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                  disabled={isThinking || isAnalyzing}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 dark:text-slate-500">
+                  {inputMessage.length}/1000
+                </div>
+              </div>
               <Button
                 type="submit"
                 disabled={!inputMessage.trim() || isThinking || isAnalyzing}
-                className="h-11 px-4 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white rounded-xl shadow-sm transition-all duration-200 hover:shadow-md disabled:opacity-50"
+                className="h-12 px-6 bg-gradient-to-r from-indigo-500 via-blue-500 to-purple-600 hover:from-indigo-600 hover:via-blue-600 hover:to-purple-700 text-white rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-lg font-medium"
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-4 h-4 mr-2" />
+                Send
               </Button>
             </form>
           </div>
