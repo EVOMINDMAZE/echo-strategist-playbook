@@ -6,9 +6,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Sparkles, ChevronDown, ChevronUp, RefreshCw, BarChart3, Lightbulb, MessageCircle } from 'lucide-react';
 import { Client, SessionData } from '@/types/coaching';
-import { FeedbackCollectorProps } from '@/components/FeedbackCollector';
-import { FeedbackAnalyticsProps } from '@/components/FeedbackAnalytics';
-import { FeedbackInsightsProps } from '@/components/FeedbackInsights';
 
 interface ResultsViewProps {
   session: SessionData;
