@@ -1,10 +1,11 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { WorldClassNavigation } from '@/components/WorldClassNavigation';
 import { DashboardStats } from '@/components/DashboardStats';
 import { MobileOptimizedStats } from '@/components/MobileOptimizedStats';
 import { SmartSuggestions } from '@/components/SmartSuggestions';
+import { IntelligentSuggestions } from '@/components/IntelligentSuggestions';
+import { SessionContinuity } from '@/components/SessionContinuity';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -129,6 +130,15 @@ const Dashboard = () => {
         {/* Mobile Optimized Quick Stats */}
         <div className="mb-6 sm:mb-8">
           <MobileOptimizedStats stats={quickStats} />
+        </div>
+
+        {/* Advanced Features Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
+          {/* Continue Previous Sessions */}
+          <SessionContinuity userId={user.id} />
+          
+          {/* Intelligent Suggestions */}
+          <IntelligentSuggestions userId={user.id} />
         </div>
 
         {/* Quick Actions & Smart Suggestions */}
