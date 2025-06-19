@@ -1,17 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { Client, ChatMessage, SessionStatus, SessionData } from '@/types/coaching';
+import type { Client, ChatMessage, SessionStatus, SessionData, Notification } from '@/types/coaching';
 
 export type { Client, ChatMessage, SessionStatus, SessionData };
-
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'reminder';
-  is_read: boolean;
-  created_at: string;
-}
 
 export const useSupabaseCoaching = () => {
   const [clients, setClients] = useState<Client[]>([]);
@@ -57,7 +49,17 @@ export const useSupabaseCoaching = () => {
         .limit(10);
 
       if (error) throw error;
-      setNotifications(data || []);
+      
+      const formattedNotifications: Notification[] = (data || []).map(notification => ({
+        id: notification.id,
+        title: notification.title,
+        message: notification.message,
+        type: notification.type as 'info' | 'success' | 'warning' | 'reminder',
+        is_read: notification.is_read || false,
+        created_at: notification.created_at
+      }));
+      
+      setNotifications(formattedNotifications);
     } catch (error) {
       console.error('Error loading notifications:', error);
     }

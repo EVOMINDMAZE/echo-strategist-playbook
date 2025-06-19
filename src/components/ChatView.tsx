@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -133,7 +132,7 @@ export const ChatView = ({
       id: Math.random().toString(36).substr(2, 9),
       content: content.trim(),
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date().toISOString()
     };
 
     const updatedSession = {

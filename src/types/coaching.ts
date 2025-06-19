@@ -41,3 +41,18 @@ export interface Notification {
   is_read: boolean;
   created_at: string;
 }
+
+export interface FeedbackAnalytics {
+  average_rating: number;
+  total_feedbacks: number;
+  suggestions_effectiveness: {
+    [key: string]: {
+      tried_count: number;
+      success_rate: number;
+    };
+  };
+  common_themes: {
+    what_works: string[];
+    what_doesnt: string[];
+  };
+}

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -274,7 +273,7 @@ const EnhancedSettings = () => {
                   <div>
                     <Label htmlFor="full-name">Full Name</Label>
                     <Input
-                      i
+                      id="full-name"
                       value={profile.full_name}
                       onChange={(e) => setProfile(prev => ({ ...prev, full_name: e.target.value }))}
                       placeholder="Enter your full name"

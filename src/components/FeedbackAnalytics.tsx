@@ -11,6 +11,13 @@ interface FeedbackAnalyticsProps {
   targetId?: string;
 }
 
+interface SuggestionEffectiveness {
+  [key: string]: {
+    tried_count: number;
+    success_rate: number;
+  };
+}
+
 export const FeedbackAnalytics = ({ targetId }: FeedbackAnalyticsProps) => {
   const [analytics, setAnalytics] = useState<FeedbackAnalyticsType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,7 +52,7 @@ export const FeedbackAnalytics = ({ targetId }: FeedbackAnalyticsProps) => {
           const averageRating = feedbacks.reduce((sum, f) => sum + f.rating, 0) / totalFeedbacks;
           
           // Track suggestion effectiveness
-          const suggestionEffectiveness: { [key: string]: { tried_count: number; success_rate: number } } = {};
+          const suggestionEffectiveness: SuggestionEffectiveness = {};
           
           feedbacks.forEach(feedback => {
             if (feedback.suggestions_tried) {
@@ -145,7 +152,7 @@ export const FeedbackAnalytics = ({ targetId }: FeedbackAnalyticsProps) => {
               <div>
                 <p className="text-sm font-medium text-green-600">Average Rating</p>
                 <p className="text-3xl font-bold text-green-800">
-                  {analytics.average_rating.toFixed(1)}
+                  {analytics?.average_rating.toFixed(1)}
                 </p>
               </div>
               <Star className="w-8 h-8 text-green-500" />
@@ -158,7 +165,7 @@ export const FeedbackAnalytics = ({ targetId }: FeedbackAnalyticsProps) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-blue-600">Total Sessions</p>
-                <p className="text-3xl font-bold text-blue-800">{analytics.total_feedbacks}</p>
+                <p className="text-3xl font-bold text-blue-800">{analytics?.total_feedbacks}</p>
               </div>
               <Users className="w-8 h-8 text-blue-500" />
             </div>
@@ -171,7 +178,7 @@ export const FeedbackAnalytics = ({ targetId }: FeedbackAnalyticsProps) => {
               <div>
                 <p className="text-sm font-medium text-purple-600">Strategies Tried</p>
                 <p className="text-3xl font-bold text-purple-800">
-                  {Object.keys(analytics.suggestions_effectiveness).length}
+                  {Object.keys(analytics?.suggestions_effectiveness || {}).length}
                 </p>
               </div>
               <TrendingUp className="w-8 h-8 text-purple-500" />
@@ -181,7 +188,7 @@ export const FeedbackAnalytics = ({ targetId }: FeedbackAnalyticsProps) => {
       </div>
 
       {/* Strategy Effectiveness */}
-      {Object.keys(analytics.suggestions_effectiveness).length > 0 && (
+      {analytics && Object.keys(analytics.suggestions_effectiveness).length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-xl text-slate-800">Strategy Effectiveness</CardTitle>
@@ -213,7 +220,7 @@ export const FeedbackAnalytics = ({ targetId }: FeedbackAnalyticsProps) => {
       )}
 
       {/* Common Themes */}
-      {(analytics.common_themes.what_works.length > 0 || analytics.common_themes.what_doesnt.length > 0) && (
+      {analytics && (analytics.common_themes.what_works.length > 0 || analytics.common_themes.what_doesnt.length > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {analytics.common_themes.what_works.length > 0 && (
             <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
