@@ -1,50 +1,17 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Navigation } from '@/components/Navigation';
 import { useSupabaseCoaching } from '@/hooks/useSupabaseCoaching';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { Target, Plus, BarChart3, MessageSquare } from 'lucide-react';
-
-export type SessionStatus = 'gathering_info' | 'analyzing' | 'complete' | 'error';
-
-export interface Target {
-  id: string;
-  name: string;
-  created_at: string;
-}
-
-export interface ChatMessage {
-  id: string;
-  content: string;
-  sender: 'user' | 'ai';
-  timestamp: Date | string;
-  options?: string[];
-}
-
-export interface SessionData {
-  id: string;
-  target_id: string;
-  status: SessionStatus;
-  messages: ChatMessage[];
-  case_data: Record<string, any>;
-  strategist_output?: {
-    analysis?: string;
-    suggestions?: Array<{
-      title: string;
-      description: string;
-      why_it_works: string;
-    }>;
-  };
-}
+import { MessageSquare } from 'lucide-react';
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
-  const { targets, loading } = useSupabaseCoaching();
+  const { clients, loading } = useSupabaseCoaching();
 
   useEffect(() => {
     const getUser = async () => {
@@ -71,7 +38,7 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  if (loading || !user) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navigation user={user} />
@@ -86,117 +53,92 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50">
       <Navigation user={user} />
       
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user.email?.split('@')[0]}!
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            AI-Powered Relationship Coaching
           </h1>
-          <p className="mt-2 text-gray-600">
-            Here's an overview of your coaching activities
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Get personalized strategies and insights to improve your relationships, 
+            communication, and social interactions.
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Targets</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{targets.length}</div>
-              <p className="text-xs text-muted-foreground">
-                People you're coaching
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Sessions</CardTitle>
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">0</div>
-              <p className="text-xs text-muted-foreground">
-                Ongoing conversations
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed Playbooks</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">0</div>
-              <p className="text-xs text-muted-foreground">
-                Strategies generated
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button 
-                onClick={() => navigate('/targets')}
-                className="w-full flex items-center justify-center gap-2"
-              >
-                <Target size={16} />
-                Manage Targets
-              </Button>
-              <Button 
-                onClick={() => navigate('/targets')}
-                variant="outline"
-                className="w-full flex items-center justify-center gap-2"
-              >
-                <Plus size={16} />
-                Add New Target
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {targets.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">
-                  No activity yet. Create your first target to get started!
+        {user ? (
+          <div className="max-w-4xl mx-auto">
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Coaching Journey</CardTitle>
+                <p className="text-gray-600">
+                  Continue working with your existing clients or add new ones.
                 </p>
-              ) : (
-                <div className="space-y-2">
-                  {targets.slice(0, 3).map((target) => (
-                    <div key={target.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm">{target.name}</span>
-                      <span className="text-xs text-gray-500">
-                        {new Date(target.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                  ))}
-                  {targets.length > 3 && (
-                    <Button 
-                      variant="link" 
-                      size="sm"
-                      onClick={() => navigate('/targets')}
-                      className="w-full"
+              </CardHeader>
+              <CardContent>
+                {clients.length === 0 ? (
+                  <div className="text-center py-12">
+                    <MessageSquare className="mx-auto h-16 w-16 text-gray-400 mb-6" />
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                      Start Your First Coaching Session
+                    </h3>
+                    <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                      Add a client to begin receiving personalized coaching strategies 
+                      and communication insights.
+                    </p>
+                    <Button
+                      size="lg"
+                      onClick={() => navigate('/clients')}
+                      className="bg-blue-600 hover:bg-blue-700"
                     >
-                      View all targets
+                      Add Your First Client
                     </Button>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-semibold">Your Clients</h3>
+                      <Button onClick={() => navigate('/clients')}>
+                        Manage Clients
+                      </Button>
+                    </div>
+                    <div className="grid gap-4">
+                      {clients.slice(0, 3).map((client) => (
+                        <div
+                          key={client.id}
+                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                        >
+                          <div>
+                            <h4 className="font-medium">{client.name}</h4>
+                            <p className="text-sm text-gray-500">
+                              Added {new Date(client.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Button size="sm" onClick={() => navigate('/clients')}>
+                            View Sessions
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <div className="max-w-4xl mx-auto">
+            <p className="text-gray-600 mb-8 text-center">
+              Ready to transform your relationships? Sign up to start your personalized coaching journey.
+            </p>
+            <div className="flex justify-center">
+              <Button
+                size="lg"
+                onClick={() => navigate('/auth')}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Get Started
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
