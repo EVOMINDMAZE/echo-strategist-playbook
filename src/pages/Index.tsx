@@ -1,10 +1,13 @@
 
 import { useState, useEffect } from 'react';
-import { TargetSelection } from '@/components/TargetSelection';
-import { ChatView } from '@/components/ChatView';
-import { ResultsView } from '@/components/ResultsView';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Navigation } from '@/components/Navigation';
 import { useSupabaseCoaching } from '@/hooks/useSupabaseCoaching';
-import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { User } from '@supabase/supabase-js';
+import { Target, Plus, BarChart3, MessageSquare } from 'lucide-react';
 
 export type SessionStatus = 'gathering_info' | 'analyzing' | 'complete' | 'error';
 
@@ -39,157 +42,164 @@ export interface SessionData {
 }
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'targets' | 'chat' | 'results'>('targets');
-  const [selectedTarget, setSelectedTarget] = useState<Target | null>(null);
-  const [currentSession, setCurrentSession] = useState<SessionData | null>(null);
-  const { toast } = useToast();
+  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
+  const { targets, loading } = useSupabaseCoaching();
 
-  const {
-    targets,
-    loading,
-    createTarget,
-    createSession,
-    sendMessage,
-    triggerStrategist,
-    getSession
-  } = useSupabaseCoaching();
-
-  const handleTargetSelect = async (target: Target) => {
-    try {
-      setSelectedTarget(target);
-      const session = await createSession(target.id);
-      setCurrentSession(session);
-      setCurrentView('chat');
-    } catch (error) {
-      console.error('Error creating session:', error);
-      toast({
-        title: "Error",
-        description: "Failed to start coaching session. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleNewTarget = async (name: string) => {
-    try {
-      const newTarget = await createTarget(name);
-      await handleTargetSelect(newTarget);
-    } catch (error) {
-      console.error('Error creating target:', error);
-      toast({
-        title: "Error", 
-        description: "Failed to create new person. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleSessionUpdate = async (session: SessionData) => {
-    setCurrentSession(session);
-  };
-
-  const handleStatusChange = async (status: SessionStatus) => {
-    if (!currentSession) return;
-
-    if (status === 'analyzing') {
-      try {
-        await triggerStrategist(currentSession.id);
-        
-        // Poll for completion
-        const pollForCompletion = async () => {
-          try {
-            const updatedSession = await getSession(currentSession.id);
-            if (updatedSession.status === 'complete') {
-              setCurrentSession(updatedSession);
-              setCurrentView('results');
-            } else if (updatedSession.status === 'error') {
-              toast({
-                title: "Error",
-                description: "Failed to generate your playbook. Please try again.",
-                variant: "destructive"
-              });
-            } else {
-              // Continue polling
-              setTimeout(pollForCompletion, 2000);
-            }
-          } catch (error) {
-            console.error('Error polling session:', error);
-            toast({
-              title: "Error",
-              description: "Failed to check session status. Please refresh the page.",
-              variant: "destructive"
-            });
-          }
-        };
-
-        setTimeout(pollForCompletion, 3000);
-      } catch (error) {
-        console.error('Error triggering strategist:', error);
-        toast({
-          title: "Error",
-          description: "Failed to analyze conversation. Please try again.",
-          variant: "destructive"
-        });
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/auth');
+        return;
       }
-    }
-  };
+      setUser(session.user);
+    };
 
-  const handleBackToTargets = () => {
-    setCurrentView('targets');
-    setSelectedTarget(null);
-    setCurrentSession(null);
-  };
+    getUser();
 
-  const handleNewSession = () => {
-    if (selectedTarget) {
-      handleTargetSelect(selectedTarget);
-    } else {
-      handleBackToTargets();
-    }
-  };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session) {
+          setUser(session.user);
+        } else {
+          navigate('/auth');
+        }
+      }
+    );
 
-  if (loading) {
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg text-slate-600">Loading...</div>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation user={user} />
+        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+          <div className="text-center">Loading...</div>
+        </div>
       </div>
     );
   }
 
-  if (currentView === 'targets') {
-    return (
-      <TargetSelection
-        targets={targets}
-        onTargetSelect={handleTargetSelect}
-        onNewTarget={handleNewTarget}
-      />
-    );
-  }
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navigation user={user} />
+      
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Welcome back, {user.email?.split('@')[0]}!
+          </h1>
+          <p className="mt-2 text-gray-600">
+            Here's an overview of your coaching activities
+          </p>
+        </div>
 
-  if (currentView === 'chat' && currentSession && selectedTarget) {
-    return (
-      <ChatView
-        session={currentSession}
-        target={selectedTarget}
-        onSessionUpdate={handleSessionUpdate}
-        onStatusChange={handleStatusChange}
-        onBackToTargets={handleBackToTargets}
-      />
-    );
-  }
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Targets</CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{targets.length}</div>
+              <p className="text-xs text-muted-foreground">
+                People you're coaching
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Sessions</CardTitle>
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground">
+                Ongoing conversations
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Completed Playbooks</CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground">
+                Strategies generated
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
-  if (currentView === 'results' && currentSession && selectedTarget) {
-    return (
-      <ResultsView
-        session={currentSession}
-        target={selectedTarget}
-        onBackToTargets={handleBackToTargets}
-        onNewSession={handleNewSession}
-      />
-    );
-  }
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button 
+                onClick={() => navigate('/targets')}
+                className="w-full flex items-center justify-center gap-2"
+              >
+                <Target size={16} />
+                Manage Targets
+              </Button>
+              <Button 
+                onClick={() => navigate('/targets')}
+                variant="outline"
+                className="w-full flex items-center justify-center gap-2"
+              >
+                <Plus size={16} />
+                Add New Target
+              </Button>
+            </CardContent>
+          </Card>
 
-  return null;
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {targets.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">
+                  No activity yet. Create your first target to get started!
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {targets.slice(0, 3).map((target) => (
+                    <div key={target.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <span className="text-sm">{target.name}</span>
+                      <span className="text-xs text-gray-500">
+                        {new Date(target.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  ))}
+                  {targets.length > 3 && (
+                    <Button 
+                      variant="link" 
+                      size="sm"
+                      onClick={() => navigate('/targets')}
+                      className="w-full"
+                    >
+                      View all targets
+                    </Button>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Index;
