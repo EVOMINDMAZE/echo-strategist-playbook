@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -12,7 +12,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Menu, User as UserIcon, Settings, LogOut, Home, Target } from 'lucide-react';
+import { Menu, User as UserIcon, Settings, LogOut, Home, Target, Info, DollarSign } from 'lucide-react';
 
 interface NavigationProps {
   user?: User | null;
@@ -33,27 +33,43 @@ export const Navigation = ({ user, onSignOut }: NavigationProps) => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="border-b bg-white shadow-sm">
+    <nav className="border-b bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <button
               onClick={() => navigate('/')}
-              className="text-xl font-bold text-gray-900 hover:text-gray-700"
+              className="text-xl font-bold text-gray-900 hover:text-gray-700 transition-colors"
             >
               Coaching Assistant
             </button>
             
-            {user && (
-              <div className="hidden md:ml-8 md:flex md:space-x-4">
-                <Button
-                  variant={isActive('/') ? 'default' : 'ghost'}
-                  onClick={() => navigate('/')}
-                  className="flex items-center gap-2"
-                >
-                  <Home size={16} />
-                  Dashboard
-                </Button>
+            <div className="hidden md:ml-8 md:flex md:space-x-4">
+              <Button
+                variant={isActive('/') ? 'default' : 'ghost'}
+                onClick={() => navigate('/')}
+                className="flex items-center gap-2"
+              >
+                <Home size={16} />
+                Dashboard
+              </Button>
+              <Button
+                variant={isActive('/about') ? 'default' : 'ghost'}
+                onClick={() => navigate('/about')}
+                className="flex items-center gap-2"
+              >
+                <Info size={16} />
+                About
+              </Button>
+              <Button
+                variant={isActive('/pricing') ? 'default' : 'ghost'}
+                onClick={() => navigate('/pricing')}
+                className="flex items-center gap-2"
+              >
+                <DollarSign size={16} />
+                Pricing
+              </Button>
+              {user && (
                 <Button
                   variant={isActive('/targets') ? 'default' : 'ghost'}
                   onClick={() => navigate('/targets')}
@@ -62,8 +78,8 @@ export const Navigation = ({ user, onSignOut }: NavigationProps) => {
                   <Target size={16} />
                   My Targets
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
@@ -118,7 +134,7 @@ export const Navigation = ({ user, onSignOut }: NavigationProps) => {
         </div>
 
         {/* Mobile menu */}
-        {isMenuOpen && user && (
+        {isMenuOpen && (
           <div className="md:hidden border-t bg-gray-50">
             <div className="px-2 pt-2 pb-3 space-y-1">
               <Button
@@ -130,37 +146,57 @@ export const Navigation = ({ user, onSignOut }: NavigationProps) => {
                 Dashboard
               </Button>
               <Button
-                variant={isActive('/targets') ? 'default' : 'ghost'}
-                onClick={() => { navigate('/targets'); setIsMenuOpen(false); }}
+                variant={isActive('/about') ? 'default' : 'ghost'}
+                onClick={() => { navigate('/about'); setIsMenuOpen(false); }}
                 className="w-full justify-start gap-2"
               >
-                <Target size={16} />
-                My Targets
+                <Info size={16} />
+                About
               </Button>
               <Button
-                variant="ghost"
-                onClick={() => { navigate('/profile'); setIsMenuOpen(false); }}
+                variant={isActive('/pricing') ? 'default' : 'ghost'}
+                onClick={() => { navigate('/pricing'); setIsMenuOpen(false); }}
                 className="w-full justify-start gap-2"
               >
-                <UserIcon size={16} />
-                Profile
+                <DollarSign size={16} />
+                Pricing
               </Button>
-              <Button
-                variant="ghost"
-                onClick={() => { navigate('/settings'); setIsMenuOpen(false); }}
-                className="w-full justify-start gap-2"
-              >
-                <Settings size={16} />
-                Settings
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={handleSignOut}
-                className="w-full justify-start gap-2 text-red-600"
-              >
-                <LogOut size={16} />
-                Sign Out
-              </Button>
+              {user && (
+                <>
+                  <Button
+                    variant={isActive('/targets') ? 'default' : 'ghost'}
+                    onClick={() => { navigate('/targets'); setIsMenuOpen(false); }}
+                    className="w-full justify-start gap-2"
+                  >
+                    <Target size={16} />
+                    My Targets
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => { navigate('/profile'); setIsMenuOpen(false); }}
+                    className="w-full justify-start gap-2"
+                  >
+                    <UserIcon size={16} />
+                    Profile
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => { navigate('/settings'); setIsMenuOpen(false); }}
+                    className="w-full justify-start gap-2"
+                  >
+                    <Settings size={16} />
+                    Settings
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={handleSignOut}
+                    className="w-full justify-start gap-2 text-red-600"
+                  >
+                    <LogOut size={16} />
+                    Sign Out
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         )}
