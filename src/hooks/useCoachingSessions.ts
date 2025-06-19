@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { SessionData, SessionStatus, ChatMessage } from '@/types/coaching';
 import { sanitizeChatHistory, validateStrategistOutput } from '@/utils/messageUtils';
@@ -8,7 +8,7 @@ export const useCoachingSessions = () => {
   const [sessions, setSessions] = useState<SessionData[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const getSession = async (sessionId: string): Promise<SessionData> => {
+  const getSession = useCallback(async (sessionId: string): Promise<SessionData> => {
     const { data, error } = await supabase
       .from('coaching_sessions')
       .select('*')
@@ -33,9 +33,9 @@ export const useCoachingSessions = () => {
       created_at: data.created_at,
       case_data: data.case_file_data as Record<string, any> || {}
     };
-  };
+  }, []);
 
-  const updateSession = async (sessionId: string, updates: Partial<SessionData>) => {
+  const updateSession = useCallback(async (sessionId: string, updates: Partial<SessionData>) => {
     const updateData: any = {};
     
     if (updates.status) updateData.status = updates.status;
@@ -54,9 +54,9 @@ export const useCoachingSessions = () => {
       .eq('id', sessionId);
 
     if (error) throw error;
-  };
+  }, []);
 
-  const createSession = async (targetId: string): Promise<SessionData> => {
+  const createSession = useCallback(async (targetId: string): Promise<SessionData> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
@@ -90,9 +90,9 @@ export const useCoachingSessions = () => {
       created_at: data.created_at,
       case_data: data.case_file_data as Record<string, any> || {}
     };
-  };
+  }, []);
 
-  const loadUserSessions = async () => {
+  const loadUserSessions = useCallback(async () => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -132,7 +132,7 @@ export const useCoachingSessions = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   return {
     sessions,

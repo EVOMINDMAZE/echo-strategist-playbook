@@ -60,20 +60,31 @@ const Chat = () => {
     };
   }, [navigate]);
 
-  // Session loading effect - runs when user and sessionId are available
+  // Session loading effect - runs when sessionId and user change
   useEffect(() => {
     let mounted = true;
+    let timeoutId: NodeJS.Timeout;
 
     const loadSession = async () => {
       if (!sessionId || !user) return;
 
       try {
         setLoading(true);
+        setError(null);
         console.log('Loading session:', sessionId);
         
+        // Add timeout to prevent infinite loading
+        timeoutId = setTimeout(() => {
+          if (mounted) {
+            setError('Session loading timed out');
+            setLoading(false);
+          }
+        }, 10000); // 10 second timeout
+
         const sessionData = await getSession(sessionId);
         if (!mounted) return;
         
+        clearTimeout(timeoutId);
         console.log('Session data loaded successfully');
         setSession(sessionData);
         
@@ -117,8 +128,9 @@ const Chat = () => {
 
     return () => {
       mounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [sessionId, user, getSession, searchParams]);
+  }, [sessionId, user]); // Removed getSession from dependencies
 
   const handleSessionUpdate = async (updatedSession: SessionData) => {
     setSession(updatedSession);
