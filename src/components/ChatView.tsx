@@ -6,6 +6,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Send, Bot, User } from 'lucide-react';
 import { Target, SessionData, ChatMessage, SessionStatus } from '@/pages/Index';
 import { ThinkingAnimation } from '@/components/ThinkingAnimation';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface ChatViewProps {
   session: SessionData;
@@ -25,6 +27,7 @@ export const ChatView = ({
   const [inputMessage, setInputMessage] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -37,7 +40,7 @@ export const ChatView = ({
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
 
-    // Add user message
+    // Add user message to UI immediately
     const userMessage: ChatMessage = {
       id: Math.random().toString(36).substr(2, 9),
       content: content.trim(),
@@ -53,59 +56,43 @@ export const ChatView = ({
     setInputMessage('');
     setIsThinking(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponses = [
-        {
-          content: "That's really helpful context. Now, what would you say is your main goal with this conversation?",
-          options: [
-            "Get a second date",
-            "Keep the conversation flowing",
-            "Build deeper connection",
-            "Clarify where we stand"
-          ]
-        },
-        {
-          content: "Perfect! And how would you describe your personality when you're at your best?",
-          options: [
-            "Witty and playful",
-            "Thoughtful and deep",
-            "Adventurous and spontaneous",
-            "Caring and supportive"
-          ]
-        },
-        {
-          content: "Excellent! That gives me a clear picture. Let me pass this to our strategist. This should only take a moment.",
-          options: []
+    try {
+      // Call the Edge Function
+      const { data, error } = await supabase.functions.invoke('handle-user-message', {
+        body: {
+          sessionId: session.id,
+          message: content.trim(),
+          targetName: target.name
         }
-      ];
+      });
 
-      const responseIndex = Math.min(session.messages.length - 1, aiResponses.length - 1);
-      const response = aiResponses[responseIndex];
+      if (error) throw error;
 
-      const aiMessage: ChatMessage = {
-        id: Math.random().toString(36).substr(2, 9),
-        content: response.content,
-        sender: 'ai',
-        timestamp: new Date(),
-        options: response.options.length > 0 ? response.options : undefined
-      };
-
+      // Add AI response to session
       const finalSession = {
         ...updatedSession,
-        messages: [...updatedSession.messages, aiMessage]
+        messages: [...updatedSession.messages, data.message]
       };
 
       onSessionUpdate(finalSession);
       setIsThinking(false);
 
-      // Check if conversation is complete
-      if (response.options.length === 0) {
+      // Check if we should trigger analysis
+      if (data.shouldTriggerAnalysis) {
         setTimeout(() => {
           onStatusChange('analyzing');
         }, 1000);
       }
-    }, 2000);
+
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setIsThinking(false);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleOptionClick = (option: string) => {

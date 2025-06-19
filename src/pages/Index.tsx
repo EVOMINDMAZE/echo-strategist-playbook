@@ -1,12 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { TargetSelection } from '@/components/TargetSelection';
 import { ChatView } from '@/components/ChatView';
-import { PaywallModal } from '@/components/PaywallModal';
 import { ResultsView } from '@/components/ResultsView';
-import { AuthModal } from '@/components/AuthModal';
-import { SubscriptionModal } from '@/components/SubscriptionModal';
-import { Button } from '@/components/ui/button';
-import { Shield, LogOut, Settings, Crown } from 'lucide-react';
+import { useSupabaseCoaching } from '@/hooks/useSupabaseCoaching';
+import { useToast } from '@/hooks/use-toast';
 
 export type SessionStatus = 'gathering_info' | 'analyzing' | 'complete' | 'error';
 
@@ -20,7 +18,7 @@ export interface ChatMessage {
   id: string;
   content: string;
   sender: 'user' | 'ai';
-  timestamp: Date;
+  timestamp: Date | string;
   options?: string[];
 }
 
@@ -29,243 +27,169 @@ export interface SessionData {
   target_id: string;
   status: SessionStatus;
   messages: ChatMessage[];
-  case_file: any;
-  strategist_output: any;
+  case_data: Record<string, any>;
+  strategist_output?: {
+    analysis?: string;
+    suggestions?: Array<{
+      title: string;
+      description: string;
+      why_it_works: string;
+    }>;
+  };
 }
 
 const Index = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userTier, setUserTier] = useState<string | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const [currentView, setCurrentView] = useState<'target-selection' | 'chat' | 'results'>('target-selection');
+  const [currentView, setCurrentView] = useState<'targets' | 'chat' | 'results'>('targets');
   const [selectedTarget, setSelectedTarget] = useState<Target | null>(null);
   const [currentSession, setCurrentSession] = useState<SessionData | null>(null);
-  const [showPaywall, setShowPaywall] = useState(false);
+  const { toast } = useToast();
 
-  // Mock data for development
-  const [targets, setTargets] = useState<Target[]>([
-    { id: '1', name: 'Sarah', created_at: '2024-01-15' },
-    { id: '2', name: 'Alex', created_at: '2024-01-20' }
-  ]);
+  const {
+    targets,
+    loading,
+    createTarget,
+    createSession,
+    sendMessage,
+    triggerStrategist,
+    getSession
+  } = useSupabaseCoaching();
 
-  useEffect(() => {
-    // Check if user is authenticated on app load
-    if (!isAuthenticated) {
-      setShowAuthModal(true);
-    }
-  }, [isAuthenticated]);
-
-  const handleAuthSuccess = () => {
-    setIsAuthenticated(true);
-    setShowAuthModal(false);
-    setShowSubscriptionModal(true);
-  };
-
-  const handleSubscriptionSuccess = (tier: string) => {
-    setUserTier(tier);
-    setShowSubscriptionModal(false);
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setUserTier(null);
-    setCurrentView('target-selection');
-    setSelectedTarget(null);
-    setCurrentSession(null);
-    setShowAuthModal(true);
-  };
-
-  const handleTargetSelect = (target: Target) => {
-    setSelectedTarget(target);
-    const newSession: SessionData = {
-      id: Math.random().toString(36).substr(2, 9),
-      target_id: target.id,
-      status: 'gathering_info',
-      messages: [{
-        id: '1',
-        content: `Welcome to your confidential coaching space. I'm Echo, your personal communication strategist. I see we're focusing on ${target.name} today. How did our last strategy work out for you?`,
-        sender: 'ai',
-        timestamp: new Date(),
-        options: [
-          "It went really well!",
-          "It was okay, mixed results",
-          "It didn't work as expected",
-          "This is our first session"
-        ]
-      }],
-      case_file: {},
-      strategist_output: null
-    };
-    setCurrentSession(newSession);
-    setCurrentView('chat');
-  };
-
-  const handleNewTarget = (name: string) => {
-    const newTarget: Target = {
-      id: Math.random().toString(36).substr(2, 9),
-      name,
-      created_at: new Date().toISOString()
-    };
-    setTargets([...targets, newTarget]);
-    handleTargetSelect(newTarget);
-  };
-
-  const handleSessionStatusChange = (status: SessionStatus) => {
-    if (currentSession) {
-      setCurrentSession({ ...currentSession, status });
-      if (status === 'analyzing') {
-        setShowPaywall(true);
-      } else if (status === 'complete') {
-        setShowPaywall(false);
-        setCurrentView('results');
-      }
+  const handleTargetSelect = async (target: Target) => {
+    try {
+      setSelectedTarget(target);
+      const session = await createSession(target.id);
+      setCurrentSession(session);
+      setCurrentView('chat');
+    } catch (error) {
+      console.error('Error creating session:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start coaching session. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
-  const handlePaymentComplete = () => {
-    setShowPaywall(false);
-    setTimeout(() => {
-      if (currentSession) {
-        const mockResults = {
-          analysis: "Based on your conversation history and current situation, I can see that the relationship is at a crucial transition point. The formal tone suggests they're being cautious, but their continued engagement indicates genuine interest.",
-          suggestions: [
-            {
-              title: "Break the Ice with Shared Experience",
-              description: "Reference something you both experienced or discussed previously to create instant connection.",
-              why_it_works: "Shared experiences create psychological bonding and move conversations from formal to personal naturally."
-            },
-            {
-              title: "Use Strategic Vulnerability",
-              description: "Share something mildly personal about yourself to invite them to reciprocate.",
-              why_it_works: "Controlled vulnerability builds trust and encourages deeper emotional connection."
-            },
-            {
-              title: "Ask for Their Opinion",
-              description: "Ask for their thoughts on something you're genuinely curious about.",
-              why_it_works: "People love being valued for their insights, and it shifts focus from small talk to meaningful exchange."
-            }
-          ]
-        };
+  const handleNewTarget = async (name: string) => {
+    try {
+      const newTarget = await createTarget(name);
+      await handleTargetSelect(newTarget);
+    } catch (error) {
+      console.error('Error creating target:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to create new person. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSessionUpdate = async (session: SessionData) => {
+    setCurrentSession(session);
+  };
+
+  const handleStatusChange = async (status: SessionStatus) => {
+    if (!currentSession) return;
+
+    if (status === 'analyzing') {
+      try {
+        await triggerStrategist(currentSession.id);
         
-        setCurrentSession({
-          ...currentSession,
-          status: 'complete',
-          strategist_output: mockResults
+        // Poll for completion
+        const pollForCompletion = async () => {
+          try {
+            const updatedSession = await getSession(currentSession.id);
+            if (updatedSession.status === 'complete') {
+              setCurrentSession(updatedSession);
+              setCurrentView('results');
+            } else if (updatedSession.status === 'error') {
+              toast({
+                title: "Error",
+                description: "Failed to generate your playbook. Please try again.",
+                variant: "destructive"
+              });
+            } else {
+              // Continue polling
+              setTimeout(pollForCompletion, 2000);
+            }
+          } catch (error) {
+            console.error('Error polling session:', error);
+            toast({
+              title: "Error",
+              description: "Failed to check session status. Please refresh the page.",
+              variant: "destructive"
+            });
+          }
+        };
+
+        setTimeout(pollForCompletion, 3000);
+      } catch (error) {
+        console.error('Error triggering strategist:', error);
+        toast({
+          title: "Error",
+          description: "Failed to analyze conversation. Please try again.",
+          variant: "destructive"
         });
-        setCurrentView('results');
       }
-    }, 2000);
+    }
   };
 
   const handleBackToTargets = () => {
-    setCurrentView('target-selection');
+    setCurrentView('targets');
     setSelectedTarget(null);
     setCurrentSession(null);
-    setShowPaywall(false);
   };
 
-  if (!isAuthenticated || !userTier) {
+  const handleNewSession = () => {
+    if (selectedTarget) {
+      handleTargetSelect(selectedTarget);
+    } else {
+      handleBackToTargets();
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="min-h-screen confidential-atmosphere flex items-center justify-center">
-        <AuthModal 
-          isOpen={showAuthModal}
-          onClose={() => {}}
-          onAuthSuccess={handleAuthSuccess}
-        />
-        <SubscriptionModal 
-          isOpen={showSubscriptionModal}
-          onClose={() => {}}
-          onSubscriptionSuccess={handleSubscriptionSuccess}
-        />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg text-slate-600">Loading...</div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen confidential-atmosphere">
-      {/* Professional Header */}
-      <header className="border-b border-border/20 bg-card/20 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <Shield className="w-8 h-8 text-primary" />
-              <div>
-                <h1 className="text-xl font-serif font-semibold text-foreground">Echo Strategist</h1>
-                <p className="text-xs text-muted-foreground">Your Confidential Coaching Space</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
-                <Crown className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-primary capitalize">{userTier}</span>
-              </div>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowSubscriptionModal(true)}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <LogOut className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main>
-        {currentView === 'target-selection' && (
-          <TargetSelection 
-            targets={targets}
-            onTargetSelect={handleTargetSelect}
-            onNewTarget={handleNewTarget}
-          />
-        )}
-        
-        {currentView === 'chat' && currentSession && selectedTarget && (
-          <ChatView 
-            session={currentSession}
-            target={selectedTarget}
-            onSessionUpdate={setCurrentSession}
-            onStatusChange={handleSessionStatusChange}
-            onBackToTargets={handleBackToTargets}
-          />
-        )}
-        
-        {currentView === 'results' && currentSession && selectedTarget && (
-          <ResultsView 
-            session={currentSession}
-            target={selectedTarget}
-            onBackToTargets={handleBackToTargets}
-            onNewSession={() => handleTargetSelect(selectedTarget)}
-          />
-        )}
-      </main>
-
-      <PaywallModal 
-        isOpen={showPaywall}
-        onPaymentComplete={handlePaymentComplete}
+  if (currentView === 'targets') {
+    return (
+      <TargetSelection
+        targets={targets}
+        onTargetSelect={handleTargetSelect}
+        onNewTarget={handleNewTarget}
       />
+    );
+  }
 
-      <SubscriptionModal 
-        isOpen={showSubscriptionModal}
-        onClose={() => setShowSubscriptionModal(false)}
-        onSubscriptionSuccess={handleSubscriptionSuccess}
+  if (currentView === 'chat' && currentSession && selectedTarget) {
+    return (
+      <ChatView
+        session={currentSession}
+        target={selectedTarget}
+        onSessionUpdate={handleSessionUpdate}
+        onStatusChange={handleStatusChange}
+        onBackToTargets={handleBackToTargets}
       />
-    </div>
-  );
+    );
+  }
+
+  if (currentView === 'results' && currentSession && selectedTarget) {
+    return (
+      <ResultsView
+        session={currentSession}
+        target={selectedTarget}
+        onBackToTargets={handleBackToTargets}
+        onNewSession={handleNewSession}
+      />
+    );
+  }
+
+  return null;
 };
 
 export default Index;
