@@ -1,18 +1,49 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Target, SessionData, ChatMessage, SessionStatus } from '@/pages/Index';
+
+export interface Client {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  content: string;
+  sender: 'user' | 'ai';
+  timestamp: Date;
+  options?: string[];
+}
+
+export type SessionStatus = 'gathering_info' | 'analyzing' | 'complete' | 'error';
+
+export interface SessionData {
+  id: string;
+  target_id: string;
+  status: SessionStatus;
+  messages: ChatMessage[];
+  case_data: Record<string, any>;
+  strategist_output?: {
+    analysis?: string;
+    suggestions?: Array<{
+      title: string;
+      description: string;
+      why_it_works: string;
+    }>;
+  };
+}
 
 export const useSupabaseCoaching = () => {
-  const [targets, setTargets] = useState<Target[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load targets on mount
+  // Load clients on mount
   useEffect(() => {
-    loadTargets();
+    loadClients();
   }, []);
 
-  const loadTargets = async () => {
+  const loadClients = async () => {
     try {
       const { data, error } = await supabase
         .from('targets')
@@ -21,21 +52,21 @@ export const useSupabaseCoaching = () => {
 
       if (error) throw error;
 
-      const formattedTargets: Target[] = data.map(target => ({
+      const formattedClients: Client[] = data.map(target => ({
         id: target.id,
         name: target.target_name,
         created_at: target.created_at
       }));
 
-      setTargets(formattedTargets);
+      setClients(formattedClients);
     } catch (error) {
-      console.error('Error loading targets:', error);
+      console.error('Error loading clients:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const createTarget = async (name: string): Promise<Target> => {
+  const createClient = async (name: string): Promise<Client> => {
     // Get current user
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -54,20 +85,20 @@ export const useSupabaseCoaching = () => {
 
     if (error) throw error;
 
-    const newTarget: Target = {
+    const newClient: Client = {
       id: data.id,
       name: data.target_name,
       created_at: data.created_at
     };
 
-    setTargets(prev => [newTarget, ...prev]);
-    return newTarget;
+    setClients(prev => [newClient, ...prev]);
+    return newClient;
   };
 
-  const createSession = async (targetId: string): Promise<SessionData> => {
+  const createSession = async (clientId: string): Promise<SessionData> => {
     const { data, error } = await supabase
       .from('coaching_sessions')
-      .insert({ target_id: targetId })
+      .insert({ target_id: clientId })
       .select()
       .single();
 
@@ -81,6 +112,30 @@ export const useSupabaseCoaching = () => {
       case_data: typeof data.case_file_data === 'object' && data.case_file_data !== null ? data.case_file_data as Record<string, any> : {},
       strategist_output: data.strategist_output as { analysis?: string; suggestions?: Array<{ title: string; description: string; why_it_works: string; }>; } | undefined
     };
+  };
+
+  const updateSession = async (sessionId: string, updates: Partial<SessionData>) => {
+    const updateData: any = {};
+    
+    if (updates.messages) {
+      updateData.raw_chat_history = updates.messages;
+    }
+    if (updates.status) {
+      updateData.status = updates.status;
+    }
+    if (updates.case_data) {
+      updateData.case_file_data = updates.case_data;
+    }
+    if (updates.strategist_output) {
+      updateData.strategist_output = updates.strategist_output;
+    }
+
+    const { error } = await supabase
+      .from('coaching_sessions')
+      .update(updateData)
+      .eq('id', sessionId);
+
+    if (error) throw error;
   };
 
   const sendMessage = async (sessionId: string, message: string, targetName: string) => {
@@ -121,10 +176,11 @@ export const useSupabaseCoaching = () => {
   };
 
   return {
-    targets,
+    clients,
     loading,
-    createTarget,
+    createClient,
     createSession,
+    updateSession,
     sendMessage,
     triggerStrategist,
     getSession

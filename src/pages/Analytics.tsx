@@ -10,8 +10,15 @@ import { BarChart3, TrendingUp, Clock, Target, MessageSquare, Calendar } from 'l
 interface Analytics {
   total_sessions: number;
   completed_sessions: number;
-  total_targets: number;
-  avg_session_duration: string;
+  total_clients: number;
+  avg_messages_per_session: number;
+  recent_sessions: Array<{
+    id: string;
+    client_name: string;
+    status: string;
+    created_at: string;
+    message_count: number;
+  }>;
 }
 
 const Analytics = () => {
@@ -50,20 +57,60 @@ const Analytics = () => {
       if (!user) return;
       
       try {
-        const { data, error } = await supabase.rpc('get_user_session_analytics', {
-          user_id_param: user.id
-        });
+        // Get user's clients
+        const { data: clients, error: clientsError } = await supabase
+          .from('targets')
+          .select('*')
+          .eq('user_id', user.id);
         
-        if (error) throw error;
-        if (data && data.length > 0) {
-          const analyticsData = data[0];
-          setAnalytics({
-            total_sessions: analyticsData.total_sessions,
-            completed_sessions: analyticsData.completed_sessions,
-            total_targets: analyticsData.total_targets,
-            avg_session_duration: analyticsData.avg_session_duration ? String(analyticsData.avg_session_duration) : '0 minutes'
-          });
+        if (clientsError) throw clientsError;
+
+        // Get all sessions for user's clients
+        const clientIds = clients?.map(c => c.id) || [];
+        
+        const { data: sessions, error: sessionsError } = await supabase
+          .from('coaching_sessions')
+          .select('*')
+          .in('target_id', clientIds);
+        
+        if (sessionsError) throw sessionsError;
+
+        // Calculate analytics
+        const totalSessions = sessions?.length || 0;
+        const completedSessions = sessions?.filter(s => s.status === 'complete').length || 0;
+        const totalClients = clients?.length || 0;
+        
+        let totalMessages = 0;
+        const recentSessions = [];
+        
+        for (const session of sessions || []) {
+          const messageCount = Array.isArray(session.raw_chat_history) 
+            ? session.raw_chat_history.length 
+            : 0;
+          totalMessages += messageCount;
+          
+          const client = clients?.find(c => c.id === session.target_id);
+          if (client) {
+            recentSessions.push({
+              id: session.id,
+              client_name: client.target_name,
+              status: session.status,
+              created_at: session.created_at,
+              message_count: messageCount
+            });
+          }
         }
+
+        // Sort recent sessions by date
+        recentSessions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+        setAnalytics({
+          total_sessions: totalSessions,
+          completed_sessions: completedSessions,
+          total_clients: totalClients,
+          avg_messages_per_session: totalSessions > 0 ? Math.round(totalMessages / totalSessions) : 0,
+          recent_sessions: recentSessions.slice(0, 10) // Last 10 sessions
+        });
       } catch (error) {
         console.error('Error loading analytics:', error);
       } finally {
@@ -143,12 +190,12 @@ const Analytics = () => {
 
           <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Duration</CardTitle>
+              <CardTitle className="text-sm font-medium">Avg Messages</CardTitle>
               <Clock className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-orange-600">
-                {analytics?.avg_session_duration || '0 min'}
+                {analytics?.avg_messages_per_session || 0}
               </div>
               <p className="text-xs text-muted-foreground">
                 Per session
@@ -172,12 +219,12 @@ const Analytics = () => {
                   <div className="flex items-center gap-3">
                     <Target className="h-8 w-8 text-blue-600" />
                     <div>
-                      <p className="font-medium text-gray-900">Active Targets</p>
+                      <p className="font-medium text-gray-900">Active Clients</p>
                       <p className="text-sm text-gray-500">People being coached</p>
                     </div>
                   </div>
                   <div className="text-2xl font-bold text-blue-600">
-                    {analytics?.total_targets || 0}
+                    {analytics?.total_clients || 0}
                   </div>
                 </div>
 
@@ -185,13 +232,13 @@ const Analytics = () => {
                   <div className="flex items-center gap-3">
                     <MessageSquare className="h-8 w-8 text-green-600" />
                     <div>
-                      <p className="font-medium text-gray-900">Sessions per Target</p>
+                      <p className="font-medium text-gray-900">Sessions per Client</p>
                       <p className="text-sm text-gray-500">Average interactions</p>
                     </div>
                   </div>
                   <div className="text-2xl font-bold text-green-600">
-                    {analytics?.total_targets && analytics?.total_sessions ? 
-                      Math.round(analytics.total_sessions / analytics.total_targets) : 0}
+                    {analytics?.total_clients && analytics?.total_sessions ? 
+                      Math.round(analytics.total_sessions / analytics.total_clients) : 0}
                   </div>
                 </div>
 
@@ -216,49 +263,38 @@ const Analytics = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                Insights & Recommendations
+                Recent Sessions
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {analytics?.total_sessions === 0 ? (
+              <div className="space-y-3">
+                {analytics?.recent_sessions.length === 0 ? (
                   <div className="text-center py-8">
                     <BarChart3 className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                     <p className="text-gray-500">
-                      No sessions yet. Start coaching to see insights here!
+                      No sessions yet. Start coaching to see activity here!
                     </p>
                   </div>
                 ) : (
-                  <>
-                    <div className="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
-                      <h4 className="font-medium text-blue-900 mb-1">Great Progress!</h4>
-                      <p className="text-sm text-blue-700">
-                        You've completed {analytics?.completed_sessions || 0} sessions with a {
-                          analytics?.total_sessions ? 
-                            Math.round((analytics.completed_sessions / analytics.total_sessions) * 100) : 0
-                        }% success rate.
-                      </p>
-                    </div>
-
-                    {analytics && analytics.total_sessions > 0 && analytics.completed_sessions / analytics.total_sessions < 0.7 && (
-                      <div className="p-4 bg-amber-50 rounded-lg border-l-4 border-amber-500">
-                        <h4 className="font-medium text-amber-900 mb-1">Room for Improvement</h4>
-                        <p className="text-sm text-amber-700">
-                          Consider following up more consistently to improve completion rates.
+                  analytics?.recent_sessions.map((session) => (
+                    <div key={session.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-gray-900">{session.client_name}</p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(session.created_at).toLocaleDateString()} • {session.message_count} messages
                         </p>
                       </div>
-                    )}
-
-                    <div className="p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
-                      <h4 className="font-medium text-green-900 mb-1">Next Steps</h4>
-                      <p className="text-sm text-green-700">
-                        {analytics?.total_targets === 0 
-                          ? "Create your first target to start coaching."
-                          : `Focus on engaging with your ${analytics?.total_targets} targets more regularly.`
-                        }
-                      </p>
+                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        session.status === 'complete' 
+                          ? 'bg-green-100 text-green-800'
+                          : session.status === 'analyzing'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {session.status.replace('_', ' ')}
+                      </div>
                     </div>
-                  </>
+                  ))
                 )}
               </div>
             </CardContent>

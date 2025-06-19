@@ -3,10 +3,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { ChatView } from '@/components/ChatView';
-import { useSupabaseCoaching } from '@/hooks/useSupabaseCoaching';
+import { useSupabaseCoaching, SessionData, Client } from '@/hooks/useSupabaseCoaching';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { SessionData, Target } from './Index';
 
 const Chat = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -14,10 +13,10 @@ const Chat = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<SessionData | null>(null);
-  const [target, setTarget] = useState<Target | null>(null);
+  const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const { getSession } = useSupabaseCoaching();
+  const { getSession, updateSession } = useSupabaseCoaching();
 
   useEffect(() => {
     const initAuth = async () => {
@@ -55,12 +54,12 @@ const Chat = () => {
         const sessionData = await getSession(sessionId);
         setSession(sessionData);
         
-        // Get target name from URL params
-        const targetName = searchParams.get('target');
-        if (targetName) {
-          setTarget({
+        // Get client name from URL params
+        const clientName = searchParams.get('target');
+        if (clientName) {
+          setClient({
             id: sessionData.target_id,
-            name: decodeURIComponent(targetName),
+            name: decodeURIComponent(clientName),
             created_at: new Date().toISOString()
           });
         }
@@ -77,6 +76,16 @@ const Chat = () => {
     }
   }, [sessionId, user, getSession, navigate, searchParams]);
 
+  const handleSessionUpdate = async (updatedSession: SessionData) => {
+    setSession(updatedSession);
+    // Save to database
+    try {
+      await updateSession(updatedSession.id, updatedSession);
+    } catch (error) {
+      console.error('Error saving session:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -88,7 +97,7 @@ const Chat = () => {
     );
   }
 
-  if (!session || !target) {
+  if (!session || !client) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navigation user={user} />
@@ -109,10 +118,10 @@ const Chat = () => {
       <Navigation user={user} />
       <ChatView
         session={session}
-        target={target}
-        onSessionUpdate={setSession}
+        target={client}
+        onSessionUpdate={handleSessionUpdate}
         onStatusChange={() => {}}
-        onBackToTargets={() => navigate('/targets')}
+        onBackToTargets={() => navigate('/clients')}
       />
     </div>
   );

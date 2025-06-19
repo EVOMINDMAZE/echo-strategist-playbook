@@ -21,9 +21,9 @@ const Clients = () => {
   const { toast } = useToast();
   
   const {
-    targets: clients,
+    clients,
     loading,
-    createTarget: createClient,
+    createClient,
     createSession
   } = useSupabaseCoaching();
 

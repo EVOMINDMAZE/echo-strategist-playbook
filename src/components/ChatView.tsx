@@ -2,16 +2,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Send, Bot, User } from 'lucide-react';
-import { Target, SessionData, ChatMessage, SessionStatus } from '@/pages/Index';
+import { Client, SessionData, ChatMessage, SessionStatus } from '@/hooks/useSupabaseCoaching';
 import { ThinkingAnimation } from '@/components/ThinkingAnimation';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface ChatViewProps {
   session: SessionData;
-  target: Target;
+  target: Client;
   onSessionUpdate: (session: SessionData) => void;
   onStatusChange: (status: SessionStatus) => void;
   onBackToTargets: () => void;
@@ -157,6 +156,7 @@ export const ChatView = ({
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto p-4"
         onScroll={handleScroll}
+        style={{ scrollBehavior: 'auto' }}
       >
         <div className="max-w-4xl mx-auto space-y-6">
           {session.messages.length === 0 && (

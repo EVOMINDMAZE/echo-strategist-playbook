@@ -9,11 +9,12 @@ import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import About from "./pages/About";
 import Pricing from "./pages/Pricing";
-import Targets from "./pages/Targets";
+import Clients from "./pages/Clients";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Chat from "./pages/Chat";
 import Analytics from "./pages/Analytics";
+import Subscription from "./pages/Subscription";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,10 +31,11 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/about" element={<About />} />
           <Route path="/pricing" element={<Pricing />} />
-          <Route path="/targets" element={<Targets />} />
+          <Route path="/clients" element={<Clients />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/subscription" element={<Subscription />} />
           <Route path="/chat/:sessionId" element={<Chat />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
