@@ -183,7 +183,7 @@ const Dashboard = () => {
                 Add New Target
               </Button>
               <Button 
-                onClick={() => navigate('/sessions')}
+                onClick={() => navigate('/analytics')}
                 variant="outline"
                 className="w-full flex items-center justify-center gap-2"
               >
