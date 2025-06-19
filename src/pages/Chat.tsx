@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { WorldClassNavigation } from '@/components/WorldClassNavigation';
-import { ChatView } from '@/components/ChatView';
+import ChatView from '@/components/ChatView';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { IntelligentOnboarding } from '@/components/IntelligentOnboarding';
 import { SecretRoomTheme } from '@/components/SecretRoomTheme';
