@@ -170,16 +170,8 @@ export const IntelligentSuggestions = ({ userId, sessionId }: IntelligentSuggest
   const applySuggestion = (suggestionId: string) => {
     setAppliedSuggestions(prev => new Set([...prev, suggestionId]));
     
-    // Log suggestion application for analytics
-    supabase
-      .from('user_interactions')
-      .insert({
-        user_id: userId,
-        interaction_type: 'suggestion_applied',
-        interaction_data: { suggestion_id: suggestionId },
-        session_id: sessionId
-      })
-      .then(() => console.log('Suggestion application logged'));
+    // Log suggestion application for analytics (simplified logging)
+    console.log('Suggestion applied:', { suggestion_id: suggestionId, user_id: userId, session_id: sessionId });
   };
 
   const getCategoryIcon = (category: string) => {
