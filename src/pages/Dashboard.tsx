@@ -58,7 +58,13 @@ const Dashboard = () => {
         
         if (error) throw error;
         if (data && data.length > 0) {
-          setAnalytics(data[0]);
+          const analyticsData = data[0];
+          setAnalytics({
+            total_sessions: analyticsData.total_sessions,
+            completed_sessions: analyticsData.completed_sessions,
+            total_targets: analyticsData.total_targets,
+            avg_session_duration: analyticsData.avg_session_duration ? String(analyticsData.avg_session_duration) : '0 minutes'
+          });
         }
       } catch (error) {
         console.error('Error loading analytics:', error);
