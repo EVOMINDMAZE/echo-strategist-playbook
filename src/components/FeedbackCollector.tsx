@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Star, Send, CheckCircle, MessageSquare } from 'lucide-react';
+import { Star, Send, CheckCircle, MessageSquare, Sparkles, ArrowRight } from 'lucide-react';
 import { SessionData, Client } from '@/types/coaching';
+import { SmartFeedbackPrompts } from '@/components/SmartFeedbackPrompts';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -30,6 +31,7 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showSmartPrompts, setShowSmartPrompts] = useState(true);
   const { toast } = useToast();
 
   const [feedback, setFeedback] = useState<FeedbackData>({
@@ -46,6 +48,15 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
 
   const handleRatingClick = (rating: number, field: 'rating' | 'outcomeRating') => {
     setFeedback(prev => ({ ...prev, [field]: rating }));
+  };
+
+  const handleSmartPromptSelect = (prompt: string) => {
+    setFeedback(prev => ({ 
+      ...prev, 
+      additionalNotes: prev.additionalNotes ? `${prev.additionalNotes}\n\n${prompt}` : prompt
+    }));
+    setShowSmartPrompts(false);
+    setCurrentStep(4); // Jump to final step
   };
 
   const handleNextStep = () => {
@@ -140,9 +151,15 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
     return (
       <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-lg animate-fade-in">
         <CardContent className="p-8 text-center">
-          <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold text-green-800 mb-2">Thank You!</h3>
-          <p className="text-green-700">Your feedback helps us improve your coaching experience.</p>
+          <div className="animate-scale-in">
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-green-800 mb-2">Thank You!</h3>
+            <p className="text-green-700 mb-4">Your feedback helps us improve your coaching experience.</p>
+            <div className="flex items-center justify-center space-x-2 text-green-600">
+              <Sparkles className="w-4 h-4" />
+              <span className="text-sm">Your insights are valuable!</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
@@ -154,7 +171,9 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <MessageSquare className="w-12 h-12 text-indigo-500 mx-auto mb-4" />
+              <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="w-8 h-8 text-white" />
+              </div>
               <h3 className="text-xl font-semibold text-slate-800 mb-2">
                 How was the analysis quality?
               </h3>
@@ -168,9 +187,9 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
                 <button
                   key={star}
                   onClick={() => handleRatingClick(star, 'rating')}
-                  className={`p-2 rounded-full transition-all duration-200 hover:scale-110 ${
+                  className={`p-3 rounded-full transition-all duration-300 hover:scale-110 transform ${
                     star <= feedback.rating 
-                      ? 'text-yellow-400' 
+                      ? 'text-yellow-400 shadow-lg' 
                       : 'text-gray-300 hover:text-yellow-400'
                   }`}
                 >
@@ -180,8 +199,16 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
             </div>
             
             {feedback.rating > 0 && (
-              <div className="text-center text-slate-600 animate-fade-in">
-                <Badge variant="secondary" className="text-sm">
+              <div className="text-center animate-fade-in">
+                <Badge 
+                  variant="secondary" 
+                  className={`text-sm px-4 py-2 ${
+                    feedback.rating === 5 ? 'bg-green-100 text-green-800' :
+                    feedback.rating >= 4 ? 'bg-blue-100 text-blue-800' :
+                    feedback.rating === 3 ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-orange-100 text-orange-800'
+                  }`}
+                >
                   {feedback.rating === 5 ? 'Excellent!' : 
                    feedback.rating === 4 ? 'Very Good!' :
                    feedback.rating === 3 ? 'Good' :
@@ -200,7 +227,7 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
                 Action Taken
               </h3>
               <p className="text-slate-600">
-                How many of the suggested strategies did you try or plan to try?
+                How many strategies did you try or plan to try?
               </p>
             </div>
             
@@ -208,10 +235,10 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
               {suggestions.map((suggestion, index) => (
                 <div
                   key={index}
-                  className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+                  className={`p-4 rounded-lg border cursor-pointer transition-all duration-300 transform hover:scale-105 ${
                     index < feedback.suggestionsTriedCount
-                      ? 'bg-indigo-50 border-indigo-200'
-                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                      ? 'bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-200 shadow-md'
+                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
                   }`}
                   onClick={() => setFeedback(prev => ({ 
                     ...prev, 
@@ -219,16 +246,16 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
                   }))}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className={`w-4 h-4 rounded border ${
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
                       index < feedback.suggestionsTriedCount
                         ? 'bg-indigo-500 border-indigo-500'
                         : 'border-gray-300'
                     }`}>
                       {index < feedback.suggestionsTriedCount && (
-                        <CheckCircle className="w-4 h-4 text-white" />
+                        <CheckCircle className="w-3 h-3 text-white" />
                       )}
                     </div>
-                    <span className="text-sm font-medium text-slate-700">
+                    <span className="font-medium text-slate-700">
                       {suggestion.title}
                     </span>
                   </div>
@@ -238,7 +265,7 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
             
             {feedback.suggestionsTriedCount > 0 && (
               <div className="text-center animate-fade-in">
-                <Badge variant="secondary">
+                <Badge variant="secondary" className="px-4 py-2">
                   {feedback.suggestionsTriedCount} of {suggestions.length} strategies selected
                 </Badge>
               </div>
@@ -263,9 +290,9 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
                 <button
                   key={star}
                   onClick={() => handleRatingClick(star, 'outcomeRating')}
-                  className={`p-2 rounded-full transition-all duration-200 hover:scale-110 ${
+                  className={`p-3 rounded-full transition-all duration-300 hover:scale-110 transform ${
                     star <= feedback.outcomeRating 
-                      ? 'text-green-400' 
+                      ? 'text-green-400 shadow-lg' 
                       : 'text-gray-300 hover:text-green-400'
                   }`}
                 >
@@ -274,9 +301,9 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
               ))}
             </div>
             
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="worked-well" className="text-sm font-medium text-slate-700">
+                <Label htmlFor="worked-well" className="text-sm font-medium text-slate-700 mb-2 block">
                   What worked well? (Optional)
                 </Label>
                 <Textarea
@@ -284,12 +311,12 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
                   value={feedback.whatWorkedWell}
                   onChange={(e) => setFeedback(prev => ({ ...prev, whatWorkedWell: e.target.value }))}
                   placeholder="Share what strategies were effective..."
-                  className="mt-1"
+                  className="min-h-[100px] resize-none"
                 />
               </div>
               
               <div>
-                <Label htmlFor="didnt-work" className="text-sm font-medium text-slate-700">
+                <Label htmlFor="didnt-work" className="text-sm font-medium text-slate-700 mb-2 block">
                   What didn't work? (Optional)
                 </Label>
                 <Textarea
@@ -297,7 +324,7 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
                   value={feedback.whatDidntWork}
                   onChange={(e) => setFeedback(prev => ({ ...prev, whatDidntWork: e.target.value }))}
                   placeholder="Share what could be improved..."
-                  className="mt-1"
+                  className="min-h-[100px] resize-none"
                 />
               </div>
             </div>
@@ -306,23 +333,23 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
           <div className="space-y-6">
             <div className="text-center">
               <h3 className="text-xl font-semibold text-slate-800 mb-2">
-                Additional Thoughts
+                Quick Thoughts
               </h3>
               <p className="text-slate-600">
-                Any other feedback about the analysis or suggestions?
+                Any thoughts about the analysis or suggestions?
               </p>
             </div>
             
             <div>
-              <Label htmlFor="additional-notes" className="text-sm font-medium text-slate-700">
-                Additional Notes (Optional)
+              <Label htmlFor="quick-notes" className="text-sm font-medium text-slate-700 mb-2 block">
+                Your thoughts (Optional)
               </Label>
               <Textarea
-                id="additional-notes"
+                id="quick-notes"
                 value={feedback.additionalNotes}
                 onChange={(e) => setFeedback(prev => ({ ...prev, additionalNotes: e.target.value }))}
-                placeholder="Share any other thoughts or suggestions..."
-                className="mt-1"
+                placeholder="Share any thoughts or suggestions..."
+                className="min-h-[120px] resize-none"
               />
             </div>
           </div>
@@ -331,6 +358,13 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
       case 4:
         return (
           <div className="space-y-6">
+            {showSmartPrompts && (
+              <SmartFeedbackPrompts 
+                session={session} 
+                onPromptSelect={handleSmartPromptSelect}
+              />
+            )}
+            
             <div className="text-center">
               <h3 className="text-xl font-semibold text-slate-800 mb-2">
                 Final Thoughts
@@ -341,7 +375,7 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
             </div>
             
             <div>
-              <Label htmlFor="final-notes" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="final-notes" className="text-sm font-medium text-slate-700 mb-2 block">
                 Additional Comments (Optional)
               </Label>
               <Textarea
@@ -349,7 +383,7 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
                 value={feedback.additionalNotes}
                 onChange={(e) => setFeedback(prev => ({ ...prev, additionalNotes: e.target.value }))}
                 placeholder="Any final thoughts, suggestions, or feedback..."
-                className="mt-1"
+                className="min-h-[120px] resize-none"
               />
             </div>
           </div>
@@ -372,23 +406,25 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
             Step {currentStep} of {totalSteps}
           </Badge>
         </div>
-        <div className="w-full bg-purple-200 rounded-full h-2 mt-2">
+        <div className="w-full bg-purple-200 rounded-full h-2 mt-2 overflow-hidden">
           <div 
-            className="bg-gradient-to-r from-purple-500 to-indigo-600 h-2 rounded-full transition-all duration-500"
+            className="bg-gradient-to-r from-purple-500 to-indigo-600 h-2 rounded-full transition-all duration-500 ease-out"
             style={{ width: `${(currentStep / totalSteps) * 100}%` }}
           />
         </div>
       </CardHeader>
       
       <CardContent className="space-y-6">
-        {renderStep()}
+        <div className="min-h-[300px]">
+          {renderStep()}
+        </div>
         
-        <div className="flex justify-between pt-4">
+        <div className="flex justify-between pt-4 border-t border-purple-200">
           <Button
             variant="outline"
             onClick={handlePrevStep}
             disabled={currentStep === 1}
-            className="border-purple-300 text-purple-600 hover:bg-purple-50"
+            className="border-purple-300 text-purple-600 hover:bg-purple-50 disabled:opacity-50"
           >
             Previous
           </Button>
@@ -397,15 +433,16 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
             <Button
               onClick={handleNextStep}
               disabled={currentStep === 1 && feedback.rating === 0}
-              className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700"
+              className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
             >
-              Next
+              <span>Next</span>
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           ) : (
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting || feedback.rating === 0}
-              className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700"
+              className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
             >
               {isSubmitting ? (
                 <div className="flex items-center space-x-2">
