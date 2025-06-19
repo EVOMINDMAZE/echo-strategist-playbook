@@ -60,7 +60,30 @@ serve(async (req) => {
 
     console.log('User message count:', userMessageCount);
 
-    // Generate natural AI response using GPT-4.1
+    // Check if this message was from a suggestion click
+    // Look for recent suggestion interactions that might have led to this message
+    const recentTime = new Date(Date.now() - 60000).toISOString(); // Last minute
+    const { data: recentInteractions } = await supabase
+      .from('suggestion_interactions')
+      .select('*, smart_reply_suggestions(suggestion_text)')
+      .eq('session_id', sessionId)
+      .gte('selected_at', recentTime)
+      .order('selected_at', { ascending: false })
+      .limit(1);
+
+    // If user message closely matches a recent suggestion, mark it as potentially effective
+    if (recentInteractions && recentInteractions.length > 0) {
+      const lastInteraction = recentInteractions[0];
+      const suggestionText = lastInteraction.smart_reply_suggestions?.suggestion_text || '';
+      
+      // Simple similarity check - in production you might use more sophisticated matching
+      if (message.toLowerCase().includes(suggestionText.toLowerCase().substring(0, 20))) {
+        console.log('Message likely from suggestion, will track effectiveness');
+        // We'll mark this as potentially effective based on AI response quality
+      }
+    }
+
+    // Generate natural AI response using GPT-4o-mini
     const conversationContext = updatedHistory
       .slice(-6) // Last 6 messages for context
       .map(msg => `${msg.sender}: ${msg.content}`)
@@ -92,7 +115,7 @@ Guidelines:
 Response format: Provide ONLY the response text, no JSON or formatting.`;
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4.1-2025-04-14',
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: message }
@@ -127,6 +150,15 @@ Response format: Provide ONLY the response text, no JSON or formatting.`;
     if (updateError) {
       console.error('Failed to update session:', updateError);
       throw new Error('Failed to update session');
+    }
+
+    // If there was a recent suggestion interaction, update its effectiveness based on AI response quality
+    if (recentInteractions && recentInteractions.length > 0) {
+      const responseQuality = aiResponseContent.length > 50 && !aiResponseContent.includes('I understand'); // Simple heuristic
+      await supabase
+        .from('suggestion_interactions')
+        .update({ was_effective: responseQuality })
+        .eq('id', recentInteractions[0].id);
     }
 
     console.log('Session updated successfully');

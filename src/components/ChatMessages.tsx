@@ -6,12 +6,20 @@ import { ThinkingAnimation } from '@/components/ThinkingAnimation';
 import type { ChatMessage } from '@/types/coaching';
 
 interface ChatMessagesProps {
+  sessionId: string;
+  targetId: string;
   messages: ChatMessage[];
   isLoading: boolean;
   onSuggestionClick: (suggestion: string) => void;
 }
 
-export const ChatMessages = ({ messages, isLoading, onSuggestionClick }: ChatMessagesProps) => {
+export const ChatMessages = ({ 
+  sessionId, 
+  targetId, 
+  messages, 
+  isLoading, 
+  onSuggestionClick 
+}: ChatMessagesProps) => {
   return (
     <>
       {/* Messages */}
@@ -58,11 +66,12 @@ export const ChatMessages = ({ messages, isLoading, onSuggestionClick }: ChatMes
         </div>
       ))}
 
-      {/* Smart Reply Suggestions */}
-      {messages.length > 0 && messages[messages.length - 1]?.sender === 'ai' && (
+      {/* Smart Reply Suggestions - Now with full database integration */}
+      {messages.length > 0 && messages[messages.length - 1]?.sender === 'ai' && !isLoading && (
         <SmartReplySuggestions
-          messageCount={messages.length}
-          lastAiMessage={messages[messages.length - 1]?.content || ''}
+          sessionId={sessionId}
+          targetId={targetId}
+          messages={messages}
           onSuggestionClick={onSuggestionClick}
           onDismiss={() => {}}
           isVisible={true}

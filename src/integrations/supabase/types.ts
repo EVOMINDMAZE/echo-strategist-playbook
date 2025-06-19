@@ -399,6 +399,60 @@ export type Database = {
           },
         ]
       }
+      smart_reply_suggestions: {
+        Row: {
+          context_data: Json | null
+          created_at: string | null
+          id: string
+          last_ai_message: string | null
+          message_count: number
+          session_id: string | null
+          suggestion_text: string
+          suggestion_type: string
+          target_id: string | null
+          user_id: string
+        }
+        Insert: {
+          context_data?: Json | null
+          created_at?: string | null
+          id?: string
+          last_ai_message?: string | null
+          message_count: number
+          session_id?: string | null
+          suggestion_text: string
+          suggestion_type: string
+          target_id?: string | null
+          user_id: string
+        }
+        Update: {
+          context_data?: Json | null
+          created_at?: string | null
+          id?: string
+          last_ai_message?: string | null
+          message_count?: number
+          session_id?: string | null
+          suggestion_text?: string
+          suggestion_type?: string
+          target_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_reply_suggestions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_reply_suggestions_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "targets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscribers: {
         Row: {
           created_at: string
@@ -437,6 +491,64 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      suggestion_interactions: {
+        Row: {
+          created_at: string | null
+          follow_up_context: Json | null
+          id: string
+          selected_at: string | null
+          session_id: string | null
+          suggestion_id: string | null
+          target_id: string | null
+          user_id: string
+          was_effective: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          follow_up_context?: Json | null
+          id?: string
+          selected_at?: string | null
+          session_id?: string | null
+          suggestion_id?: string | null
+          target_id?: string | null
+          user_id: string
+          was_effective?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          follow_up_context?: Json | null
+          id?: string
+          selected_at?: string | null
+          session_id?: string | null
+          suggestion_id?: string | null
+          target_id?: string | null
+          user_id?: string
+          was_effective?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suggestion_interactions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suggestion_interactions_suggestion_id_fkey"
+            columns: ["suggestion_id"]
+            isOneToOne: false
+            referencedRelation: "smart_reply_suggestions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suggestion_interactions_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "targets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       targets: {
         Row: {

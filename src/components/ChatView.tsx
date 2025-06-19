@@ -1,111 +1,84 @@
-
-import React, { useState, useEffect } from 'react';
-import { InformativeMessages } from '@/components/InformativeMessages';
-import { PrivacyWarning } from '@/components/PrivacyWarning';
-import { SystemExplanation } from '@/components/SystemExplanation';
-import { ResultsView } from '@/components/ResultsView';
-import { FollowUpPrompter } from '@/components/FollowUpPrompter';
-import { SessionHistoryLoader } from '@/components/SessionHistoryLoader';
-import { SessionContinuityHandler } from '@/components/SessionContinuityHandler';
+import { useState, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { ChatViewHeader } from '@/components/ChatViewHeader';
 import { ChatInputArea } from '@/components/ChatInputArea';
 import { ChatMessages } from '@/components/ChatMessages';
-import { useFollowUpTriggers } from '@/hooks/useFollowUpTriggers';
-import { supabase } from '@/integrations/supabase/client';
-import type { SessionData, Client, ChatMessage } from '@/types/coaching';
+import { SessionHistoryLoader } from '@/components/SessionHistoryLoader';
+import { SessionContinuityHandler } from '@/components/SessionContinuityHandler';
+import { ResultsView } from '@/components/ResultsView';
+import { InformativeMessages } from '@/components/InformativeMessages';
+import type { SessionData, Client, ChatMessage, SessionStatus } from '@/types/coaching';
 
 interface ChatViewProps {
   session: SessionData;
   target: Client;
-  onSessionUpdate: (updatedSession: SessionData) => void;
-  onStatusChange: (status: string) => void;
+  onSessionUpdate: (session: SessionData) => void;
+  onStatusChange: (status: SessionStatus) => void;
   onBackToTargets: () => void;
 }
 
-export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onBackToTargets }: ChatViewProps) => {
-  const [messages, setMessages] = useState<ChatMessage[]>(session.messages || []);
-  const [isLoading, setIsLoading] = useState(false);
+export const ChatView = ({
+  session,
+  target,
+  onSessionUpdate,
+  onStatusChange,
+  onBackToTargets
+}: ChatViewProps) => {
   const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
-  const [dismissedMessages, setDismissedMessages] = useState<string[]>([]);
   const [previousSessions, setPreviousSessions] = useState<SessionData[]>([]);
-  const [hasAskedFollowUp, setHasAskedFollowUp] = useState(false);
-  const { triggers, markTriggered, dismissAll } = useFollowUpTriggers(target.id);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setMessages(session.messages || []);
+    scrollToBottom();
   }, [session.messages]);
 
-  // Check if this is a continuing session and we should ask follow-up questions
-  useEffect(() => {
-    if (previousSessions.length > 0 && messages.length === 0 && !hasAskedFollowUp) {
-      // This is a new session for a client with history, but no messages yet
-      // We should show the follow-up questions
-      setHasAskedFollowUp(true);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleSendMessage = async (messageText?: string, context?: any) => {
+    const inputElement = document.querySelector('textarea') as HTMLTextAreaElement;
+    const message = messageText || inputElement?.value || '';
+    
+    if (!message.trim()) return;
+
+    if (!messageText && inputElement) {
+      inputElement.value = '';
     }
-  }, [previousSessions, messages, hasAskedFollowUp]);
 
-  const handleSubmit = async (messageText?: string) => {
-    const textToSend = messageText || '';
-    if (!textToSend.trim()) return;
-
-    setIsLoading(true);
-    const newMessage: ChatMessage = {
-      id: Date.now().toString(),
-      content: textToSend,
-      sender: 'user' as const,
-      timestamp: new Date().toISOString(),
+    const userMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      content: message,
+      sender: 'user',
+      timestamp: new Date().toISOString()
     };
 
-    const updatedMessages = [...messages, newMessage];
-    setMessages(updatedMessages);
-
-    // Optimistically update the UI
-    onSessionUpdate({ ...session, messages: updatedMessages });
+    const updatedMessages = [...session.messages, userMessage];
+    const updatedSession = { ...session, messages: updatedMessages };
+    onSessionUpdate(updatedSession);
 
     try {
-      // Call the enhanced edge function that includes session history
-      const { data, error } = await supabase.functions.invoke('handle-user-message', {
+      const response = await supabase.functions.invoke('handle-user-message', {
         body: {
           sessionId: session.id,
-          message: textToSend,
-          targetName: target.name,
-          previousSessions: previousSessions.map(s => ({
-            id: s.id,
-            messages: s.messages,
-            strategist_output: s.strategist_output,
-            feedback_data: s.feedback_data,
-            user_feedback: s.user_feedback,
-            created_at: s.created_at
-          }))
+          message: message,
+          targetName: target.name
         }
       });
 
-      if (error) throw error;
+      if (response.error) throw response.error;
 
-      const aiMessage: ChatMessage = {
-        id: Date.now().toString(),
-        content: data.message.content,
-        sender: 'ai' as const,
-        timestamp: new Date().toISOString(),
-      };
-
-      const finalMessages = [...updatedMessages, aiMessage];
-      setMessages(finalMessages);
-      onSessionUpdate({ ...session, messages: finalMessages });
+      const { message: aiMessage } = response.data;
+      
+      if (aiMessage) {
+        const finalMessages = [...updatedMessages, aiMessage];
+        const finalSession = { ...session, messages: finalMessages };
+        onSessionUpdate(finalSession);
+      }
     } catch (error) {
-      console.error('Error getting AI response:', error);
-      // Add error message
-      const errorMessage: ChatMessage = {
-        id: Date.now().toString(),
-        content: "I apologize, but I'm having trouble responding right now. Please try again in a moment.",
-        sender: 'ai' as const,
-        timestamp: new Date().toISOString(),
-      };
-      const finalMessages = [...updatedMessages, errorMessage];
-      setMessages(finalMessages);
-      onSessionUpdate({ ...session, messages: finalMessages });
-    } finally {
-      setIsLoading(false);
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message. Please try again.');
     }
   };
 
@@ -114,142 +87,108 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
     onStatusChange('analyzing');
 
     try {
-      const { data, error } = await supabase.functions.invoke('trigger-strategist', {
+      const response = await supabase.functions.invoke('trigger-strategist', {
         body: {
           sessionId: session.id,
           targetName: target.name,
-          chatHistory: messages,
-          previousSessions: previousSessions
+          chatHistory: session.messages
         }
       });
 
-      if (error) throw error;
+      if (response.error) throw response.error;
 
-      onSessionUpdate({
+      const updatedSession = {
         ...session,
-        status: 'complete',
-        strategist_output: data.strategist_output,
-      });
+        status: 'complete' as SessionStatus,
+        strategist_output: response.data.strategist_output
+      };
+
+      onSessionUpdate(updatedSession);
       onStatusChange('complete');
+      toast.success('Analysis complete! Check out your personalized strategies.');
     } catch (error) {
       console.error('Error generating strategy:', error);
-      onStatusChange('error');
+      toast.error('Failed to generate strategy. Please try again.');
+      onStatusChange('gathering_info');
     } finally {
       setIsGeneratingStrategy(false);
     }
   };
 
-  const handleDismissMessage = (messageType: string) => {
-    setDismissedMessages([...dismissedMessages, messageType]);
-  };
-
-  const handleFollowUpSelect = (question: string, context: any) => {
-    console.log('Follow-up selected:', question, context);
-    handleSubmit(question);
-  };
-
-  const handleSessionHistoryLoaded = (sessions: SessionData[]) => {
-    setPreviousSessions(sessions);
-  };
-
-  const handleSuggestionClick = (suggestion: string) => {
-    handleSubmit(suggestion);
-  };
+  if (session.status === 'complete' && session.strategist_output) {
+    return (
+      <ResultsView
+        session={session}
+        target={target}
+        onBackToTargets={onBackToTargets}
+        onStartNewSession={() => {
+          // Reset session for new conversation
+          const newSession = {
+            ...session,
+            status: 'gathering_info' as SessionStatus,
+            messages: [],
+            strategist_output: undefined
+          };
+          onSessionUpdate(newSession);
+        }}
+      />
+    );
+  }
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-900 via-purple-900/10 to-slate-800">
-      {/* Enhanced Header */}
+    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <ChatViewHeader
         session={session}
         target={target}
         previousSessions={previousSessions}
-        messages={messages}
+        messages={session.messages}
         isGeneratingStrategy={isGeneratingStrategy}
         onBackToTargets={onBackToTargets}
         onStrategistTrigger={handleStrategistTrigger}
       />
 
-      {/* Main Content Area */}
       <div className="flex-1 overflow-hidden">
-        <div className="max-w-4xl mx-auto h-full flex flex-col">
-          {/* Messages Area with enhanced styling */}
-          <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
-            {/* Load and display session history */}
-            <SessionHistoryLoader
-              targetId={target.id}
-              currentSessionId={session.id}
-              onHistoryLoaded={handleSessionHistoryLoaded}
-            />
-
-            {/* Show Follow-up Questions for Continuing Sessions */}
-            {previousSessions.length > 0 && messages.length === 0 && (
-              <SessionContinuityHandler
-                previousSessions={previousSessions}
-                onFollowUpSelect={handleFollowUpSelect}
+        <div className="h-full max-w-4xl mx-auto">
+          <div className="flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+              <SessionHistoryLoader
+                targetId={session.target_id}
+                currentSessionId={session.id}
+                onHistoryLoaded={setPreviousSessions}
               />
-            )}
 
-            {/* Show Follow-up Prompts at the top if available */}
-            {triggers.length > 0 && (
-              <FollowUpPrompter
-                targetId={target.id}
-                onQuestionSelect={handleFollowUpSelect}
-                onDismissAll={dismissAll}
+              {session.messages.length === 0 && previousSessions.length > 0 && (
+                <SessionContinuityHandler
+                  previousSessions={previousSessions}
+                  onFollowUpSelect={handleSendMessage}
+                />
+              )}
+
+              {session.messages.length === 0 && previousSessions.length === 0 && (
+                <InformativeMessages targetName={target.name} />
+              )}
+
+              <ChatMessages
+                sessionId={session.id}
+                targetId={session.target_id}
+                messages={session.messages}
+                isLoading={isGeneratingStrategy}
+                onSuggestionClick={handleSendMessage}
               />
-            )}
 
-            {/* Guidance Components - only show for new sessions */}
-            {messages.length === 0 && previousSessions.length === 0 && (
-              <>
-                <SystemExplanation 
-                  isVisible={!dismissedMessages.includes('system-explanation')} 
-                  onDismiss={() => handleDismissMessage('system-explanation')} 
-                />
-                
-                <InformativeMessages
-                  messageCount={messages.length}
-                  onDismiss={handleDismissMessage}
-                  dismissedMessages={dismissedMessages}
-                />
-                
-                <PrivacyWarning
-                  isVisible={!dismissedMessages.includes('privacy-warning')}
-                  onDismiss={() => handleDismissMessage('privacy-warning')}
-                />
-              </>
-            )}
+              <div ref={messagesEndRef} />
+            </div>
 
-            {/* Chat Messages */}
-            <ChatMessages
-              messages={messages}
-              isLoading={isLoading}
-              onSuggestionClick={handleSuggestionClick}
+            <ChatInputArea
+              session={session}
+              previousSessions={previousSessions}
+              messages={session.messages}
+              isLoading={isGeneratingStrategy}
+              onSubmit={handleSendMessage}
             />
           </div>
-
-          {/* Enhanced Input Area */}
-          <ChatInputArea
-            session={session}
-            previousSessions={previousSessions}
-            messages={messages}
-            isLoading={isLoading}
-            onSubmit={handleSubmit}
-          />
         </div>
       </div>
-
-      {/* Results View */}
-      {session.status === 'complete' && session.strategist_output && (
-        <ResultsView
-          session={session}
-          client={target}
-          onBackToClients={onBackToTargets}
-          onNewSession={() => {
-            // Handle new session creation
-            console.log('Creating new session...');
-          }}
-        />
-      )}
     </div>
   );
 };
