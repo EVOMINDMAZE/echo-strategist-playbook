@@ -12,6 +12,8 @@ import { SmartReplySuggestions } from '@/components/SmartReplySuggestions';
 import { ThinkingAnimation } from '@/components/ThinkingAnimation';
 import { StrategistTriggerButton } from '@/components/StrategistTriggerButton';
 import { FollowUpPrompter } from '@/components/FollowUpPrompter';
+import { SessionHistoryLoader } from '@/components/SessionHistoryLoader';
+import { SessionContinuityHandler } from '@/components/SessionContinuityHandler';
 import {
   ArrowLeft,
   Send,
@@ -21,6 +23,7 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useFollowUpTriggers } from '@/hooks/useFollowUpTriggers';
+import { supabase } from '@/integrations/supabase/client';
 import type { SessionData, Client, ChatMessage } from '@/types/coaching';
 
 interface ChatViewProps {
@@ -37,37 +40,65 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
   const [dismissedMessages, setDismissedMessages] = useState<string[]>([]);
+  const [previousSessions, setPreviousSessions] = useState<SessionData[]>([]);
+  const [hasAskedFollowUp, setHasAskedFollowUp] = useState(false);
   const { triggers, markTriggered, dismissAll } = useFollowUpTriggers(target.id);
 
   useEffect(() => {
     setMessages(session.messages || []);
   }, [session.messages]);
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  // Check if this is a continuing session and we should ask follow-up questions
+  useEffect(() => {
+    if (previousSessions.length > 0 && messages.length === 0 && !hasAskedFollowUp) {
+      // This is a new session for a client with history, but no messages yet
+      // We should show the follow-up questions
+      setHasAskedFollowUp(true);
+    }
+  }, [previousSessions, messages, hasAskedFollowUp]);
+
+  const handleSubmit = async (messageText?: string) => {
+    const textToSend = messageText || input;
+    if (!textToSend.trim()) return;
 
     setIsLoading(true);
     const newMessage: ChatMessage = {
       id: Date.now().toString(),
-      content: input,
+      content: textToSend,
       sender: 'user' as const,
       timestamp: new Date().toISOString(),
     };
 
     const updatedMessages = [...messages, newMessage];
     setMessages(updatedMessages);
-    setInput('');
+    if (!messageText) setInput(''); // Only clear input if not using preset message
 
     // Optimistically update the UI
     onSessionUpdate({ ...session, messages: updatedMessages });
 
     try {
-      // Simulate AI response (replace with actual API call)
-      const aiResponse = await simulateAIResponse(input);
+      // Call the enhanced edge function that includes session history
+      const { data, error } = await supabase.functions.invoke('handle-user-message', {
+        body: {
+          sessionId: session.id,
+          message: textToSend,
+          targetName: target.name,
+          previousSessions: previousSessions.map(s => ({
+            id: s.id,
+            messages: s.messages,
+            strategist_output: s.strategist_output,
+            feedback_data: s.feedback_data,
+            user_feedback: s.user_feedback,
+            created_at: s.created_at
+          }))
+        }
+      });
+
+      if (error) throw error;
+
       const aiMessage: ChatMessage = {
         id: Date.now().toString(),
-        content: aiResponse,
+        content: data.message.content,
         sender: 'ai' as const,
         timestamp: new Date().toISOString(),
       };
@@ -77,40 +108,49 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
       onSessionUpdate({ ...session, messages: finalMessages });
     } catch (error) {
       console.error('Error getting AI response:', error);
-      // Handle error (e.g., display error message)
+      // Add error message
+      const errorMessage: ChatMessage = {
+        id: Date.now().toString(),
+        content: "I apologize, but I'm having trouble responding right now. Please try again in a moment.",
+        sender: 'ai' as const,
+        timestamp: new Date().toISOString(),
+      };
+      const finalMessages = [...updatedMessages, errorMessage];
+      setMessages(finalMessages);
+      onSessionUpdate({ ...session, messages: finalMessages });
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const simulateAIResponse = async (userMessage: string): Promise<string> => {
-    // Simulate a delay to mimic an API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    return `Thanks for sharing! Here's a simulated AI response to your message: "${userMessage}".`;
   };
 
   const handleStrategistTrigger = async () => {
     setIsGeneratingStrategy(true);
     onStatusChange('analyzing');
 
-    // Simulate strategist output generation
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const { data, error } = await supabase.functions.invoke('trigger-strategist', {
+        body: {
+          sessionId: session.id,
+          targetName: target.name,
+          chatHistory: messages,
+          previousSessions: previousSessions
+        }
+      });
 
-    const mockStrategistOutput = {
-      analysis: "Based on your conversation, here's a potential strategy:",
-      suggestions: [
-        { title: 'Try active listening', description: 'Focus on understanding their perspective.', why_it_works: 'Builds empathy' },
-        { title: 'Set clear boundaries', description: 'Communicate your limits assertively.', why_it_works: 'Reduces conflict' },
-      ],
-    };
+      if (error) throw error;
 
-    onSessionUpdate({
-      ...session,
-      status: 'complete',
-      strategist_output: mockStrategistOutput,
-    });
-    onStatusChange('complete');
-    setIsGeneratingStrategy(false);
+      onSessionUpdate({
+        ...session,
+        status: 'complete',
+        strategist_output: data.strategist_output,
+      });
+      onStatusChange('complete');
+    } catch (error) {
+      console.error('Error generating strategy:', error);
+      onStatusChange('error');
+    } finally {
+      setIsGeneratingStrategy(false);
+    }
   };
 
   const handleDismissMessage = (messageType: string) => {
@@ -122,7 +162,7 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
       case 'gathering_info':
         return 'bg-blue-500';
       case 'analyzing':
-        return 'bg-yellow-500 animate-pulse';
+        return 'bg-yellow-500';
       case 'complete':
         return 'bg-green-500';
       case 'error':
@@ -135,8 +175,12 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
   const handleFollowUpSelect = (question: string, context: any) => {
     console.log('Follow-up selected:', question, context);
     setInput(question);
-    // Optionally send immediately
-    handleSubmit(new Event('submit') as any);
+    // Automatically send the follow-up question
+    handleSubmit(question);
+  };
+
+  const handleSessionHistoryLoaded = (sessions: SessionData[]) => {
+    setPreviousSessions(sessions);
   };
 
   return (
@@ -167,6 +211,11 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
                     <span className="text-sm text-slate-400 capitalize">
                       {session.status.replace('_', ' ')}
                     </span>
+                    {previousSessions.length > 0 && (
+                      <Badge variant="outline" className="border-slate-600 text-slate-300 text-xs">
+                        {previousSessions.length} previous session{previousSessions.length !== 1 ? 's' : ''}
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </div>
@@ -194,6 +243,21 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
         <div className="max-w-4xl mx-auto h-full flex flex-col">
           {/* Messages Area with enhanced styling */}
           <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+            {/* Load and display session history */}
+            <SessionHistoryLoader
+              targetId={target.id}
+              currentSessionId={session.id}
+              onHistoryLoaded={handleSessionHistoryLoaded}
+            />
+
+            {/* Show Follow-up Questions for Continuing Sessions */}
+            {previousSessions.length > 0 && messages.length === 0 && (
+              <SessionContinuityHandler
+                previousSessions={previousSessions}
+                onFollowUpSelect={handleFollowUpSelect}
+              />
+            )}
+
             {/* Show Follow-up Prompts at the top if available */}
             {triggers.length > 0 && (
               <FollowUpPrompter
@@ -203,22 +267,26 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
               />
             )}
 
-            {/* Guidance Components */}
-            <SystemExplanation 
-              isVisible={!dismissedMessages.includes('system-explanation')} 
-              onDismiss={() => handleDismissMessage('system-explanation')} 
-            />
-            
-            <InformativeMessages
-              messageCount={messages.length}
-              onDismiss={handleDismissMessage}
-              dismissedMessages={dismissedMessages}
-            />
-            
-            <PrivacyWarning
-              isVisible={!dismissedMessages.includes('privacy-warning')}
-              onDismiss={() => handleDismissMessage('privacy-warning')}
-            />
+            {/* Guidance Components - only show for new sessions */}
+            {messages.length === 0 && previousSessions.length === 0 && (
+              <>
+                <SystemExplanation 
+                  isVisible={!dismissedMessages.includes('system-explanation')} 
+                  onDismiss={() => handleDismissMessage('system-explanation')} 
+                />
+                
+                <InformativeMessages
+                  messageCount={messages.length}
+                  onDismiss={handleDismissMessage}
+                  dismissedMessages={dismissedMessages}
+                />
+                
+                <PrivacyWarning
+                  isVisible={!dismissedMessages.includes('privacy-warning')}
+                  onDismiss={() => handleDismissMessage('privacy-warning')}
+                />
+              </>
+            )}
 
             {/* Messages */}
             {messages.map((message, index) => (
@@ -289,17 +357,21 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
           {/* Enhanced Input Area */}
           <div className="border-t border-slate-700/50 bg-slate-800/60 backdrop-blur-xl">
             <div className="px-4 py-4">
-              <form onSubmit={handleSubmit} className="flex space-x-3">
+              <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="flex space-x-3">
                 <div className="flex-1 relative">
                   <Textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Share your thoughts, feelings, and situation details..."
+                    placeholder={
+                      previousSessions.length > 0 && messages.length === 0
+                        ? "Continue the conversation or click a follow-up question above..."
+                        : "Share your thoughts, feelings, and situation details..."
+                    }
                     className="min-h-[60px] max-h-32 resize-none bg-slate-700/50 border-slate-600/50 text-white placeholder-slate-400 focus:border-purple-500/50 focus:ring-purple-500/20 rounded-xl"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        handleSubmit(e as any);
+                        handleSubmit();
                       }
                     }}
                   />
