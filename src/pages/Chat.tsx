@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { Navigation } from '@/components/Navigation';
+import { WorldClassNavigation } from '@/components/WorldClassNavigation';
 import { ChatView } from '@/components/ChatView';
 import { useSupabaseCoaching, SessionData, Client } from '@/hooks/useSupabaseCoaching';
 import { SessionStatus } from '@/types/coaching';
@@ -114,10 +114,13 @@ const Chat = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation user={user} />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <WorldClassNavigation user={user} />
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <div className="text-center">Loading session...</div>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading your coaching session...</p>
+          </div>
         </div>
       </div>
     );
@@ -125,13 +128,16 @@ const Chat = () => {
 
   if (!session || !client) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation user={user} />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <WorldClassNavigation user={user} />
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <p>Session not found</p>
-            <button onClick={() => navigate('/')} className="mt-4 text-blue-600 hover:underline">
-              Return to Dashboard
+            <p className="text-xl text-gray-700 mb-4">Session not found</p>
+            <button 
+              onClick={() => navigate('/clients')} 
+              className="text-blue-600 hover:underline font-medium"
+            >
+              Return to Clients
             </button>
           </div>
         </div>
@@ -140,8 +146,8 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation user={user} />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <WorldClassNavigation user={user} />
       <ChatView
         session={session}
         target={client}

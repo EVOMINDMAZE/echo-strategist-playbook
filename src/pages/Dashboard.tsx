@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { EnhancedNavigation } from '@/components/EnhancedNavigation';
+import { WorldClassNavigation } from '@/components/WorldClassNavigation';
 import { DashboardStats } from '@/components/DashboardStats';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -45,10 +45,10 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <EnhancedNavigation user={user} />
+      <WorldClassNavigation user={user} />
       
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
+        <div className="mb-8 animate-fade-in-up">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
             Welcome back, {user.user_metadata?.full_name?.split(' ')[0] || 'Coach'}! 👋
           </h1>

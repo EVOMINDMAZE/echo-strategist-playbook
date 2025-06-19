@@ -17,6 +17,8 @@ export type Database = {
           feedback_rating: number | null
           feedback_submitted_at: string | null
           id: string
+          is_continued: boolean | null
+          parent_session_id: string | null
           raw_chat_history: Json | null
           status: string
           strategist_output: Json | null
@@ -30,6 +32,8 @@ export type Database = {
           feedback_rating?: number | null
           feedback_submitted_at?: string | null
           id?: string
+          is_continued?: boolean | null
+          parent_session_id?: string | null
           raw_chat_history?: Json | null
           status?: string
           strategist_output?: Json | null
@@ -43,6 +47,8 @@ export type Database = {
           feedback_rating?: number | null
           feedback_submitted_at?: string | null
           id?: string
+          is_continued?: boolean | null
+          parent_session_id?: string | null
           raw_chat_history?: Json | null
           status?: string
           strategist_output?: Json | null
@@ -50,6 +56,13 @@ export type Database = {
           user_feedback?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "coaching_sessions_parent_session_id_fkey"
+            columns: ["parent_session_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_sessions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "coaching_sessions_target_id_fkey"
             columns: ["target_id"]
@@ -83,6 +96,39 @@ export type Database = {
           message?: string
           name?: string
           subject?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -227,18 +273,21 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_favorite: boolean | null
           target_name: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          is_favorite?: boolean | null
           target_name: string
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          is_favorite?: boolean | null
           target_name?: string
           user_id?: string
         }
@@ -303,6 +352,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_preferences: {
+        Row: {
+          coaching_style: string | null
+          created_at: string
+          email_notifications: boolean | null
+          id: string
+          preferred_session_length: number | null
+          push_notifications: boolean | null
+          session_reminders: boolean | null
+          timezone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          coaching_style?: string | null
+          created_at?: string
+          email_notifications?: boolean | null
+          id?: string
+          preferred_session_length?: number | null
+          push_notifications?: boolean | null
+          session_reminders?: boolean | null
+          timezone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          coaching_style?: string | null
+          created_at?: string
+          email_notifications?: boolean | null
+          id?: string
+          preferred_session_length?: number | null
+          push_notifications?: boolean | null
+          session_reminders?: boolean | null
+          timezone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

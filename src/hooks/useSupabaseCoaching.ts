@@ -1,17 +1,27 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Client, ChatMessage, SessionStatus, SessionData } from '@/types/coaching';
 
 export type { Client, ChatMessage, SessionStatus, SessionData };
 
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'reminder';
+  is_read: boolean;
+  created_at: string;
+}
+
 export const useSupabaseCoaching = () => {
   const [clients, setClients] = useState<Client[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load clients on mount
+  // Load clients and notifications on mount
   useEffect(() => {
     loadClients();
+    loadNotifications();
   }, []);
 
   const loadClients = async () => {
@@ -26,7 +36,8 @@ export const useSupabaseCoaching = () => {
       const formattedClients: Client[] = data.map(target => ({
         id: target.id,
         name: target.target_name,
-        created_at: target.created_at
+        created_at: target.created_at,
+        is_favorite: target.is_favorite || false
       }));
 
       setClients(formattedClients);
@@ -37,8 +48,22 @@ export const useSupabaseCoaching = () => {
     }
   };
 
+  const loadNotifications = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setNotifications(data || []);
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+    }
+  };
+
   const createClient = async (name: string): Promise<Client> => {
-    // Get current user
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
@@ -59,17 +84,43 @@ export const useSupabaseCoaching = () => {
     const newClient: Client = {
       id: data.id,
       name: data.target_name,
-      created_at: data.created_at
+      created_at: data.created_at,
+      is_favorite: data.is_favorite || false
     };
 
     setClients(prev => [newClient, ...prev]);
     return newClient;
   };
 
-  const createSession = async (clientId: string): Promise<SessionData> => {
+  const toggleFavorite = async (clientId: string): Promise<void> => {
+    const client = clients.find(c => c.id === clientId);
+    if (!client) return;
+
+    const newFavoriteStatus = !client.is_favorite;
+
+    const { error } = await supabase
+      .from('targets')
+      .update({ is_favorite: newFavoriteStatus })
+      .eq('id', clientId);
+
+    if (error) throw error;
+
+    setClients(prev => prev.map(c => 
+      c.id === clientId ? { ...c, is_favorite: newFavoriteStatus } : c
+    ));
+  };
+
+  const createSession = async (clientId: string, continueFromSession?: string): Promise<SessionData> => {
+    const insertData: any = { target_id: clientId };
+    
+    if (continueFromSession) {
+      insertData.is_continued = true;
+      insertData.parent_session_id = continueFromSession;
+    }
+
     const { data, error } = await supabase
       .from('coaching_sessions')
-      .insert({ target_id: clientId })
+      .insert(insertData)
       .select()
       .single();
 
@@ -81,8 +132,27 @@ export const useSupabaseCoaching = () => {
       status: data.status as SessionStatus,
       messages: Array.isArray(data.raw_chat_history) ? data.raw_chat_history as unknown as ChatMessage[] : [],
       case_data: typeof data.case_file_data === 'object' && data.case_file_data !== null ? data.case_file_data as Record<string, any> : {},
-      strategist_output: data.strategist_output as { analysis?: string; suggestions?: Array<{ title: string; description: string; why_it_works: string; }>; } | undefined
+      strategist_output: data.strategist_output as { analysis?: string; suggestions?: Array<{ title: string; description: string; why_it_works: string; }>; } | undefined,
+      is_continued: data.is_continued || false,
+      parent_session_id: data.parent_session_id
     };
+  };
+
+  const markNotificationAsRead = async (notificationId: string) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
+      setNotifications(prev => prev.map(n => 
+        n.id === notificationId ? { ...n, is_read: true } : n
+      ));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
   const updateSession = async (sessionId: string, updates: Partial<SessionData>) => {
@@ -142,18 +212,24 @@ export const useSupabaseCoaching = () => {
       status: data.status as SessionStatus,
       messages: Array.isArray(data.raw_chat_history) ? data.raw_chat_history as unknown as ChatMessage[] : [],
       case_data: typeof data.case_file_data === 'object' && data.case_file_data !== null ? data.case_file_data as Record<string, any> : {},
-      strategist_output: data.strategist_output as { analysis?: string; suggestions?: Array<{ title: string; description: string; why_it_works: string; }>; } | undefined
+      strategist_output: data.strategist_output as { analysis?: string; suggestions?: Array<{ title: string; description: string; why_it_works: string; }>; } | undefined,
+      is_continued: data.is_continued || false,
+      parent_session_id: data.parent_session_id
     };
   };
 
   return {
     clients,
+    notifications,
     loading,
     createClient,
+    toggleFavorite,
     createSession,
     updateSession,
     sendMessage,
     triggerStrategist,
-    getSession
+    getSession,
+    loadNotifications,
+    markNotificationAsRead
   };
 };
