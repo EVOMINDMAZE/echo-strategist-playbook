@@ -325,6 +325,8 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
       {session.status === 'complete' && session.strategist_output && (
         <ResultsView
           session={session}
+          client={target}
+          onBackToClients={onBackToTargets}
           onNewSession={() => {
             // Handle new session creation
             console.log('Creating new session...');
