@@ -77,7 +77,7 @@ export const useSupabaseCoaching = () => {
       id: data.id,
       target_id: data.target_id,
       status: data.status as SessionStatus,
-      messages: Array.isArray(data.raw_chat_history) ? data.raw_chat_history as ChatMessage[] : [],
+      messages: Array.isArray(data.raw_chat_history) ? data.raw_chat_history as unknown as ChatMessage[] : [],
       case_data: typeof data.case_file_data === 'object' && data.case_file_data !== null ? data.case_file_data as Record<string, any> : {},
       strategist_output: data.strategist_output as { analysis?: string; suggestions?: Array<{ title: string; description: string; why_it_works: string; }>; } | undefined
     };
@@ -114,7 +114,7 @@ export const useSupabaseCoaching = () => {
       id: data.id,
       target_id: data.target_id,
       status: data.status as SessionStatus,
-      messages: Array.isArray(data.raw_chat_history) ? data.raw_chat_history as ChatMessage[] : [],
+      messages: Array.isArray(data.raw_chat_history) ? data.raw_chat_history as unknown as ChatMessage[] : [],
       case_data: typeof data.case_file_data === 'object' && data.case_file_data !== null ? data.case_file_data as Record<string, any> : {},
       strategist_output: data.strategist_output as { analysis?: string; suggestions?: Array<{ title: string; description: string; why_it_works: string; }>; } | undefined
     };
