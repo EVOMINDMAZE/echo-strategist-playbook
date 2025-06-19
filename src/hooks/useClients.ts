@@ -84,7 +84,7 @@ export const useClients = () => {
       if (error) {
         // Revert optimistic update on error
         setClients(prev => prev.map(c => 
-          c.id === clientId ? { ...c, is_favorite: !newFavoriteStatus } : c
+          c.id === clientId ? { ...c, is_favorite: client.is_favorite } : c
         ));
         throw error;
       }

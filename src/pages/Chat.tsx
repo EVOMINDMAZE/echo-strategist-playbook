@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { WorldClassNavigation } from '@/components/WorldClassNavigation';
 import { ChatView } from '@/components/ChatView';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useSupabaseCoaching, SessionData, Client } from '@/hooks/useSupabaseCoaching';
 import { SessionStatus } from '@/types/coaching';
 import { supabase } from '@/integrations/supabase/client';
@@ -180,16 +181,18 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
-      <WorldClassNavigation user={user} />
-      <ChatView
-        session={session}
-        target={client}
-        onSessionUpdate={handleSessionUpdate}
-        onStatusChange={handleStatusChange}
-        onBackToTargets={() => navigate('/clients')}
-      />
-    </div>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
+        <WorldClassNavigation user={user} />
+        <ChatView
+          session={session}
+          target={client}
+          onSessionUpdate={handleSessionUpdate}
+          onStatusChange={handleStatusChange}
+          onBackToTargets={() => navigate('/clients')}
+        />
+      </div>
+    </ErrorBoundary>
   );
 };
 

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { SessionData, SessionStatus, ChatMessage } from '@/types/coaching';
+import { sanitizeChatHistory, validateStrategistOutput } from '@/utils/messageUtils';
 
 export const useCoachingSessions = () => {
   const [sessions, setSessions] = useState<SessionData[]>([]);
@@ -20,8 +21,8 @@ export const useCoachingSessions = () => {
       id: data.id,
       target_id: data.target_id,
       status: data.status as SessionStatus,
-      messages: Array.isArray(data.raw_chat_history) ? data.raw_chat_history as unknown as ChatMessage[] : [],
-      strategist_output: data.strategist_output as unknown as SessionData['strategist_output'],
+      messages: sanitizeChatHistory(data.raw_chat_history),
+      strategist_output: validateStrategistOutput(data.strategist_output),
       case_file_data: data.case_file_data as Record<string, any> || {},
       feedback_data: data.feedback_data as Record<string, any> || {},
       user_feedback: data.user_feedback,
@@ -77,8 +78,8 @@ export const useCoachingSessions = () => {
       id: data.id,
       target_id: data.target_id,
       status: data.status as SessionStatus,
-      messages: Array.isArray(data.raw_chat_history) ? data.raw_chat_history as unknown as ChatMessage[] : [],
-      strategist_output: data.strategist_output as unknown as SessionData['strategist_output'],
+      messages: sanitizeChatHistory(data.raw_chat_history),
+      strategist_output: validateStrategistOutput(data.strategist_output),
       case_file_data: data.case_file_data as Record<string, any> || {},
       feedback_data: data.feedback_data as Record<string, any> || {},
       user_feedback: data.user_feedback,
@@ -112,8 +113,8 @@ export const useCoachingSessions = () => {
         id: session.id,
         target_id: session.target_id,
         status: session.status as SessionStatus,
-        messages: Array.isArray(session.raw_chat_history) ? session.raw_chat_history as unknown as ChatMessage[] : [],
-        strategist_output: session.strategist_output as unknown as SessionData['strategist_output'],
+        messages: sanitizeChatHistory(session.raw_chat_history),
+        strategist_output: validateStrategistOutput(session.strategist_output),
         case_file_data: session.case_file_data as Record<string, any> || {},
         feedback_data: session.feedback_data as Record<string, any> || {},
         user_feedback: session.user_feedback,
