@@ -1,29 +1,48 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { WorldClassNavigation } from '@/components/WorldClassNavigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Navigation } from '@/components/Navigation';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { BarChart3, TrendingUp, Clock, Target, MessageSquare, Calendar } from 'lucide-react';
+import { 
+  TrendingUp, 
+  Users, 
+  Target, 
+  Calendar, 
+  MessageSquare,
+  Clock,
+  Star,
+  BarChart3,
+  ArrowUpRight,
+  ArrowDownRight
+} from 'lucide-react';
 
-interface Analytics {
-  total_sessions: number;
-  completed_sessions: number;
-  total_clients: number;
-  avg_messages_per_session: number;
-  recent_sessions: Array<{
-    id: string;
-    client_name: string;
-    status: string;
-    created_at: string;
-    message_count: number;
-  }>;
+interface AnalyticsData {
+  totalChats: number;
+  completedChats: number;
+  totalTargets: number;
+  avgSessionTime: string;
+  weeklyProgress: number;
+  completionRate: number;
+  recentActivity: any[];
+  topPerformingTargets: any[];
 }
 
 const Analytics = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsData>({
+    totalChats: 0,
+    completedChats: 0,
+    totalTargets: 0,
+    avgSessionTime: '0 min',
+    weeklyProgress: 0,
+    completionRate: 0,
+    recentActivity: [],
+    topPerformingTargets: []
+  });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -35,6 +54,7 @@ const Analytics = () => {
         return;
       }
       setUser(session.user);
+      loadAnalyticsData(session.user.id);
     };
 
     getUser();
@@ -43,6 +63,7 @@ const Analytics = () => {
       (event, session) => {
         if (session) {
           setUser(session.user);
+          loadAnalyticsData(session.user.id);
         } else {
           navigate('/auth');
         }
@@ -52,254 +73,281 @@ const Analytics = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  useEffect(() => {
-    const loadAnalytics = async () => {
-      if (!user) return;
-      
-      try {
-        // Get user's clients
-        const { data: clients, error: clientsError } = await supabase
-          .from('targets')
-          .select('*')
-          .eq('user_id', user.id);
-        
-        if (clientsError) throw clientsError;
+  const loadAnalyticsData = async (userId: string) => {
+    try {
+      // Load coaching sessions
+      const { data: sessions } = await supabase
+        .from('coaching_sessions')
+        .select(`
+          id,
+          status,
+          created_at,
+          targets (
+            id,
+            target_name
+          )
+        `)
+        .order('created_at', { ascending: false });
 
-        // Get all sessions for user's clients
-        const clientIds = clients?.map(c => c.id) || [];
-        
-        const { data: sessions, error: sessionsError } = await supabase
-          .from('coaching_sessions')
-          .select('*')
-          .in('target_id', clientIds);
-        
-        if (sessionsError) throw sessionsError;
+      // Load targets
+      const { data: targets } = await supabase
+        .from('targets')
+        .select('*')
+        .eq('user_id', userId);
 
-        // Calculate analytics
-        const totalSessions = sessions?.length || 0;
-        const completedSessions = sessions?.filter(s => s.status === 'complete').length || 0;
-        const totalClients = clients?.length || 0;
+      if (sessions && targets) {
+        const completedSessions = sessions.filter(s => s.status === 'complete');
+        const thisWeekStart = new Date();
+        thisWeekStart.setDate(thisWeekStart.getDate() - 7);
         
-        let totalMessages = 0;
-        const recentSessions = [];
-        
-        for (const session of sessions || []) {
-          const messageCount = Array.isArray(session.raw_chat_history) 
-            ? session.raw_chat_history.length 
-            : 0;
-          totalMessages += messageCount;
+        const thisWeekSessions = sessions.filter(s => 
+          new Date(s.created_at) > thisWeekStart
+        );
+
+        // Calculate top performing targets
+        const targetPerformance = targets.map(target => {
+          const targetSessions = sessions.filter(s => s.targets?.id === target.id);
+          const completedTargetSessions = targetSessions.filter(s => s.status === 'complete');
           
-          const client = clients?.find(c => c.id === session.target_id);
-          if (client) {
-            recentSessions.push({
-              id: session.id,
-              client_name: client.target_name,
-              status: session.status,
-              created_at: session.created_at,
-              message_count: messageCount
-            });
-          }
-        }
-
-        // Sort recent sessions by date
-        recentSessions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+          return {
+            ...target,
+            totalSessions: targetSessions.length,
+            completedSessions: completedTargetSessions.length,
+            completionRate: targetSessions.length > 0 ? 
+              Math.round((completedTargetSessions.length / targetSessions.length) * 100) : 0
+          };
+        }).sort((a, b) => b.completionRate - a.completionRate);
 
         setAnalytics({
-          total_sessions: totalSessions,
-          completed_sessions: completedSessions,
-          total_clients: totalClients,
-          avg_messages_per_session: totalSessions > 0 ? Math.round(totalMessages / totalSessions) : 0,
-          recent_sessions: recentSessions.slice(0, 10) // Last 10 sessions
+          totalChats: sessions.length,
+          completedChats: completedSessions.length,
+          totalTargets: targets.length,
+          avgSessionTime: '25 min', // Mock data
+          weeklyProgress: thisWeekSessions.length,
+          completionRate: sessions.length > 0 ? 
+            Math.round((completedSessions.length / sessions.length) * 100) : 0,
+          recentActivity: sessions.slice(0, 10),
+          topPerformingTargets: targetPerformance.slice(0, 5)
         });
-      } catch (error) {
-        console.error('Error loading analytics:', error);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Error loading analytics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    loadAnalytics();
-  }, [user]);
-
-  if (loading || !user) {
+  if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation user={user} />
-        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <div className="text-center">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <WorldClassNavigation user={user} />
+        <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+          <div className="animate-pulse space-y-8">
+            <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-32 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation user={user} />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <WorldClassNavigation user={user} />
       
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Session Analytics</h1>
-          <p className="mt-2 text-gray-600">
-            Detailed insights into your coaching sessions and performance
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            Analytics Dashboard 📊
+          </h1>
+          <p className="mt-2 text-xl text-gray-600">
+            Track your coaching progress and insights
           </p>
         </div>
 
-        {/* Overview Cards */}
+        {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
-              <MessageSquare className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{analytics?.total_sessions || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                All coaching conversations
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed Sessions</CardTitle>
-              <BarChart3 className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{analytics?.completed_sessions || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                Successfully finished
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-              <TrendingUp className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">
-                {analytics?.total_sessions ? 
-                  Math.round((analytics.completed_sessions / analytics.total_sessions) * 100) : 0}%
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-600 text-sm font-medium">Total Chats</p>
+                  <p className="text-3xl font-bold text-blue-900">{analytics.totalChats}</p>
+                  <div className="flex items-center mt-1">
+                    <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
+                    <span className="text-sm text-green-600">+{analytics.weeklyProgress} this week</span>
+                  </div>
+                </div>
+                <MessageSquare className="w-8 h-8 text-blue-500" />
               </div>
-              <p className="text-xs text-muted-foreground">
-                Completion percentage
-              </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Messages</CardTitle>
-              <Clock className="h-4 w-4 text-orange-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">
-                {analytics?.avg_messages_per_session || 0}
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-600 text-sm font-medium">Completion Rate</p>
+                  <p className="text-3xl font-bold text-green-900">{analytics.completionRate}%</p>
+                  <div className="flex items-center mt-1">
+                    <Target className="w-4 h-4 text-green-500 mr-1" />
+                    <span className="text-sm text-green-600">{analytics.completedChats} completed</span>
+                  </div>
+                </div>
+                <TrendingUp className="w-8 h-8 text-green-500" />
               </div>
-              <p className="text-xs text-muted-foreground">
-                Per session
-              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-600 text-sm font-medium">Active Targets</p>
+                  <p className="text-3xl font-bold text-purple-900">{analytics.totalTargets}</p>
+                  <div className="flex items-center mt-1">
+                    <Users className="w-4 h-4 text-purple-500 mr-1" />
+                    <span className="text-sm text-purple-600">coaching relationships</span>
+                  </div>
+                </div>
+                <Users className="w-8 h-8 text-purple-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-600 text-sm font-medium">Avg Session</p>
+                  <p className="text-3xl font-bold text-orange-900">{analytics.avgSessionTime}</p>
+                  <div className="flex items-center mt-1">
+                    <Clock className="w-4 h-4 text-orange-500 mr-1" />
+                    <span className="text-sm text-orange-600">per conversation</span>
+                  </div>
+                </div>
+                <Clock className="w-8 h-8 text-orange-500" />
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Detailed Analytics */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="bg-white shadow-md">
+        {/* Top Performing Targets */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
-                Performance Overview
+              <CardTitle className="flex items-center">
+                <Star className="w-5 h-5 mr-2 text-yellow-500" />
+                Top Performing Targets
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Target className="h-8 w-8 text-blue-600" />
-                    <div>
-                      <p className="font-medium text-gray-900">Active Clients</p>
-                      <p className="text-sm text-gray-500">People being coached</p>
-                    </div>
-                  </div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {analytics?.total_clients || 0}
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <MessageSquare className="h-8 w-8 text-green-600" />
-                    <div>
-                      <p className="font-medium text-gray-900">Sessions per Client</p>
-                      <p className="text-sm text-gray-500">Average interactions</p>
-                    </div>
-                  </div>
-                  <div className="text-2xl font-bold text-green-600">
-                    {analytics?.total_clients && analytics?.total_sessions ? 
-                      Math.round(analytics.total_sessions / analytics.total_clients) : 0}
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center p-4 bg-purple-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <TrendingUp className="h-8 w-8 text-purple-600" />
-                    <div>
-                      <p className="font-medium text-gray-900">Improvement Rate</p>
-                      <p className="text-sm text-gray-500">Based on completions</p>
-                    </div>
-                  </div>
-                  <div className="text-2xl font-bold text-purple-600">
-                    {analytics?.total_sessions ? 
-                      Math.round((analytics.completed_sessions / analytics.total_sessions) * 100) : 0}%
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white shadow-md">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Recent Sessions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {analytics?.recent_sessions.length === 0 ? (
-                  <div className="text-center py-8">
-                    <BarChart3 className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                    <p className="text-gray-500">
-                      No sessions yet. Start coaching to see activity here!
-                    </p>
-                  </div>
-                ) : (
-                  analytics?.recent_sessions.map((session) => (
-                    <div key={session.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-gray-900">{session.client_name}</p>
-                        <p className="text-sm text-gray-500">
-                          {new Date(session.created_at).toLocaleDateString()} • {session.message_count} messages
+              {analytics.topPerformingTargets.length > 0 ? (
+                <div className="space-y-4">
+                  {analytics.topPerformingTargets.map((target: any) => (
+                    <div key={target.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-sm">{target.target_name}</h4>
+                        <p className="text-xs text-gray-500">
+                          {target.completedSessions}/{target.totalSessions} sessions completed
                         </p>
                       </div>
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        session.status === 'complete' 
-                          ? 'bg-green-100 text-green-800'
-                          : session.status === 'analyzing'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {session.status.replace('_', ' ')}
-                      </div>
+                      <Badge 
+                        variant={target.completionRate >= 80 ? 'default' : 'secondary'}
+                        className="ml-2"
+                      >
+                        {target.completionRate}%
+                      </Badge>
                     </div>
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-4">
+                  No targets yet. Start your first coaching session!
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <BarChart3 className="w-5 h-5 mr-2 text-blue-500" />
+                Recent Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {analytics.recentActivity.length > 0 ? (
+                <div className="space-y-3">
+                  {analytics.recentActivity.slice(0, 5).map((session: any) => (
+                    <div key={session.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-2 h-2 rounded-full ${
+                          session.status === 'complete' ? 'bg-green-500' : 
+                          session.status === 'analyzing' ? 'bg-yellow-500' : 'bg-blue-500'
+                        }`}></div>
+                        <div>
+                          <p className="font-medium text-sm">
+                            {session.targets?.target_name || 'Session'}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(session.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge 
+                        variant={session.status === 'complete' ? 'default' : 'secondary'}
+                        className="text-xs"
+                      >
+                        {session.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-4">
+                  No recent activity. Start your first coaching session!
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
+
+        {/* Quick Actions */}
+        <Card className="bg-gradient-to-r from-indigo-500 to-blue-600 text-white">
+          <CardHeader>
+            <CardTitle className="text-white">Take Action</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button 
+                onClick={() => navigate('/clients')}
+                className="bg-white text-indigo-600 hover:bg-gray-100"
+              >
+                Start New Chat
+              </Button>
+              <Button 
+                onClick={() => navigate('/dashboard')}
+                variant="outline"
+                className="border-white text-white hover:bg-white hover:text-indigo-600"
+              >
+                Back to Dashboard
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

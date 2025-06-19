@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { 
   Home, 
-  Users, 
+  MessageSquare, 
   BarChart3, 
   Settings, 
   User, 
@@ -37,10 +36,10 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
     },
     { 
       path: '/clients', 
-      label: 'Clients', 
-      icon: Users,
+      label: 'Chats', 
+      icon: MessageSquare,
       isActive: location.pathname === '/clients',
-      badge: '5' // Number of active clients
+      badge: '5'
     },
     { 
       path: '/analytics', 
@@ -58,7 +57,6 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
   const handleQuickSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Implement search functionality
       console.log('Searching for:', searchQuery);
     }
   };
@@ -67,7 +65,6 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
     <nav className="bg-white/80 backdrop-blur-lg border-b border-gray-200 shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          {/* Logo and Brand */}
           <div className="flex items-center">
             <button
               onClick={() => navigate('/')}
@@ -78,7 +75,6 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
             </button>
           </div>
 
-          {/* Main Navigation */}
           {user && (
             <div className="hidden md:flex items-center space-x-1">
               {navigationItems.map((item) => {
@@ -107,11 +103,9 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
             </div>
           )}
 
-          {/* Search and User Actions */}
           <div className="flex items-center space-x-4">
             {user && (
               <>
-                {/* Quick Search */}
                 <form onSubmit={handleQuickSearch} className="hidden sm:block">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -125,7 +119,6 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
                   </div>
                 </form>
 
-                {/* Notifications */}
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell size={20} />
                   {unreadNotifications > 0 && (
@@ -138,10 +131,8 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
                   )}
                 </Button>
 
-                {/* Theme Toggle */}
                 <ThemeToggle />
 
-                {/* User Menu */}
                 <div className="flex items-center space-x-3">
                   <div className="hidden sm:block text-right">
                     <div className="text-sm font-medium text-gray-900">
@@ -193,35 +184,32 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
         </div>
       </div>
 
-      {/* Mobile Navigation */}
-      {user && (
-        <div className="md:hidden border-t border-gray-200 bg-white/90 backdrop-blur-sm">
-          <div className="flex justify-around py-2">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Button
-                  key={item.path}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate(item.path)}
-                  className={`flex flex-col items-center space-y-1 ${
-                    item.isActive ? 'text-blue-600' : 'text-gray-600'
-                  }`}
-                >
-                  <Icon size={16} />
-                  <span className="text-xs">{item.label}</span>
-                  {item.badge && (
-                    <Badge variant="secondary" className="absolute -top-1 -right-1 text-xs">
-                      {item.badge}
-                    </Badge>
-                  )}
-                </Button>
-              );
-            })}
-          </div>
+      <div className="md:hidden border-t border-gray-200 bg-white/90 backdrop-blur-sm">
+        <div className="flex justify-around py-2">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Button
+                key={item.path}
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(item.path)}
+                className={`flex flex-col items-center space-y-1 ${
+                  item.isActive ? 'text-blue-600' : 'text-gray-600'
+                }`}
+              >
+                <Icon size={16} />
+                <span className="text-xs">{item.label}</span>
+                {item.badge && (
+                  <Badge variant="secondary" className="absolute -top-1 -right-1 text-xs">
+                    {item.badge}
+                  </Badge>
+                )}
+              </Button>
+            );
+          })}
         </div>
-      )}
+      </div>
     </nav>
   );
 };

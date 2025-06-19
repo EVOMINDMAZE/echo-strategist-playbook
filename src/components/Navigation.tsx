@@ -12,7 +12,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Menu, User as UserIcon, Settings, LogOut, Home, Users, Info, DollarSign, BarChart3, CreditCard } from 'lucide-react';
+import { Menu, User as UserIcon, Settings, LogOut, Home, MessageSquare, Info, DollarSign, BarChart3, CreditCard } from 'lucide-react';
 
 interface NavigationProps {
   user?: User | null;
@@ -160,8 +160,8 @@ export const Navigation = ({ user, onSignOut }: NavigationProps) => {
                 onClick={() => navigate('/clients')}
                 className="flex items-center gap-2"
               >
-                <Users size={16} />
-                My Clients
+                <MessageSquare size={16} />
+                Chats
               </Button>
               <Button
                 variant={isActive('/analytics') ? 'default' : 'ghost'}
@@ -238,8 +238,8 @@ export const Navigation = ({ user, onSignOut }: NavigationProps) => {
                 onClick={() => { navigate('/clients'); setIsMenuOpen(false); }}
                 className="w-full justify-start gap-2"
               >
-                <Users size={16} />
-                My Clients
+                <MessageSquare size={16} />
+                Chats
               </Button>
               <Button
                 variant={isActive('/analytics') ? 'default' : 'ghost'}
