@@ -6,6 +6,7 @@ import { ArrowLeft, Send, Bot, User } from 'lucide-react';
 import { Client, SessionData, ChatMessage, SessionStatus } from '@/types/coaching';
 import { ThinkingAnimation } from '@/components/ThinkingAnimation';
 import { ResultsView } from '@/components/ResultsView';
+import { StrategistTriggerButton } from '@/components/StrategistTriggerButton';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -27,6 +28,7 @@ export const ChatView = ({
   const [inputMessage, setInputMessage] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -37,14 +39,26 @@ export const ChatView = ({
     }
   };
 
+  // Fixed scrolling logic - only scroll when new messages are added or on initial load
   useEffect(() => {
-    // Always scroll to bottom when messages change or thinking state changes
-    const timer = setTimeout(() => {
-      scrollToBottom();
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, [session.messages, isThinking, isAnalyzing]);
+    if (!hasScrolledToBottom && session.messages.length > 0) {
+      const timer = setTimeout(() => {
+        scrollToBottom();
+        setHasScrolledToBottom(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [session.messages.length, hasScrolledToBottom]);
+
+  // Scroll when thinking state changes (new message being processed)
+  useEffect(() => {
+    if (isThinking || isAnalyzing) {
+      const timer = setTimeout(() => {
+        scrollToBottom();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isThinking, isAnalyzing]);
 
   // Poll for session updates when analyzing
   useEffect(() => {
@@ -129,6 +143,7 @@ export const ChatView = ({
     onSessionUpdate(updatedSession);
     setInputMessage('');
     setIsThinking(true);
+    setHasScrolledToBottom(false); // Allow scrolling for new message
 
     try {
       console.log('Calling handle-user-message function...');
@@ -157,37 +172,7 @@ export const ChatView = ({
 
       onSessionUpdate(finalSession);
       setIsThinking(false);
-
-      // Check if we should trigger analysis
-      if (data.shouldTriggerAnalysis) {
-        console.log('Triggering strategist analysis...');
-        
-        setTimeout(async () => {
-          onStatusChange('analyzing');
-          
-          try {
-            const { error: strategistError } = await supabase.functions.invoke('trigger-strategist', {
-              body: { sessionId: session.id }
-            });
-
-            if (strategistError) {
-              console.error('Strategist error:', strategistError);
-              toast({
-                title: "Analysis Error",
-                description: "Failed to start analysis. Please try again.",
-                variant: "destructive"
-              });
-            }
-          } catch (error) {
-            console.error('Error calling trigger-strategist:', error);
-            toast({
-              title: "Analysis Error", 
-              description: "Failed to start analysis. Please try again.",
-              variant: "destructive"
-            });
-          }
-        }, 1000);
-      }
+      setHasScrolledToBottom(false); // Allow scrolling for AI response
 
     } catch (error) {
       console.error('Error sending message:', error);
@@ -195,6 +180,37 @@ export const ChatView = ({
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleManualStrategistTrigger = async () => {
+    console.log('Manual strategist trigger activated');
+    
+    onStatusChange('analyzing');
+    setIsAnalyzing(true);
+    
+    try {
+      const { error } = await supabase.functions.invoke('trigger-strategist', {
+        body: { sessionId: session.id }
+      });
+
+      if (error) {
+        console.error('Strategist error:', error);
+        setIsAnalyzing(false);
+        toast({
+          title: "Analysis Error",
+          description: "Failed to start analysis. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error calling trigger-strategist:', error);
+      setIsAnalyzing(false);
+      toast({
+        title: "Analysis Error", 
+        description: "Failed to start analysis. Please try again.",
         variant: "destructive"
       });
     }
@@ -209,6 +225,9 @@ export const ChatView = ({
     // Navigate back to create a new session
     window.location.href = `/clients`;
   };
+
+  // Get user message count for strategist trigger
+  const userMessageCount = session.messages.filter(msg => msg.sender === 'user').length;
 
   // Show results view if session is complete
   if (session.status === 'complete' && session.strategist_output) {
@@ -302,6 +321,13 @@ export const ChatView = ({
                 )}
               </div>
             ))}
+
+            {/* Manual Strategist Trigger Button */}
+            <StrategistTriggerButton
+              onTrigger={handleManualStrategistTrigger}
+              messageCount={userMessageCount}
+              isAnalyzing={isAnalyzing}
+            />
 
             {/* Thinking Animation */}
             {(isThinking || isAnalyzing) && (

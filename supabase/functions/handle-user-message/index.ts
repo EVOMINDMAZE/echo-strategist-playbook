@@ -66,6 +66,9 @@ serve(async (req) => {
       .map(msg => `${msg.sender}: ${msg.content}`)
       .join('\n');
 
+    // Check if we have enough information for analysis
+    const hasEnoughInfo = userMessageCount >= 4;
+
     const systemPrompt = `You are a dating and relationship coach having a natural conversation with someone who wants help with their relationship with ${targetName}. 
 
 Your goal is to:
@@ -73,17 +76,18 @@ Your goal is to:
 2. Gradually understand their situation, goals, and personality
 3. Ask thoughtful follow-up questions
 4. Show empathy and understanding
-5. After gathering enough context (usually 4-6 exchanges), suggest moving to analysis
+5. ${hasEnoughInfo ? 'If you feel you have enough context about their situation, you can suggest they use the "Get Analysis Now" button to get strategic advice' : 'Continue gathering information about their situation'}
 
 Current conversation:
 ${conversationContext}
 
 Guidelines:
 - Be conversational and warm, not robotic
-- Ask one question at a time
+- Ask one question at a time when needed
 - Build on their previous responses
 - Show genuine interest in helping them
-- If they've shared enough about their situation, goals, and personality, you can suggest: "I think I have a good understanding of your situation. Let me analyze this and create a personalized strategy for you. This should only take a moment."
+- ${hasEnoughInfo ? 'You can mention that they can trigger the strategist analysis when they feel ready by using the button that should appear' : 'Continue asking follow-up questions to understand their situation better'}
+- Never automatically trigger analysis - let the user decide when they're ready
 
 Response format: Provide ONLY the response text, no JSON or formatting.`;
 
@@ -99,12 +103,7 @@ Response format: Provide ONLY the response text, no JSON or formatting.`;
 
     const aiResponseContent = completion.choices[0].message.content || "I understand. Can you tell me more about that?";
     
-    // Check if we should trigger analysis (look for key phrases)
-    const shouldTriggerAnalysis = aiResponseContent.toLowerCase().includes('analyze this') || 
-                                 aiResponseContent.toLowerCase().includes('create a personalized strategy') ||
-                                 userMessageCount >= 5;
-
-    console.log('Should trigger analysis:', shouldTriggerAnalysis);
+    console.log('AI Response:', aiResponseContent);
 
     // Add AI message to history
     const aiMessage = {
@@ -116,12 +115,12 @@ Response format: Provide ONLY the response text, no JSON or formatting.`;
 
     const finalHistory = [...updatedHistory, aiMessage];
 
-    // Update session with new chat history
+    // Update session with new chat history - never automatically trigger analysis
     const { error: updateError } = await supabase
       .from('coaching_sessions')
       .update({ 
         raw_chat_history: finalHistory,
-        status: shouldTriggerAnalysis ? 'analyzing' : 'gathering_info'
+        status: 'gathering_info' // Always keep gathering info, let user trigger manually
       })
       .eq('id', sessionId);
 
@@ -134,7 +133,7 @@ Response format: Provide ONLY the response text, no JSON or formatting.`;
 
     return new Response(JSON.stringify({ 
       message: aiMessage,
-      shouldTriggerAnalysis 
+      shouldTriggerAnalysis: false // Never auto-trigger
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

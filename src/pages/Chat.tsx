@@ -51,10 +51,12 @@ const Chat = () => {
       }
 
       try {
+        console.log('Loading session:', sessionId);
         const sessionData = await getSession(sessionId);
+        console.log('Session data loaded:', sessionData);
         setSession(sessionData);
         
-        // Get client name from URL params
+        // Get client name from URL params or fetch from target
         const clientName = searchParams.get('target');
         if (clientName) {
           setClient({
@@ -62,6 +64,21 @@ const Chat = () => {
             name: decodeURIComponent(clientName),
             created_at: new Date().toISOString()
           });
+        } else {
+          // Fetch target information if not in URL
+          const { data: targetData, error } = await supabase
+            .from('targets')
+            .select('*')
+            .eq('id', sessionData.target_id)
+            .single();
+          
+          if (targetData && !error) {
+            setClient({
+              id: targetData.id,
+              name: targetData.target_name,
+              created_at: targetData.created_at
+            });
+          }
         }
       } catch (error) {
         console.error('Error loading session:', error);
@@ -81,8 +98,16 @@ const Chat = () => {
     // Save to database
     try {
       await updateSession(updatedSession.id, updatedSession);
+      console.log('Session updated successfully');
     } catch (error) {
       console.error('Error saving session:', error);
+    }
+  };
+
+  const handleStatusChange = (status: SessionStatus) => {
+    if (session) {
+      const updatedSession = { ...session, status };
+      setSession(updatedSession);
     }
   };
 
@@ -120,7 +145,7 @@ const Chat = () => {
         session={session}
         target={client}
         onSessionUpdate={handleSessionUpdate}
-        onStatusChange={() => {}}
+        onStatusChange={handleStatusChange}
         onBackToTargets={() => navigate('/clients')}
       />
     </div>
