@@ -33,8 +33,20 @@ export const useNotifications = () => {
 
       if (error) throw error;
 
-      setNotifications(data || []);
-      setUnreadCount((data || []).filter(n => !n.is_read).length);
+      // Map database types to our interface types
+      const mappedNotifications: Notification[] = (data || []).map(notification => ({
+        id: notification.id,
+        title: notification.title,
+        message: notification.message,
+        type: (['info', 'success', 'warning', 'error'].includes(notification.type) 
+          ? notification.type 
+          : 'info') as Notification['type'],
+        is_read: notification.is_read || false,
+        created_at: notification.created_at
+      }));
+
+      setNotifications(mappedNotifications);
+      setUnreadCount(mappedNotifications.filter(n => !n.is_read).length);
     } catch (error) {
       console.error('Error loading notifications:', error);
     } finally {

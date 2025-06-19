@@ -80,7 +80,8 @@ export const useSessionContinuity = (userId: string) => {
 
   const continueSession = async (sessionId: string, targetId: string) => {
     try {
-      const newSession = await createSession(targetId, sessionId);
+      // Use the correct createSession signature (only targetId)
+      const newSession = await createSession(targetId);
       navigate(`/chat/${newSession.id}`);
     } catch (error) {
       console.error('Error continuing session:', error);

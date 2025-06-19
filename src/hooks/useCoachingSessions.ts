@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { SessionData, SessionStatus } from '@/types/coaching';
+import type { SessionData, SessionStatus, ChatMessage } from '@/types/coaching';
 
 export const useCoachingSessions = () => {
   const [sessions, setSessions] = useState<SessionData[]>([]);
@@ -20,16 +20,17 @@ export const useCoachingSessions = () => {
       id: data.id,
       target_id: data.target_id,
       status: data.status as SessionStatus,
-      messages: data.raw_chat_history || [],
-      strategist_output: data.strategist_output,
-      case_file_data: data.case_file_data || {},
-      feedback_data: data.feedback_data || {},
+      messages: Array.isArray(data.raw_chat_history) ? data.raw_chat_history as ChatMessage[] : [],
+      strategist_output: data.strategist_output as SessionData['strategist_output'],
+      case_file_data: data.case_file_data as Record<string, any> || {},
+      feedback_data: data.feedback_data as Record<string, any> || {},
       user_feedback: data.user_feedback,
       parent_session_id: data.parent_session_id,
       is_continued: data.is_continued || false,
       feedback_submitted_at: data.feedback_submitted_at,
       feedback_rating: data.feedback_rating,
-      created_at: data.created_at
+      created_at: data.created_at,
+      case_data: data.case_file_data as Record<string, any> || {}
     };
   };
 
@@ -39,8 +40,8 @@ export const useCoachingSessions = () => {
     if (updates.status) updateData.status = updates.status;
     if (updates.messages) updateData.raw_chat_history = updates.messages;
     if (updates.strategist_output) updateData.strategist_output = updates.strategist_output;
-    if (updates.case_file_data) updateData.case_file_data = updates.case_file_data;
-    if (updates.feedback_data) updateData.feedback_data = updates.feedback_data;
+    if (updates.case_file_data !== undefined) updateData.case_file_data = updates.case_file_data;
+    if (updates.feedback_data !== undefined) updateData.feedback_data = updates.feedback_data;
     if (updates.user_feedback !== undefined) updateData.user_feedback = updates.user_feedback;
     if (updates.is_continued !== undefined) updateData.is_continued = updates.is_continued;
     if (updates.feedback_rating !== undefined) updateData.feedback_rating = updates.feedback_rating;
@@ -76,16 +77,17 @@ export const useCoachingSessions = () => {
       id: data.id,
       target_id: data.target_id,
       status: data.status as SessionStatus,
-      messages: data.raw_chat_history || [],
-      strategist_output: data.strategist_output,
-      case_file_data: data.case_file_data || {},
-      feedback_data: data.feedback_data || {},
+      messages: Array.isArray(data.raw_chat_history) ? data.raw_chat_history as ChatMessage[] : [],
+      strategist_output: data.strategist_output as SessionData['strategist_output'],
+      case_file_data: data.case_file_data as Record<string, any> || {},
+      feedback_data: data.feedback_data as Record<string, any> || {},
       user_feedback: data.user_feedback,
       parent_session_id: data.parent_session_id,
       is_continued: data.is_continued || false,
       feedback_submitted_at: data.feedback_submitted_at,
       feedback_rating: data.feedback_rating,
-      created_at: data.created_at
+      created_at: data.created_at,
+      case_data: data.case_file_data as Record<string, any> || {}
     };
   };
 
@@ -110,16 +112,17 @@ export const useCoachingSessions = () => {
         id: session.id,
         target_id: session.target_id,
         status: session.status as SessionStatus,
-        messages: session.raw_chat_history || [],
-        strategist_output: session.strategist_output,
-        case_file_data: session.case_file_data || {},
-        feedback_data: session.feedback_data || {},
+        messages: Array.isArray(session.raw_chat_history) ? session.raw_chat_history as ChatMessage[] : [],
+        strategist_output: session.strategist_output as SessionData['strategist_output'],
+        case_file_data: session.case_file_data as Record<string, any> || {},
+        feedback_data: session.feedback_data as Record<string, any> || {},
         user_feedback: session.user_feedback,
         parent_session_id: session.parent_session_id,
         is_continued: session.is_continued || false,
         feedback_submitted_at: session.feedback_submitted_at,
         feedback_rating: session.feedback_rating,
-        created_at: session.created_at
+        created_at: session.created_at,
+        case_data: session.case_file_data as Record<string, any> || {}
       }));
 
       setSessions(formattedSessions);

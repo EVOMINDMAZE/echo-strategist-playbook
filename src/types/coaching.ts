@@ -1,4 +1,3 @@
-
 export interface Client {
   id: string;
   name: string;
@@ -20,7 +19,6 @@ export interface SessionData {
   target_id: string;
   status: SessionStatus;
   messages: ChatMessage[];
-  case_data: Record<string, any>;
   strategist_output?: {
     analysis?: string;
     suggestions?: Array<{
@@ -29,15 +27,23 @@ export interface SessionData {
       why_it_works: string;
     }>;
   };
-  is_continued?: boolean;
+  case_file_data?: Record<string, any>;
+  feedback_data?: Record<string, any>;
+  user_feedback?: string;
   parent_session_id?: string;
+  is_continued?: boolean;
+  feedback_submitted_at?: string;
+  feedback_rating?: number;
+  created_at: string;
+  // Keep case_data for backward compatibility
+  case_data?: Record<string, any>;
 }
 
 export interface Notification {
   id: string;
   title: string;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'reminder';
+  type: 'info' | 'success' | 'warning' | 'error';
   is_read: boolean;
   created_at: string;
 }
