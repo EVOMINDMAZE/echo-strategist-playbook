@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,6 +28,7 @@ export const ChatView = ({
 }: ChatViewProps) => {
   const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
   const [previousSessions, setPreviousSessions] = useState<SessionData[]>([]);
+  const [dismissedMessages, setDismissedMessages] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,6 +37,10 @@ export const ChatView = ({
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleDismissMessage = (messageType: string) => {
+    setDismissedMessages(prev => [...prev, messageType]);
   };
 
   const handleSendMessage = async (messageText?: string, context?: any) => {
@@ -119,9 +125,9 @@ export const ChatView = ({
     return (
       <ResultsView
         session={session}
-        target={target}
-        onBackToTargets={onBackToTargets}
-        onStartNewSession={() => {
+        client={target}
+        onBackToClients={onBackToTargets}
+        onNewSession={() => {
           // Reset session for new conversation
           const newSession = {
             ...session,
@@ -165,7 +171,11 @@ export const ChatView = ({
               )}
 
               {session.messages.length === 0 && previousSessions.length === 0 && (
-                <InformativeMessages targetName={target.name} />
+                <InformativeMessages 
+                  messageCount={session.messages.length}
+                  onDismiss={handleDismissMessage}
+                  dismissedMessages={dismissedMessages}
+                />
               )}
 
               <ChatMessages
