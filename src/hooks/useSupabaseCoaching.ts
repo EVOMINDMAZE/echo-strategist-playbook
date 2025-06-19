@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Client, ChatMessage, SessionStatus, SessionData } from '@/types/coaching';
+import type { Client, ChatMessage, SessionStatus, SessionData } from '@/types/coaching';
 
-export { Client, ChatMessage, SessionStatus, SessionData };
+export type { Client, ChatMessage, SessionStatus, SessionData };
 
 export const useSupabaseCoaching = () => {
   const [clients, setClients] = useState<Client[]>([]);

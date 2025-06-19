@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Send, Bot, User } from 'lucide-react';
-import { Client, SessionData, ChatMessage, SessionStatus } from '@/hooks/useSupabaseCoaching';
+import { Client, SessionData, ChatMessage, SessionStatus } from '@/types/coaching';
 import { ThinkingAnimation } from '@/components/ThinkingAnimation';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
