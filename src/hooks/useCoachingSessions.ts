@@ -1,59 +1,11 @@
 
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { SessionData, SessionStatus, ChatMessage } from '@/types/coaching';
+import type { SessionData, SessionStatus } from '@/types/coaching';
 
 export const useCoachingSessions = () => {
-  const createSession = async (clientId: string, continueFromSession?: string): Promise<SessionData> => {
-    const insertData: any = { target_id: clientId };
-    
-    if (continueFromSession) {
-      insertData.is_continued = true;
-      insertData.parent_session_id = continueFromSession;
-    }
-
-    const { data, error } = await supabase
-      .from('coaching_sessions')
-      .insert(insertData)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    return {
-      id: data.id,
-      target_id: data.target_id,
-      status: data.status as SessionStatus,
-      messages: Array.isArray(data.raw_chat_history) ? data.raw_chat_history as unknown as ChatMessage[] : [],
-      case_data: typeof data.case_file_data === 'object' && data.case_file_data !== null ? data.case_file_data as Record<string, any> : {},
-      strategist_output: data.strategist_output as { analysis?: string; suggestions?: Array<{ title: string; description: string; why_it_works: string; }>; } | undefined,
-      is_continued: data.is_continued || false,
-      parent_session_id: data.parent_session_id
-    };
-  };
-
-  const updateSession = async (sessionId: string, updates: Partial<SessionData>) => {
-    const updateData: any = {};
-    
-    if (updates.messages) {
-      updateData.raw_chat_history = updates.messages;
-    }
-    if (updates.status) {
-      updateData.status = updates.status;
-    }
-    if (updates.case_data) {
-      updateData.case_file_data = updates.case_data;
-    }
-    if (updates.strategist_output) {
-      updateData.strategist_output = updates.strategist_output;
-    }
-
-    const { error } = await supabase
-      .from('coaching_sessions')
-      .update(updateData)
-      .eq('id', sessionId);
-
-    if (error) throw error;
-  };
+  const [sessions, setSessions] = useState<SessionData[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const getSession = async (sessionId: string): Promise<SessionData> => {
     const { data, error } = await supabase
@@ -68,37 +20,122 @@ export const useCoachingSessions = () => {
       id: data.id,
       target_id: data.target_id,
       status: data.status as SessionStatus,
-      messages: Array.isArray(data.raw_chat_history) ? data.raw_chat_history as unknown as ChatMessage[] : [],
-      case_data: typeof data.case_file_data === 'object' && data.case_file_data !== null ? data.case_file_data as Record<string, any> : {},
-      strategist_output: data.strategist_output as { analysis?: string; suggestions?: Array<{ title: string; description: string; why_it_works: string; }>; } | undefined,
+      messages: data.raw_chat_history || [],
+      strategist_output: data.strategist_output,
+      case_file_data: data.case_file_data || {},
+      feedback_data: data.feedback_data || {},
+      user_feedback: data.user_feedback,
+      parent_session_id: data.parent_session_id,
       is_continued: data.is_continued || false,
-      parent_session_id: data.parent_session_id
+      feedback_submitted_at: data.feedback_submitted_at,
+      feedback_rating: data.feedback_rating,
+      created_at: data.created_at
     };
   };
 
-  const sendMessage = async (sessionId: string, message: string, targetName: string) => {
-    const { data, error } = await supabase.functions.invoke('handle-user-message', {
-      body: { sessionId, message, targetName }
-    });
+  const updateSession = async (sessionId: string, updates: Partial<SessionData>) => {
+    const updateData: any = {};
+    
+    if (updates.status) updateData.status = updates.status;
+    if (updates.messages) updateData.raw_chat_history = updates.messages;
+    if (updates.strategist_output) updateData.strategist_output = updates.strategist_output;
+    if (updates.case_file_data) updateData.case_file_data = updates.case_file_data;
+    if (updates.feedback_data) updateData.feedback_data = updates.feedback_data;
+    if (updates.user_feedback !== undefined) updateData.user_feedback = updates.user_feedback;
+    if (updates.is_continued !== undefined) updateData.is_continued = updates.is_continued;
+    if (updates.feedback_rating !== undefined) updateData.feedback_rating = updates.feedback_rating;
+    if (updates.feedback_submitted_at !== undefined) updateData.feedback_submitted_at = updates.feedback_submitted_at;
+
+    const { error } = await supabase
+      .from('coaching_sessions')
+      .update(updateData)
+      .eq('id', sessionId);
 
     if (error) throw error;
-    return data;
   };
 
-  const triggerStrategist = async (sessionId: string) => {
-    const { data, error } = await supabase.functions.invoke('trigger-strategist', {
-      body: { sessionId }
-    });
+  const createSession = async (targetId: string): Promise<SessionData> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('coaching_sessions')
+      .insert({
+        target_id: targetId,
+        status: 'gathering_info',
+        raw_chat_history: [],
+        case_file_data: {},
+        feedback_data: {}
+      })
+      .select()
+      .single();
 
     if (error) throw error;
-    return data;
+
+    return {
+      id: data.id,
+      target_id: data.target_id,
+      status: data.status as SessionStatus,
+      messages: data.raw_chat_history || [],
+      strategist_output: data.strategist_output,
+      case_file_data: data.case_file_data || {},
+      feedback_data: data.feedback_data || {},
+      user_feedback: data.user_feedback,
+      parent_session_id: data.parent_session_id,
+      is_continued: data.is_continued || false,
+      feedback_submitted_at: data.feedback_submitted_at,
+      feedback_rating: data.feedback_rating,
+      created_at: data.created_at
+    };
+  };
+
+  const loadUserSessions = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('coaching_sessions')
+        .select(`
+          *,
+          targets!inner(user_id, target_name)
+        `)
+        .eq('targets.user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedSessions: SessionData[] = data.map(session => ({
+        id: session.id,
+        target_id: session.target_id,
+        status: session.status as SessionStatus,
+        messages: session.raw_chat_history || [],
+        strategist_output: session.strategist_output,
+        case_file_data: session.case_file_data || {},
+        feedback_data: session.feedback_data || {},
+        user_feedback: session.user_feedback,
+        parent_session_id: session.parent_session_id,
+        is_continued: session.is_continued || false,
+        feedback_submitted_at: session.feedback_submitted_at,
+        feedback_rating: session.feedback_rating,
+        created_at: session.created_at
+      }));
+
+      setSessions(formattedSessions);
+    } catch (error) {
+      console.error('Error loading sessions:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {
-    createSession,
-    updateSession,
+    sessions,
+    loading,
     getSession,
-    sendMessage,
-    triggerStrategist
+    updateSession,
+    createSession,
+    loadUserSessions
   };
 };
