@@ -3,6 +3,7 @@ import { Lock } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { SmartReplySuggestions } from '@/components/SmartReplySuggestions';
 import { ThinkingAnimation } from '@/components/ThinkingAnimation';
+import { InlineStrategistPrompt } from '@/components/InlineStrategistPrompt';
 import type { ChatMessage } from '@/types/coaching';
 
 interface ChatMessagesProps {
@@ -11,6 +12,8 @@ interface ChatMessagesProps {
   messages: ChatMessage[];
   isLoading: boolean;
   onSuggestionClick: (suggestion: string) => void;
+  onStrategistTrigger?: () => void;
+  sessionStatus?: string;
 }
 
 export const ChatMessages = ({ 
@@ -18,7 +21,9 @@ export const ChatMessages = ({
   targetId, 
   messages, 
   isLoading, 
-  onSuggestionClick 
+  onSuggestionClick,
+  onStrategistTrigger,
+  sessionStatus = 'gathering_info'
 }: ChatMessagesProps) => {
   return (
     <>
@@ -65,6 +70,15 @@ export const ChatMessages = ({
           </div>
         </div>
       ))}
+
+      {/* Inline Strategist Prompt - shows after a few messages */}
+      {sessionStatus === 'gathering_info' && onStrategistTrigger && (
+        <InlineStrategistPrompt
+          onTrigger={onStrategistTrigger}
+          messageCount={messages.length}
+          isAnalyzing={isLoading}
+        />
+      )}
 
       {/* Smart Reply Suggestions - Now with full database integration */}
       {messages.length > 0 && messages[messages.length - 1]?.sender === 'ai' && !isLoading && (

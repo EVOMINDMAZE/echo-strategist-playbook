@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -184,6 +183,8 @@ export const ChatView = ({
                 messages={session.messages}
                 isLoading={isGeneratingStrategy}
                 onSuggestionClick={handleSendMessage}
+                onStrategistTrigger={handleStrategistTrigger}
+                sessionStatus={session.status}
               />
 
               <div ref={messagesEndRef} />

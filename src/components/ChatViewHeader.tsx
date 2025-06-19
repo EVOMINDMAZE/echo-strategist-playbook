@@ -1,7 +1,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { StrategistTriggerButton } from '@/components/StrategistTriggerButton';
 import {
   ArrowLeft,
   Shield,
@@ -84,13 +83,6 @@ export const ChatViewHeader = ({
               <Shield className="w-3 h-3 mr-1" />
               Secure & Private
             </Badge>
-            {session.status === 'gathering_info' && messages.length >= 3 && (
-              <StrategistTriggerButton
-                onTrigger={onStrategistTrigger}
-                messageCount={messages.length}
-                isAnalyzing={isGeneratingStrategy}
-              />
-            )}
           </div>
         </div>
       </div>
