@@ -36,9 +36,19 @@ export const useSupabaseCoaching = () => {
   };
 
   const createTarget = async (name: string): Promise<Target> => {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('targets')
-      .insert([{ target_name: name }])
+      .insert({ 
+        target_name: name,
+        user_id: user.id 
+      })
       .select()
       .single();
 
@@ -57,7 +67,7 @@ export const useSupabaseCoaching = () => {
   const createSession = async (targetId: string): Promise<SessionData> => {
     const { data, error } = await supabase
       .from('coaching_sessions')
-      .insert([{ target_id: targetId }])
+      .insert({ target_id: targetId })
       .select()
       .single();
 
@@ -67,9 +77,9 @@ export const useSupabaseCoaching = () => {
       id: data.id,
       target_id: data.target_id,
       status: data.status as SessionStatus,
-      messages: data.raw_chat_history || [],
-      case_data: data.case_file_data || {},
-      strategist_output: data.strategist_output
+      messages: Array.isArray(data.raw_chat_history) ? data.raw_chat_history as ChatMessage[] : [],
+      case_data: typeof data.case_file_data === 'object' && data.case_file_data !== null ? data.case_file_data as Record<string, any> : {},
+      strategist_output: data.strategist_output as { analysis?: string; suggestions?: Array<{ title: string; description: string; why_it_works: string; }>; } | undefined
     };
   };
 
@@ -104,9 +114,9 @@ export const useSupabaseCoaching = () => {
       id: data.id,
       target_id: data.target_id,
       status: data.status as SessionStatus,
-      messages: data.raw_chat_history || [],
-      case_data: data.case_file_data || {},
-      strategist_output: data.strategist_output
+      messages: Array.isArray(data.raw_chat_history) ? data.raw_chat_history as ChatMessage[] : [],
+      case_data: typeof data.case_file_data === 'object' && data.case_file_data !== null ? data.case_file_data as Record<string, any> : {},
+      strategist_output: data.strategist_output as { analysis?: string; suggestions?: Array<{ title: string; description: string; why_it_works: string; }>; } | undefined
     };
   };
 
