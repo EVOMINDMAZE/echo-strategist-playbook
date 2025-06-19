@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -218,6 +219,17 @@ export const ChatView = ({
     handleSendMessage(inputMessage);
   };
 
+  const handleContinueSession = () => {
+    // Reset session status to continue gathering info
+    const continuedSession = {
+      ...session,
+      status: 'gathering_info' as SessionStatus,
+      is_continued: true
+    };
+    onSessionUpdate(continuedSession);
+    onStatusChange('gathering_info');
+  };
+
   const handleNewSession = () => {
     window.location.href = `/chats`;
   };
@@ -232,15 +244,16 @@ export const ChatView = ({
         client={target}
         onBackToClients={onBackToTargets}
         onNewSession={handleNewSession}
+        onContinueSession={handleContinueSession}
       />
     );
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 font-inter">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
       {/* Header */}
       <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-700/50 p-4 shadow-sm flex-shrink-0">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
@@ -252,11 +265,11 @@ export const ChatView = ({
               Back to Chats
             </Button>
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full flex items-center justify-center text-white font-medium text-sm">
+              <div className="w-8 h-8 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full flex items-center justify-center text-white font-medium text-sm">
                 {target.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <h2 className="font-semibold text-slate-800 dark:text-slate-200 text-base">
+                <h2 className="font-semibold text-slate-800 dark:text-slate-200 text-sm">
                   Chat with {target.name}
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -275,42 +288,42 @@ export const ChatView = ({
       <div 
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto"
-        style={{ height: 'calc(100vh - 140px)' }}
+        style={{ maxHeight: 'calc(100vh - 140px)' }}
       >
-        <div className="p-4 pb-8">
-          <div className="max-w-3xl mx-auto space-y-4">
+        <div className="p-3 pb-6">
+          <div className="max-w-4xl mx-auto space-y-3">
             {session.messages.length === 0 && (
-              <div className="text-center py-8">
-                <div className="w-12 h-12 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Bot className="w-6 h-6 text-white" />
+              <div className="text-center py-6">
+                <div className="w-10 h-10 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Bot className="w-5 h-5 text-white" />
                 </div>
-                <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200 mb-1">Start your chat</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Tell me about your situation with {target.name} and what you'd like to achieve.</p>
+                <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">Start your chat</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Tell me about your situation with {target.name} and what you'd like to achieve.</p>
               </div>
             )}
 
             {session.messages.map((message) => (
               <div key={message.id} className="animate-fade-in">
                 {message.sender === 'ai' ? (
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Bot className="w-4 h-4 text-white" />
+                  <div className="flex items-start space-x-2">
+                    <div className="w-6 h-6 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                      <Bot className="w-3 h-3 text-white" />
                     </div>
                     <div className="flex-1">
-                      <div className="bg-white dark:bg-slate-800 rounded-2xl rounded-tl-sm p-3 shadow-sm border border-slate-200/50 dark:border-slate-700/50 max-w-xl">
+                      <div className="bg-white dark:bg-slate-800 rounded-2xl rounded-tl-sm p-3 shadow-sm border border-slate-200/50 dark:border-slate-700/50 max-w-2xl">
                         <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-sm">{message.content}</p>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-start space-x-3 justify-end">
+                  <div className="flex items-start space-x-2 justify-end">
                     <div className="flex-1 flex justify-end">
-                      <div className="bg-gradient-to-r from-indigo-500 to-blue-600 rounded-2xl rounded-tr-sm p-3 shadow-sm max-w-xl">
+                      <div className="bg-gradient-to-r from-indigo-500 to-blue-600 rounded-2xl rounded-tr-sm p-3 shadow-sm max-w-2xl">
                         <p className="text-white leading-relaxed text-sm">{message.content}</p>
                       </div>
                     </div>
-                    <div className="w-8 h-8 bg-slate-300 dark:bg-slate-600 rounded-full flex items-center justify-center flex-shrink-0">
-                      <User className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                    <div className="w-6 h-6 bg-slate-300 dark:bg-slate-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                      <User className="w-3 h-3 text-slate-600 dark:text-slate-300" />
                     </div>
                   </div>
                 )}
@@ -326,12 +339,12 @@ export const ChatView = ({
 
             {/* Thinking Animation */}
             {(isThinking || isAnalyzing) && (
-              <div className="flex items-start space-x-3 animate-fade-in">
-                <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Bot className="w-4 h-4 text-white" />
+              <div className="flex items-start space-x-2 animate-fade-in">
+                <div className="w-6 h-6 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                  <Bot className="w-3 h-3 text-white" />
                 </div>
                 <div className="flex-1">
-                  <div className="bg-white dark:bg-slate-800 rounded-2xl rounded-tl-sm p-3 shadow-sm border border-slate-200/50 dark:border-slate-700/50 max-w-xl">
+                  <div className="bg-white dark:bg-slate-800 rounded-2xl rounded-tl-sm p-3 shadow-sm border border-slate-200/50 dark:border-slate-700/50 max-w-2xl">
                     <ThinkingAnimation />
                     {isAnalyzing && (
                       <p className="text-slate-600 dark:text-slate-400 text-xs mt-2">
@@ -350,22 +363,22 @@ export const ChatView = ({
 
       {/* Input - Fixed at bottom */}
       {session.status === 'gathering_info' && !isThinking && !isAnalyzing && (
-        <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-t border-slate-200/50 dark:border-slate-700/50 p-4 flex-shrink-0">
-          <div className="max-w-3xl mx-auto">
-            <form onSubmit={handleInputSubmit} className="flex space-x-3">
+        <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-t border-slate-200/50 dark:border-slate-700/50 p-3 flex-shrink-0">
+          <div className="max-w-4xl mx-auto">
+            <form onSubmit={handleInputSubmit} className="flex space-x-2">
               <Input
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="Share more about your situation..."
-                className="flex-1 h-10 text-sm border-slate-300 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 dark:bg-slate-800 dark:text-slate-200"
+                className="flex-1 h-9 text-sm border-slate-300 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 dark:bg-slate-800 dark:text-slate-200"
                 disabled={isThinking || isAnalyzing}
               />
               <Button
                 type="submit"
                 disabled={!inputMessage.trim() || isThinking || isAnalyzing}
-                className="h-10 px-4 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-sm"
+                className="h-9 px-3 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-sm"
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-3 h-3" />
               </Button>
             </form>
           </div>
