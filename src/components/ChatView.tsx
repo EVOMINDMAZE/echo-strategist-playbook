@@ -27,15 +27,27 @@ export const ChatView = ({
   const [inputMessage, setInputMessage] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const { toast } = useToast();
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (shouldAutoScroll && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleScroll = () => {
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 100;
+      setShouldAutoScroll(isAtBottom);
+    }
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [session.messages]);
+  }, [session.messages, isThinking]);
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
@@ -55,6 +67,7 @@ export const ChatView = ({
     onSessionUpdate(updatedSession);
     setInputMessage('');
     setIsThinking(true);
+    setShouldAutoScroll(true);
 
     try {
       // Call the Edge Function
@@ -107,7 +120,7 @@ export const ChatView = ({
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/50 p-4 shadow-sm">
+      <div className="bg-white/90 backdrop-blur-sm border-b border-slate-200/50 p-4 shadow-sm sticky top-0 z-10">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
@@ -117,7 +130,7 @@ export const ChatView = ({
               className="hover:bg-slate-100"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              Back to Clients
             </Button>
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full flex items-center justify-center text-white font-medium">
@@ -125,20 +138,37 @@ export const ChatView = ({
               </div>
               <div>
                 <h2 className="font-semibold text-slate-800">
-                  Coaching session for {target.name}
+                  Coaching session with {target.name}
                 </h2>
                 <p className="text-sm text-slate-500">
-                  Status: {session.status.replace('_', ' ')}
+                  Status: {session.status.replace('_', ' ')} • {session.messages.length} messages
                 </p>
               </div>
             </div>
+          </div>
+          <div className="text-sm text-slate-500">
+            Session ID: {session.id.slice(0, 8)}...
           </div>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto p-4"
+        onScroll={handleScroll}
+      >
         <div className="max-w-4xl mx-auto space-y-6">
+          {session.messages.length === 0 && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Bot className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-800 mb-2">Start your coaching session</h3>
+              <p className="text-slate-600">Begin the conversation with {target.name} to start gathering insights.</p>
+            </div>
+          )}
+
           {session.messages.map((message) => (
             <div key={message.id} className="animate-fade-in">
               {message.sender === 'ai' ? (
@@ -199,9 +229,25 @@ export const ChatView = ({
         </div>
       </div>
 
+      {/* Scroll to bottom indicator */}
+      {!shouldAutoScroll && (
+        <div className="absolute bottom-20 right-8">
+          <Button
+            size="sm"
+            onClick={() => {
+              setShouldAutoScroll(true);
+              scrollToBottom();
+            }}
+            className="rounded-full shadow-lg"
+          >
+            ↓ New messages
+          </Button>
+        </div>
+      )}
+
       {/* Input */}
       {session.status === 'gathering_info' && !isThinking && (
-        <div className="bg-white/80 backdrop-blur-sm border-t border-slate-200/50 p-4">
+        <div className="bg-white/90 backdrop-blur-sm border-t border-slate-200/50 p-4 sticky bottom-0">
           <div className="max-w-4xl mx-auto">
             <form onSubmit={handleInputSubmit} className="flex space-x-4">
               <Input
@@ -209,10 +255,11 @@ export const ChatView = ({
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="Type your message..."
                 className="flex-1 h-12 border-slate-300 focus:border-indigo-500 focus:ring-indigo-500"
+                disabled={isThinking}
               />
               <Button
                 type="submit"
-                disabled={!inputMessage.trim()}
+                disabled={!inputMessage.trim() || isThinking}
                 className="h-12 px-6 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700"
               >
                 <Send className="w-4 h-4" />
