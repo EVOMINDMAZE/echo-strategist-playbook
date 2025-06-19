@@ -29,7 +29,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/about" element={<About />} />
           <Route path="/pricing" element={<Pricing />} />
-          <Route path="/targets" element={<Target />} />
+          <Route path="/targets" element={<Targets />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/chat/:sessionId" element={<Chat />} />
