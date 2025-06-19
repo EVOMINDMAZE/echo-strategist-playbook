@@ -66,7 +66,14 @@ export const ChatView = ({
             const updatedSession = {
               ...session,
               status: data.status as SessionStatus,
-              strategist_output: data.strategist_output
+              strategist_output: data.strategist_output as {
+                analysis?: string;
+                suggestions?: Array<{
+                  title: string;
+                  description: string;
+                  why_it_works: string;
+                }>;
+              }
             };
             onSessionUpdate(updatedSession);
             setIsAnalyzing(false);
