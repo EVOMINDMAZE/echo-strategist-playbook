@@ -1,0 +1,73 @@
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Send,
+  Shield
+} from 'lucide-react';
+import type { SessionData } from '@/types/coaching';
+
+interface ChatInputAreaProps {
+  session: SessionData;
+  previousSessions: SessionData[];
+  messages: any[];
+  isLoading: boolean;
+  onSubmit: (messageText?: string) => void;
+}
+
+export const ChatInputArea = ({ 
+  session, 
+  previousSessions, 
+  messages, 
+  isLoading, 
+  onSubmit 
+}: ChatInputAreaProps) => {
+  const [input, setInput] = useState('');
+
+  const handleSubmit = (messageText?: string) => {
+    const textToSend = messageText || input;
+    if (!textToSend.trim()) return;
+    
+    onSubmit(textToSend);
+    if (!messageText) setInput(''); // Only clear input if not using preset message
+  };
+
+  return (
+    <div className="border-t border-slate-700/50 bg-slate-800/60 backdrop-blur-xl">
+      <div className="px-4 py-4">
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="flex space-x-3">
+          <div className="flex-1 relative">
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={
+                previousSessions.length > 0 && messages.length === 0
+                  ? "Continue the conversation or click a follow-up question above..."
+                  : "Share your thoughts, feelings, and situation details..."
+              }
+              className="min-h-[60px] max-h-32 resize-none bg-slate-700/50 border-slate-600/50 text-white placeholder-slate-400 focus:border-purple-500/50 focus:ring-purple-500/20 rounded-xl"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit();
+                }
+              }}
+            />
+            <div className="absolute bottom-2 right-2 flex items-center space-x-1 text-xs text-slate-500">
+              <Shield className="w-3 h-3" />
+              <span>Encrypted</span>
+            </div>
+          </div>
+          <Button
+            type="submit"
+            disabled={!input.trim() || isLoading}
+            className="bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white px-6 py-3 rounded-xl shadow-lg transition-all duration-200 disabled:opacity-50"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
+};
