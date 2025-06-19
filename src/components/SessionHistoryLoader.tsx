@@ -4,7 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, MessageSquare, Target, CheckCircle } from 'lucide-react';
-import type { SessionData } from '@/types/coaching';
+import type { SessionData, SessionStatus } from '@/types/coaching';
+import { sanitizeChatHistory, validateStrategistOutput } from '@/utils/messageUtils';
 
 interface SessionHistoryLoaderProps {
   targetId: string;
@@ -32,18 +33,18 @@ export const SessionHistoryLoader = ({ targetId, currentSessionId, onHistoryLoad
         const formattedSessions: SessionData[] = data.map(session => ({
           id: session.id,
           target_id: session.target_id,
-          status: session.status,
-          messages: session.raw_chat_history || [],
-          strategist_output: session.strategist_output,
-          case_file_data: session.case_file_data || {},
-          feedback_data: session.feedback_data || {},
+          status: session.status as SessionStatus,
+          messages: sanitizeChatHistory(session.raw_chat_history),
+          strategist_output: validateStrategistOutput(session.strategist_output),
+          case_file_data: session.case_file_data as Record<string, any> || {},
+          feedback_data: session.feedback_data as Record<string, any> || {},
           user_feedback: session.user_feedback,
           parent_session_id: session.parent_session_id,
           is_continued: session.is_continued || false,
           feedback_submitted_at: session.feedback_submitted_at,
           feedback_rating: session.feedback_rating,
           created_at: session.created_at,
-          case_data: session.case_file_data || {}
+          case_data: session.case_file_data as Record<string, any> || {}
         }));
 
         setPreviousSessions(formattedSessions);
