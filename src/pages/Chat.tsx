@@ -4,7 +4,10 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { WorldClassNavigation } from '@/components/WorldClassNavigation';
 import { ChatView } from '@/components/ChatView';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { IntelligentOnboarding } from '@/components/IntelligentOnboarding';
+import { SecretRoomTheme } from '@/components/SecretRoomTheme';
 import { useSupabaseCoaching, SessionData, Client } from '@/hooks/useSupabaseCoaching';
+import { useIntelligentOnboarding } from '@/hooks/useIntelligentOnboarding';
 import { SessionStatus } from '@/types/coaching';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -18,8 +21,10 @@ const Chat = () => {
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const { getSession, updateSession } = useSupabaseCoaching();
+  const { hasContext, loading: contextLoading } =useIntelligentOnboarding(sessionId || '');
 
   // Auth effect - runs once
   useEffect(() => {
@@ -73,13 +78,12 @@ const Chat = () => {
         setError(null);
         console.log('Loading session:', sessionId);
         
-        // Add timeout to prevent infinite loading
         timeoutId = setTimeout(() => {
           if (mounted) {
             setError('Session loading timed out');
             setLoading(false);
           }
-        }, 10000); // 10 second timeout
+        }, 10000);
 
         const sessionData = await getSession(sessionId);
         if (!mounted) return;
@@ -130,7 +134,14 @@ const Chat = () => {
       mounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [sessionId, user]); // Removed getSession from dependencies
+  }, [sessionId, user]);
+
+  // Check if we should show onboarding
+  useEffect(() => {
+    if (!contextLoading && hasContext === false && session && session.messages.length === 0) {
+      setShowOnboarding(true);
+    }
+  }, [contextLoading, hasContext, session]);
 
   const handleSessionUpdate = async (updatedSession: SessionData) => {
     setSession(updatedSession);
@@ -149,52 +160,72 @@ const Chat = () => {
     }
   };
 
-  if (loading) {
+  const handleOnboardingComplete = (data: any) => {
+    console.log('Onboarding completed with data:', data);
+    setShowOnboarding(false);
+  };
+
+  const handleOnboardingSkip = () => {
+    setShowOnboarding(false);
+  };
+
+  if (loading || contextLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
+      <SecretRoomTheme>
         <WorldClassNavigation user={user} />
         <div className="flex items-center justify-center h-[calc(100vh-80px)]">
           <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="text-slate-600 dark:text-slate-400 font-medium">Loading your coaching session...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
+            <p className="text-slate-300 font-medium">Preparing your secure coaching session...</p>
           </div>
         </div>
-      </div>
+      </SecretRoomTheme>
     );
   }
 
   if (error || !session || !client) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
+      <SecretRoomTheme>
         <WorldClassNavigation user={user} />
         <div className="flex items-center justify-center h-[calc(100vh-80px)]">
           <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200">
+            <h3 className="text-xl font-semibold text-slate-200">
               {error || 'Session not found'}
             </h3>
-            <p className="text-slate-600 dark:text-slate-400">
+            <p className="text-slate-400">
               We couldn't load your coaching session. Please try again.
             </p>
             <button 
               onClick={() => navigate('/clients')} 
-              className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors"
             >
               Return to Clients
             </button>
           </div>
         </div>
-      </div>
+      </SecretRoomTheme>
+    );
+  }
+
+  if (showOnboarding) {
+    return (
+      <IntelligentOnboarding
+        sessionId={sessionId!}
+        targetName={client.name}
+        onComplete={handleOnboardingComplete}
+        onSkip={handleOnboardingSkip}
+      />
     );
   }
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
+      <SecretRoomTheme>
         <WorldClassNavigation user={user} />
         <ChatView
           session={session}
@@ -203,7 +234,7 @@ const Chat = () => {
           onStatusChange={handleStatusChange}
           onBackToTargets={() => navigate('/clients')}
         />
-      </div>
+      </SecretRoomTheme>
     </ErrorBoundary>
   );
 };

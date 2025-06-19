@@ -11,45 +11,54 @@ export type Database = {
     Tables: {
       coaching_sessions: {
         Row: {
+          anticipatory_data: Json | null
           case_file_data: Json | null
           created_at: string
           feedback_data: Json | null
           feedback_rating: number | null
           feedback_submitted_at: string | null
+          follow_up_generated: boolean | null
           id: string
           is_continued: boolean | null
           parent_session_id: string | null
           raw_chat_history: Json | null
+          session_metadata: Json | null
           status: string
           strategist_output: Json | null
           target_id: string
           user_feedback: string | null
         }
         Insert: {
+          anticipatory_data?: Json | null
           case_file_data?: Json | null
           created_at?: string
           feedback_data?: Json | null
           feedback_rating?: number | null
           feedback_submitted_at?: string | null
+          follow_up_generated?: boolean | null
           id?: string
           is_continued?: boolean | null
           parent_session_id?: string | null
           raw_chat_history?: Json | null
+          session_metadata?: Json | null
           status?: string
           strategist_output?: Json | null
           target_id: string
           user_feedback?: string | null
         }
         Update: {
+          anticipatory_data?: Json | null
           case_file_data?: Json | null
           created_at?: string
           feedback_data?: Json | null
           feedback_rating?: number | null
           feedback_submitted_at?: string | null
+          follow_up_generated?: boolean | null
           id?: string
           is_continued?: boolean | null
           parent_session_id?: string | null
           raw_chat_history?: Json | null
+          session_metadata?: Json | null
           status?: string
           strategist_output?: Json | null
           target_id?: string
@@ -98,6 +107,57 @@ export type Database = {
           subject?: string
         }
         Relationships: []
+      }
+      follow_up_triggers: {
+        Row: {
+          context_reference: Json | null
+          created_at: string
+          id: string
+          is_triggered: boolean | null
+          question_text: string
+          session_id: string
+          target_id: string
+          trigger_type: string
+          triggered_at: string | null
+        }
+        Insert: {
+          context_reference?: Json | null
+          created_at?: string
+          id?: string
+          is_triggered?: boolean | null
+          question_text: string
+          session_id: string
+          target_id: string
+          trigger_type: string
+          triggered_at?: string | null
+        }
+        Update: {
+          context_reference?: Json | null
+          created_at?: string
+          id?: string
+          is_triggered?: boolean | null
+          question_text?: string
+          session_id?: string
+          target_id?: string
+          trigger_type?: string
+          triggered_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_up_triggers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_up_triggers_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "targets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -194,6 +254,115 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      relationship_profiles: {
+        Row: {
+          areas_of_concern: Json | null
+          communication_patterns: Json | null
+          created_at: string
+          current_status: string | null
+          id: string
+          interaction_history: Json | null
+          key_insights: Json | null
+          personality_assessment: Json | null
+          relationship_type: string
+          successful_strategies: Json | null
+          target_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          areas_of_concern?: Json | null
+          communication_patterns?: Json | null
+          created_at?: string
+          current_status?: string | null
+          id?: string
+          interaction_history?: Json | null
+          key_insights?: Json | null
+          personality_assessment?: Json | null
+          relationship_type: string
+          successful_strategies?: Json | null
+          target_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          areas_of_concern?: Json | null
+          communication_patterns?: Json | null
+          created_at?: string
+          current_status?: string | null
+          id?: string
+          interaction_history?: Json | null
+          key_insights?: Json | null
+          personality_assessment?: Json | null
+          relationship_type?: string
+          successful_strategies?: Json | null
+          target_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relationship_profiles_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "targets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_contexts: {
+        Row: {
+          challenges: Json | null
+          communication_style: string | null
+          context_data: Json | null
+          created_at: string
+          goals: Json | null
+          id: string
+          personality_traits: Json | null
+          previous_attempts: Json | null
+          relationship_duration: string | null
+          relationship_type: string
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          challenges?: Json | null
+          communication_style?: string | null
+          context_data?: Json | null
+          created_at?: string
+          goals?: Json | null
+          id?: string
+          personality_traits?: Json | null
+          previous_attempts?: Json | null
+          relationship_duration?: string | null
+          relationship_type: string
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          challenges?: Json | null
+          communication_style?: string | null
+          context_data?: Json | null
+          created_at?: string
+          goals?: Json | null
+          id?: string
+          personality_traits?: Json | null
+          previous_attempts?: Json | null
+          relationship_duration?: string | null
+          relationship_type?: string
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_contexts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       session_summaries: {
         Row: {
@@ -353,6 +522,53 @@ export type Database = {
           },
         ]
       }
+      user_interaction_patterns: {
+        Row: {
+          created_at: string
+          id: string
+          last_used_at: string | null
+          pattern_data: Json
+          pattern_type: string
+          success_rate: number | null
+          target_id: string
+          updated_at: string
+          usage_count: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          pattern_data: Json
+          pattern_type: string
+          success_rate?: number | null
+          target_id: string
+          updated_at?: string
+          usage_count?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          pattern_data?: Json
+          pattern_type?: string
+          success_rate?: number | null
+          target_id?: string
+          updated_at?: string
+          usage_count?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_interaction_patterns_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "targets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_preferences: {
         Row: {
           coaching_style: string | null
@@ -397,6 +613,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_follow_up_triggers: {
+        Args: { session_id_param: string }
+        Returns: undefined
+      }
       generate_history_summary: {
         Args: { target_id_param: string }
         Returns: string
