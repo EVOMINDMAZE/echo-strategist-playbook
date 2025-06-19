@@ -4,16 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ArrowLeft, Sparkles, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
-import { Target, SessionData } from '@/pages/Index';
+import { Client, SessionData } from '@/types/coaching';
 
 interface ResultsViewProps {
   session: SessionData;
-  target: Target;
-  onBackToTargets: () => void;
+  client: Client;
+  onBackToClients: () => void;
   onNewSession: () => void;
 }
 
-export const ResultsView = ({ session, target, onBackToTargets, onNewSession }: ResultsViewProps) => {
+export const ResultsView = ({ session, client, onBackToClients, onNewSession }: ResultsViewProps) => {
   const [expandedCards, setExpandedCards] = useState<number[]>([]);
 
   const toggleCard = (index: number) => {
@@ -35,19 +35,19 @@ export const ResultsView = ({ session, target, onBackToTargets, onNewSession }: 
             <Button
               variant="ghost"
               size="sm"
-              onClick={onBackToTargets}
+              onClick={onBackToClients}
               className="hover:bg-slate-100"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Targets
+              Back to Clients
             </Button>
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full flex items-center justify-center text-white font-medium">
-                {target.name.charAt(0).toUpperCase()}
+                {client.name.charAt(0).toUpperCase()}
               </div>
               <div>
                 <h2 className="font-semibold text-slate-800">
-                  Playbook for {target.name}
+                  Playbook for {client.name}
                 </h2>
                 <p className="text-sm text-slate-500">
                   Generated just now
@@ -80,7 +80,7 @@ export const ResultsView = ({ session, target, onBackToTargets, onNewSession }: 
               Your Personalized Playbook
             </h1>
             <p className="text-lg text-slate-600">
-              Strategic insights tailored specifically for your conversation with {target.name}
+              Strategic insights tailored specifically for your conversation with {client.name}
             </p>
           </div>
 
@@ -169,7 +169,7 @@ export const ResultsView = ({ session, target, onBackToTargets, onNewSession }: 
               Start New Session
             </Button>
             <Button
-              onClick={onBackToTargets}
+              onClick={onBackToClients}
               variant="outline"
               size="lg"
               className="border-slate-300 hover:bg-slate-50"

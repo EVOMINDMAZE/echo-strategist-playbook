@@ -62,6 +62,10 @@ const Targets = () => {
         <TargetSelection
           clients={clients}
           onCreate={createClient}
+          onClientSelect={(client) => {
+            // Navigate to clients page to start a session
+            navigate('/clients');
+          }}
           onStartChat={(client) => {
             // Navigate to clients page to start a session
             navigate('/clients');
