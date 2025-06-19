@@ -267,10 +267,13 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
             {/* Smart Reply Suggestions */}
             {messages.length > 0 && messages[messages.length - 1]?.sender === 'ai' && (
               <SmartReplySuggestions
+                messageCount={messages.length}
                 lastAiMessage={messages[messages.length - 1]?.content || ''}
-                onSuggestionSelect={(suggestion) => {
+                onSuggestionClick={(suggestion) => {
                   setInput(suggestion);
                 }}
+                onDismiss={() => {}}
+                isVisible={true}
               />
             )}
 
@@ -322,13 +325,6 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
       {session.status === 'complete' && session.strategist_output && (
         <ResultsView
           session={session}
-          onFeedbackSubmit={(feedbackData) => {
-            onSessionUpdate({
-              ...session,
-              feedback_data: feedbackData,
-              feedback_submitted_at: new Date().toISOString()
-            });
-          }}
           onNewSession={() => {
             // Handle new session creation
             console.log('Creating new session...');

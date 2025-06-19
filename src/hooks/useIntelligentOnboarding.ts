@@ -14,6 +14,14 @@ interface SessionContext {
   context_data: any;
 }
 
+// Helper function to safely convert Json to string array
+const safeJsonToStringArray = (json: any): string[] => {
+  if (Array.isArray(json)) {
+    return json.filter(item => typeof item === 'string');
+  }
+  return [];
+};
+
 export const useIntelligentOnboarding = (sessionId: string) => {
   const [hasContext, setHasContext] = useState<boolean | null>(null);
   const [context, setContext] = useState<SessionContext | null>(null);
@@ -40,10 +48,10 @@ export const useIntelligentOnboarding = (sessionId: string) => {
           relationship_type: data.relationship_type,
           relationship_duration: data.relationship_duration,
           communication_style: data.communication_style,
-          personality_traits: Array.isArray(data.personality_traits) ? data.personality_traits : [],
-          goals: Array.isArray(data.goals) ? data.goals : [],
-          challenges: Array.isArray(data.challenges) ? data.challenges : [],
-          previous_attempts: Array.isArray(data.previous_attempts) ? data.previous_attempts : [],
+          personality_traits: safeJsonToStringArray(data.personality_traits),
+          goals: safeJsonToStringArray(data.goals),
+          challenges: safeJsonToStringArray(data.challenges),
+          previous_attempts: safeJsonToStringArray(data.previous_attempts),
           context_data: data.context_data || {}
         };
         setContext(convertedData);
@@ -78,10 +86,10 @@ export const useIntelligentOnboarding = (sessionId: string) => {
           relationship_type: data.relationship_type,
           relationship_duration: data.relationship_duration,
           communication_style: data.communication_style,
-          personality_traits: Array.isArray(data.personality_traits) ? data.personality_traits : [],
-          goals: Array.isArray(data.goals) ? data.goals : [],
-          challenges: Array.isArray(data.challenges) ? data.challenges : [],
-          previous_attempts: Array.isArray(data.previous_attempts) ? data.previous_attempts : [],
+          personality_traits: safeJsonToStringArray(data.personality_traits),
+          goals: safeJsonToStringArray(data.goals),
+          challenges: safeJsonToStringArray(data.challenges),
+          previous_attempts: safeJsonToStringArray(data.previous_attempts),
           context_data: data.context_data || {}
         };
         setContext(convertedData);
