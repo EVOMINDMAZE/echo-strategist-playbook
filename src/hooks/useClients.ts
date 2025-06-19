@@ -70,16 +70,28 @@ export const useClients = () => {
 
     const newFavoriteStatus = !client.is_favorite;
 
-    const { error } = await supabase
-      .from('targets')
-      .update({ is_favorite: newFavoriteStatus })
-      .eq('id', clientId);
-
-    if (error) throw error;
-
+    // Optimistic update
     setClients(prev => prev.map(c => 
       c.id === clientId ? { ...c, is_favorite: newFavoriteStatus } : c
     ));
+
+    try {
+      const { error } = await supabase
+        .from('targets')
+        .update({ is_favorite: newFavoriteStatus })
+        .eq('id', clientId);
+
+      if (error) {
+        // Revert optimistic update on error
+        setClients(prev => prev.map(c => 
+          c.id === clientId ? { ...c, is_favorite: !newFavoriteStatus } : c
+        ));
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      throw error;
+    }
   };
 
   return {

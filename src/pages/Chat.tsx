@@ -16,23 +16,35 @@ const Chat = () => {
   const [session, setSession] = useState<SessionData | null>(null);
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const { getSession, updateSession } = useSupabaseCoaching();
 
+  // Auth effect - runs once
   useEffect(() => {
+    let mounted = true;
+    
     const initAuth = async () => {
-      const { data: { session: authSession } } = await supabase.auth.getSession();
-      if (!authSession) {
-        navigate('/auth');
-        return;
+      try {
+        const { data: { session: authSession } } = await supabase.auth.getSession();
+        if (!mounted) return;
+        
+        if (!authSession) {
+          navigate('/auth');
+          return;
+        }
+        setUser(authSession.user);
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        if (mounted) setError('Authentication failed');
       }
-      setUser(authSession.user);
     };
 
     initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (!mounted) return;
         if (session) {
           setUser(session.user);
         } else {
@@ -41,20 +53,27 @@ const Chat = () => {
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
+  // Session loading effect - runs when user and sessionId are available
   useEffect(() => {
+    let mounted = true;
+
     const loadSession = async () => {
-      if (!sessionId) {
-        navigate('/');
-        return;
-      }
+      if (!sessionId || !user) return;
 
       try {
+        setLoading(true);
         console.log('Loading session:', sessionId);
+        
         const sessionData = await getSession(sessionId);
-        console.log('Session data loaded:', sessionData);
+        if (!mounted) return;
+        
+        console.log('Session data loaded successfully');
         setSession(sessionData);
         
         // Get client name from URL params or fetch from target
@@ -73,7 +92,7 @@ const Chat = () => {
             .eq('id', sessionData.target_id)
             .single();
           
-          if (targetData && !error) {
+          if (targetData && !error && mounted) {
             setClient({
               id: targetData.id,
               name: targetData.target_name,
@@ -83,20 +102,25 @@ const Chat = () => {
         }
       } catch (error) {
         console.error('Error loading session:', error);
-        navigate('/');
+        if (mounted) {
+          setError('Failed to load session');
+        }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
-    if (user) {
-      loadSession();
-    }
-  }, [sessionId, user, getSession, navigate, searchParams]);
+    loadSession();
+
+    return () => {
+      mounted = false;
+    };
+  }, [sessionId, user, getSession, searchParams]);
 
   const handleSessionUpdate = async (updatedSession: SessionData) => {
     setSession(updatedSession);
-    // Save to database
     try {
       await updateSession(updatedSession.id, updatedSession);
       console.log('Session updated successfully');
@@ -114,28 +138,38 @@ const Chat = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
         <WorldClassNavigation user={user} />
-        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading your coaching session...</p>
+        <div className="flex items-center justify-center h-[calc(100vh-80px)]">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <p className="text-slate-600 dark:text-slate-400 font-medium">Loading your coaching session...</p>
           </div>
         </div>
       </div>
     );
   }
 
-  if (!session || !client) {
+  if (error || !session || !client) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
         <WorldClassNavigation user={user} />
-        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="text-xl text-gray-700 mb-4">Session not found</p>
+        <div className="flex items-center justify-center h-[calc(100vh-80px)]">
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200">
+              {error || 'Session not found'}
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400">
+              We couldn't load your coaching session. Please try again.
+            </p>
             <button 
               onClick={() => navigate('/clients')} 
-              className="text-blue-600 hover:underline font-medium"
+              className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
             >
               Return to Clients
             </button>
@@ -146,7 +180,7 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
       <WorldClassNavigation user={user} />
       <ChatView
         session={session}
