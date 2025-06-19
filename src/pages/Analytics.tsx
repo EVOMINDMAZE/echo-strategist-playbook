@@ -2,9 +2,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { WorldClassNavigation } from '@/components/WorldClassNavigation';
+import { FeedbackAnalytics } from '@/components/FeedbackAnalytics';
+import { ProgressVisualization } from '@/components/ProgressVisualization';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { 
@@ -17,7 +20,7 @@ import {
   Star,
   BarChart3,
   ArrowUpRight,
-  ArrowDownRight
+  Activity
 } from 'lucide-react';
 
 interface AnalyticsData {
@@ -89,7 +92,6 @@ const Analytics = () => {
         `)
         .order('created_at', { ascending: false });
 
-      // Load targets
       const { data: targets } = await supabase
         .from('targets')
         .select('*')
@@ -104,7 +106,6 @@ const Analytics = () => {
           new Date(s.created_at) > thisWeekStart
         );
 
-        // Calculate top performing targets
         const targetPerformance = targets.map(target => {
           const targetSessions = sessions.filter(s => s.targets?.id === target.id);
           const completedTargetSessions = targetSessions.filter(s => s.status === 'complete');
@@ -122,7 +123,7 @@ const Analytics = () => {
           totalChats: sessions.length,
           completedChats: completedSessions.length,
           totalTargets: targets.length,
-          avgSessionTime: '25 min', // Mock data
+          avgSessionTime: '25 min',
           weeklyProgress: thisWeekSessions.length,
           completionRate: sessions.length > 0 ? 
             Math.round((completedSessions.length / sessions.length) * 100) : 0,
@@ -244,89 +245,126 @@ const Analytics = () => {
           </Card>
         </div>
 
-        {/* Top Performing Targets */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Star className="w-5 h-5 mr-2 text-yellow-500" />
-                Top Performing Targets
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {analytics.topPerformingTargets.length > 0 ? (
-                <div className="space-y-4">
-                  {analytics.topPerformingTargets.map((target: any) => (
-                    <div key={target.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-sm">{target.target_name}</h4>
-                        <p className="text-xs text-gray-500">
-                          {target.completedSessions}/{target.totalSessions} sessions completed
-                        </p>
-                      </div>
-                      <Badge 
-                        variant={target.completionRate >= 80 ? 'default' : 'secondary'}
-                        className="ml-2"
-                      >
-                        {target.completionRate}%
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center py-4">
-                  No targets yet. Start your first coaching session!
-                </p>
-              )}
-            </CardContent>
-          </Card>
+        {/* Enhanced Analytics Tabs */}
+        <Tabs defaultValue="progress" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="progress" className="flex items-center space-x-2">
+              <Activity className="w-4 h-4" />
+              <span>Progress</span>
+            </TabsTrigger>
+            <TabsTrigger value="feedback" className="flex items-center space-x-2">
+              <Star className="w-4 h-4" />
+              <span>Feedback</span>
+            </TabsTrigger>
+            <TabsTrigger value="targets" className="flex items-center space-x-2">
+              <Target className="w-4 h-4" />
+              <span>Targets</span>
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="flex items-center space-x-2">
+              <BarChart3 className="w-4 h-4" />
+              <span>Activity</span>
+            </TabsTrigger>
+          </TabsList>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <BarChart3 className="w-5 h-5 mr-2 text-blue-500" />
-                Recent Activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {analytics.recentActivity.length > 0 ? (
-                <div className="space-y-3">
-                  {analytics.recentActivity.slice(0, 5).map((session: any) => (
-                    <div key={session.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-2 h-2 rounded-full ${
-                          session.status === 'complete' ? 'bg-green-500' : 
-                          session.status === 'analyzing' ? 'bg-yellow-500' : 'bg-blue-500'
-                        }`}></div>
-                        <div>
-                          <p className="font-medium text-sm">
-                            {session.targets?.target_name || 'Session'}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(session.created_at).toLocaleDateString()}
+          <TabsContent value="progress">
+            <ProgressVisualization userId={user.id} />
+          </TabsContent>
+
+          <TabsContent value="feedback">
+            <FeedbackAnalytics />
+          </TabsContent>
+
+          <TabsContent value="targets">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Star className="w-5 h-5 mr-2 text-yellow-500" />
+                  Top Performing Targets
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analytics.topPerformingTargets.length > 0 ? (
+                  <div className="space-y-4">
+                    {analytics.topPerformingTargets.map((target: any) => (
+                      <div key={target.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-base">{target.target_name}</h4>
+                          <p className="text-sm text-gray-500">
+                            {target.completedSessions}/{target.totalSessions} sessions completed
                           </p>
                         </div>
+                        <Badge 
+                          variant={target.completionRate >= 80 ? 'default' : 'secondary'}
+                          className="ml-2 text-lg px-3 py-1"
+                        >
+                          {target.completionRate}%
+                        </Badge>
                       </div>
-                      <Badge 
-                        variant={session.status === 'complete' ? 'default' : 'secondary'}
-                        className="text-xs"
-                      >
-                        {session.status}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center py-4">
-                  No recent activity. Start your first coaching session!
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-8">
+                    No targets yet. Start your first coaching session!
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="activity">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <BarChart3 className="w-5 h-5 mr-2 text-blue-500" />
+                  Recent Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analytics.recentActivity.length > 0 ? (
+                  <div className="space-y-3">
+                    {analytics.recentActivity.slice(0, 10).map((session: any) => (
+                      <div key={session.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-3 h-3 rounded-full ${
+                            session.status === 'complete' ? 'bg-green-500' : 
+                            session.status === 'analyzing' ? 'bg-yellow-500' : 'bg-blue-500'
+                          }`}></div>
+                          <div>
+                            <p className="font-medium">
+                              {session.targets?.target_name || 'Session'}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {new Date(session.created_at).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge 
+                          variant={session.status === 'complete' ? 'default' : 'secondary'}
+                          className="capitalize"
+                        >
+                          {session.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-8">
+                    No recent activity. Start your first coaching session!
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         {/* Quick Actions */}
-        <Card className="bg-gradient-to-r from-indigo-500 to-blue-600 text-white">
+        <Card className="bg-gradient-to-r from-indigo-500 to-blue-600 text-white mt-8">
           <CardHeader>
             <CardTitle className="text-white">Take Action</CardTitle>
           </CardHeader>
