@@ -50,6 +50,95 @@ export type Database = {
           },
         ]
       }
+      contact_submissions: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          message: string
+          name: string
+          subject: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          message: string
+          name: string
+          subject: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          subject?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string
+          preferences: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          preferences?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          preferences?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      session_summaries: {
+        Row: {
+          created_at: string | null
+          id: string
+          key_insights: string[] | null
+          session_id: string | null
+          summary: string | null
+          tone_analysis: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          key_insights?: string[] | null
+          session_id?: string | null
+          summary?: string | null
+          tone_analysis?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          key_insights?: string[] | null
+          session_id?: string | null
+          summary?: string | null
+          tone_analysis?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_summaries_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       targets: {
         Row: {
           created_at: string
@@ -79,6 +168,15 @@ export type Database = {
       generate_history_summary: {
         Args: { target_id_param: string }
         Returns: string
+      }
+      get_user_session_analytics: {
+        Args: { user_id_param: string }
+        Returns: {
+          total_sessions: number
+          completed_sessions: number
+          total_targets: number
+          avg_session_duration: unknown
+        }[]
       }
     }
     Enums: {
