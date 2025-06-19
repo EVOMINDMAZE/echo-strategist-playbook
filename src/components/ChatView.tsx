@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -47,10 +48,10 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
     if (!input.trim()) return;
 
     setIsLoading(true);
-    const newMessage = {
+    const newMessage: ChatMessage = {
       id: Date.now().toString(),
       content: input,
-      sender: 'user',
+      sender: 'user' as const,
       timestamp: new Date().toISOString(),
     };
 
@@ -64,10 +65,10 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
     try {
       // Simulate AI response (replace with actual API call)
       const aiResponse = await simulateAIResponse(input);
-      const aiMessage = {
+      const aiMessage: ChatMessage = {
         id: Date.now().toString(),
         content: aiResponse,
-        sender: 'ai',
+        sender: 'ai' as const,
         timestamp: new Date().toISOString(),
       };
 
@@ -179,7 +180,8 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
               {session.status === 'gathering_info' && messages.length >= 3 && (
                 <StrategistTriggerButton
                   onTrigger={handleStrategistTrigger}
-                  disabled={isGeneratingStrategy}
+                  messageCount={messages.length}
+                  isAnalyzing={isGeneratingStrategy}
                 />
               )}
             </div>
@@ -233,15 +235,14 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
                 >
                   <div className="prose prose-sm max-w-none">
                     <ReactMarkdown
-                      className={message.sender === 'user' ? 'text-white' : 'text-slate-100'}
                       components={{
-                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                        ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
-                        ol: ({ children }) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
-                        li: ({ children }) => <li className="mb-1">{children}</li>,
-                        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                        p: ({ children }) => <p className="mb-2 last:mb-0 text-inherit">{children}</p>,
+                        ul: ({ children }) => <ul className="list-disc pl-4 mb-2 text-inherit">{children}</ul>,
+                        ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 text-inherit">{children}</ol>,
+                        li: ({ children }) => <li className="mb-1 text-inherit">{children}</li>,
+                        strong: ({ children }) => <strong className="font-semibold text-inherit">{children}</strong>,
                         code: ({ children }) => (
-                          <code className="bg-slate-700/50 px-1 py-0.5 rounded text-sm">{children}</code>
+                          <code className="bg-slate-700/50 px-1 py-0.5 rounded text-sm text-inherit">{children}</code>
                         ),
                       }}
                     >
@@ -267,10 +268,6 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
             {messages.length > 0 && messages[messages.length - 1]?.sender === 'ai' && (
               <SmartReplySuggestions
                 lastAiMessage={messages[messages.length - 1]?.content || ''}
-                relationshipContext={{
-                  type: 'friend', // This would come from session context
-                  duration: 'long-term'
-                }}
                 onSuggestionSelect={(suggestion) => {
                   setInput(suggestion);
                 }}
@@ -325,7 +322,6 @@ export const ChatView = ({ session, target, onSessionUpdate, onStatusChange, onB
       {session.status === 'complete' && session.strategist_output && (
         <ResultsView
           session={session}
-          target={target}
           onFeedbackSubmit={(feedbackData) => {
             onSessionUpdate({
               ...session,
