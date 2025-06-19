@@ -4,6 +4,7 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { ChatView } from '@/components/ChatView';
 import { useSupabaseCoaching, SessionData, Client } from '@/hooks/useSupabaseCoaching';
+import { SessionStatus } from '@/types/coaching';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 
