@@ -9,13 +9,77 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      coaching_sessions: {
+        Row: {
+          case_file_data: Json | null
+          created_at: string
+          id: string
+          raw_chat_history: Json | null
+          status: string
+          strategist_output: Json | null
+          target_id: string
+          user_feedback: string | null
+        }
+        Insert: {
+          case_file_data?: Json | null
+          created_at?: string
+          id?: string
+          raw_chat_history?: Json | null
+          status?: string
+          strategist_output?: Json | null
+          target_id: string
+          user_feedback?: string | null
+        }
+        Update: {
+          case_file_data?: Json | null
+          created_at?: string
+          id?: string
+          raw_chat_history?: Json | null
+          status?: string
+          strategist_output?: Json | null
+          target_id?: string
+          user_feedback?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_sessions_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "targets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      targets: {
+        Row: {
+          created_at: string
+          id: string
+          target_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          target_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          target_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_history_summary: {
+        Args: { target_id_param: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
