@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ArrowLeft, Sparkles, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { Client, SessionData } from '@/types/coaching';
+import { FeedbackCollector } from '@/components/FeedbackCollector';
 
 interface ResultsViewProps {
   session: SessionData;
@@ -15,6 +16,8 @@ interface ResultsViewProps {
 
 export const ResultsView = ({ session, client, onBackToClients, onNewSession }: ResultsViewProps) => {
   const [expandedCards, setExpandedCards] = useState<number[]>([]);
+  const [showFeedback, setShowFeedback] = useState(true);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   const toggleCard = (index: number) => {
     setExpandedCards(prev => 
@@ -22,6 +25,11 @@ export const ResultsView = ({ session, client, onBackToClients, onNewSession }: 
         ? prev.filter(i => i !== index)
         : [...prev, index]
     );
+  };
+
+  const handleFeedbackSubmitted = () => {
+    setFeedbackSubmitted(true);
+    setShowFeedback(false);
   };
 
   const { analysis, suggestions } = session.strategist_output || {};
@@ -156,6 +164,15 @@ export const ResultsView = ({ session, client, onBackToClients, onNewSession }: 
                 ))}
               </div>
             </div>
+          )}
+
+          {/* Smart Feedback Collector */}
+          {showFeedback && !feedbackSubmitted && (
+            <FeedbackCollector
+              session={session}
+              client={client}
+              onFeedbackSubmitted={handleFeedbackSubmitted}
+            />
           )}
 
           {/* Action Buttons */}

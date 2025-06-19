@@ -13,6 +13,9 @@ export type Database = {
         Row: {
           case_file_data: Json | null
           created_at: string
+          feedback_data: Json | null
+          feedback_rating: number | null
+          feedback_submitted_at: string | null
           id: string
           raw_chat_history: Json | null
           status: string
@@ -23,6 +26,9 @@ export type Database = {
         Insert: {
           case_file_data?: Json | null
           created_at?: string
+          feedback_data?: Json | null
+          feedback_rating?: number | null
+          feedback_submitted_at?: string | null
           id?: string
           raw_chat_history?: Json | null
           status?: string
@@ -33,6 +39,9 @@ export type Database = {
         Update: {
           case_file_data?: Json | null
           created_at?: string
+          feedback_data?: Json | null
+          feedback_rating?: number | null
+          feedback_submitted_at?: string | null
           id?: string
           raw_chat_history?: Json | null
           status?: string
@@ -234,6 +243,66 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_feedback: {
+        Row: {
+          additional_notes: string | null
+          created_at: string | null
+          id: string
+          outcome_rating: number | null
+          rating: number
+          session_id: string | null
+          suggestions_tried: string[] | null
+          target_id: string | null
+          updated_at: string | null
+          user_id: string
+          what_didnt_work: string | null
+          what_worked_well: string | null
+        }
+        Insert: {
+          additional_notes?: string | null
+          created_at?: string | null
+          id?: string
+          outcome_rating?: number | null
+          rating: number
+          session_id?: string | null
+          suggestions_tried?: string[] | null
+          target_id?: string | null
+          updated_at?: string | null
+          user_id: string
+          what_didnt_work?: string | null
+          what_worked_well?: string | null
+        }
+        Update: {
+          additional_notes?: string | null
+          created_at?: string | null
+          id?: string
+          outcome_rating?: number | null
+          rating?: number
+          session_id?: string | null
+          suggestions_tried?: string[] | null
+          target_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+          what_didnt_work?: string | null
+          what_worked_well?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_feedback_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_feedback_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "targets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
