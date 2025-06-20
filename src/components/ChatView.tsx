@@ -1,8 +1,6 @@
 
-import { useState, useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import { ChatViewHeader } from '@/components/ChatViewHeader';
 import { ChatInputArea } from '@/components/ChatInputArea';
 import { ChatMessages } from '@/components/ChatMessages';
@@ -10,65 +8,36 @@ import { SessionHistoryLoader } from '@/components/SessionHistoryLoader';
 import { SessionContinuityHandler } from '@/components/SessionContinuityHandler';
 import { InformativeMessages } from '@/components/InformativeMessages';
 import { useChatMessageHandler } from '@/components/ChatMessageHandler';
-import { useSupabaseCoaching, SessionData, Client } from '@/hooks/useSupabaseCoaching';
-import { SessionStatus } from '@/types/coaching';
+import { SessionData, Client } from '@/hooks/useSupabaseCoaching';
 
 interface ChatViewProps {
   session: SessionData;
   client: Client;
   onSessionUpdate: (session: SessionData) => void;
+  messagesEndRef?: React.RefObject<HTMLDivElement>;
+  isGeneratingStrategy: boolean;
+  previousSessions: SessionData[];
+  dismissedMessages: string[];
+  handleStrategistTrigger: () => void;
+  handleDismissMessage: (messageType: string) => void;
+  setPreviousSessions: (sessions: SessionData[]) => void;
 }
 
-const ChatView = ({ session, client, onSessionUpdate }: ChatViewProps) => {
+const ChatView = ({ 
+  session, 
+  client, 
+  onSessionUpdate,
+  messagesEndRef,
+  isGeneratingStrategy,
+  previousSessions,
+  dismissedMessages,
+  handleStrategistTrigger,
+  handleDismissMessage,
+  setPreviousSessions
+}: ChatViewProps) => {
   const navigate = useNavigate();
-  const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
-  const [previousSessions, setPreviousSessions] = useState<SessionData[]>([]);
-  const [dismissedMessages, setDismissedMessages] = useState<string[]>([]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const handleStatusChange = (status: SessionStatus) => {
-    const updatedSession = { ...session, status };
-    onSessionUpdate(updatedSession);
-  };
-
-  const handleDismissMessage = (messageType: string) => {
-    setDismissedMessages(prev => [...prev, messageType]);
-  };
-
-  const handleStrategistTrigger = async () => {
-    if (!session || !client) return;
-    
-    setIsGeneratingStrategy(true);
-    handleStatusChange('analyzing');
-
-    try {
-      const response = await supabase.functions.invoke('trigger-strategist', {
-        body: {
-          sessionId: session.id,
-          targetName: client.name,
-          chatHistory: session.messages
-        }
-      });
-
-      if (response.error) throw response.error;
-
-      const updatedSession = {
-        ...session,
-        status: 'complete' as SessionStatus,
-        strategist_output: response.data.strategist_output
-      };
-
-      onSessionUpdate(updatedSession);
-      handleStatusChange('complete');
-      toast.success('Analysis complete! Check out your personalized strategies.');
-    } catch (error) {
-      console.error('Error generating strategy:', error);
-      toast.error('Failed to generate strategy. Please try again.');
-      handleStatusChange('gathering_info');
-    } finally {
-      setIsGeneratingStrategy(false);
-    }
-  };
+  const internalMessagesEndRef = useRef<HTMLDivElement>(null);
+  const activeMessagesEndRef = messagesEndRef || internalMessagesEndRef;
 
   const { handleSendMessage } = useChatMessageHandler({
     session,
@@ -123,7 +92,7 @@ const ChatView = ({ session, client, onSessionUpdate }: ChatViewProps) => {
                 sessionStatus={session.status}
               />
 
-              <div ref={messagesEndRef} />
+              <div ref={activeMessagesEndRef} />
             </div>
 
             <ChatInputArea

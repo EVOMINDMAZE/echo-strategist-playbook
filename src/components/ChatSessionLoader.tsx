@@ -1,28 +1,26 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useSupabaseCoaching, SessionData, Client } from '@/hooks/useSupabaseCoaching';
-import { SessionStatus } from '@/types/coaching';
+import { User } from '@supabase/supabase-js';
 
-interface ChatSessionManagerProps {
-  sessionId: string;
-  userId: string | null;
-  clientName?: string;
+interface ChatSessionLoaderProps {
+  sessionId: string | undefined;
+  user: User | null;
   onSessionLoad: (session: SessionData, client: Client) => void;
   onError: (error: string) => void;
   onLoading: (loading: boolean) => void;
 }
 
-export const ChatSessionManager = ({
-  sessionId,
-  userId,
-  clientName,
-  onSessionLoad,
-  onError,
-  onLoading
-}: ChatSessionManagerProps) => {
-  const navigate = useNavigate();
+export const ChatSessionLoader = ({ 
+  sessionId, 
+  user, 
+  onSessionLoad, 
+  onError, 
+  onLoading 
+}: ChatSessionLoaderProps) => {
+  const [searchParams] = useSearchParams();
   const { getSession } = useSupabaseCoaching();
 
   useEffect(() => {
@@ -30,7 +28,10 @@ export const ChatSessionManager = ({
     let timeoutId: NodeJS.Timeout;
 
     const loadSession = async () => {
-      if (!sessionId || !userId) return;
+      if (!sessionId || !user) {
+        console.log('Missing sessionId or user:', { sessionId, userId: user?.id });
+        return;
+      }
 
       try {
         onLoading(true);
@@ -39,6 +40,7 @@ export const ChatSessionManager = ({
         
         timeoutId = setTimeout(() => {
           if (mounted) {
+            console.error('Session loading timed out');
             onError('Session loading timed out');
             onLoading(false);
           }
@@ -48,16 +50,19 @@ export const ChatSessionManager = ({
         if (!mounted) return;
         
         clearTimeout(timeoutId);
-        console.log('Session data loaded successfully');
+        console.log('Session data loaded successfully:', sessionData);
         
-        // Get client information
+        // Get client name from URL params or fetch from target
+        const clientName = searchParams.get('target');
         let client: Client;
+        
         if (clientName) {
           client = {
             id: sessionData.target_id,
             name: decodeURIComponent(clientName),
             created_at: new Date().toISOString()
           };
+          console.log('Client set from URL params:', clientName);
         } else {
           // Fetch target information if not in URL
           const { data: targetData, error } = await supabase
@@ -72,8 +77,11 @@ export const ChatSessionManager = ({
               name: targetData.target_name,
               created_at: targetData.created_at
             };
+            console.log('Client set from database:', targetData.target_name);
           } else {
-            throw new Error('Could not load client information');
+            console.error('Failed to load target data:', error);
+            if (mounted) onError('Failed to load client information');
+            return;
           }
         }
 
@@ -98,7 +106,7 @@ export const ChatSessionManager = ({
       mounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [sessionId, userId, clientName, getSession, onSessionLoad, onError, onLoading]);
+  }, [sessionId, user, getSession, searchParams, onSessionLoad, onError, onLoading]);
 
   return null; // This is a logic-only component
 };

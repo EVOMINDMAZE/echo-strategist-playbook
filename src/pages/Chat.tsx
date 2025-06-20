@@ -1,28 +1,22 @@
 
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { EnhancedNavigation } from '@/components/EnhancedNavigation';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { IntelligentOnboarding } from '@/components/IntelligentOnboarding';
 import { SecretRoomTheme } from '@/components/SecretRoomTheme';
-import { ChatViewHeader } from '@/components/ChatViewHeader';
-import { ChatInputArea } from '@/components/ChatInputArea';
-import { ChatMessages } from '@/components/ChatMessages';
-import { SessionHistoryLoader } from '@/components/SessionHistoryLoader';
-import { SessionContinuityHandler } from '@/components/SessionContinuityHandler';
+import { ChatView } from '@/components/ChatView';
 import { ResultsView } from '@/components/ResultsView';
-import { InformativeMessages } from '@/components/InformativeMessages';
-import { useChatMessageHandler } from '@/components/ChatMessageHandler';
+import { ChatAuthHandler } from '@/components/ChatAuthHandler';
+import { ChatSessionLoader } from '@/components/ChatSessionLoader';
+import { ChatStateManager } from '@/components/ChatStateManager';
 import { useSupabaseCoaching, SessionData, Client } from '@/hooks/useSupabaseCoaching';
 import { useIntelligentOnboarding } from '@/hooks/useIntelligentOnboarding';
 import { SessionStatus } from '@/types/coaching';
-import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { toast } from 'sonner';
 
 const Chat = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<SessionData | null>(null);
@@ -30,133 +24,10 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
-  const [previousSessions, setPreviousSessions] = useState<SessionData[]>([]);
-  const [dismissedMessages, setDismissedMessages] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { getSession, updateSession } = useSupabaseCoaching();
+  const { updateSession } = useSupabaseCoaching();
   const { hasContext, loading: contextLoading } = useIntelligentOnboarding(sessionId || '');
-
-  // Auth effect
-  useEffect(() => {
-    let mounted = true;
-    
-    const initAuth = async () => {
-      try {
-        const { data: { session: authSession } } = await supabase.auth.getSession();
-        if (!mounted) return;
-        
-        if (!authSession) {
-          console.log('No auth session, redirecting to auth');
-          navigate('/auth');
-          return;
-        }
-        setUser(authSession.user);
-        console.log('User authenticated:', authSession.user.id);
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        if (mounted) setError('Authentication failed');
-      }
-    };
-
-    initAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!mounted) return;
-        if (session) {
-          setUser(session.user);
-        } else {
-          navigate('/auth');
-        }
-      }
-    );
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
-
-  // Session loading effect
-  useEffect(() => {
-    let mounted = true;
-    let timeoutId: NodeJS.Timeout;
-
-    const loadSession = async () => {
-      if (!sessionId || !user) {
-        console.log('Missing sessionId or user:', { sessionId, userId: user?.id });
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-        console.log('Loading session:', sessionId);
-        
-        timeoutId = setTimeout(() => {
-          if (mounted) {
-            console.error('Session loading timed out');
-            setError('Session loading timed out');
-            setLoading(false);
-          }
-        }, 10000);
-
-        const sessionData = await getSession(sessionId);
-        if (!mounted) return;
-        
-        clearTimeout(timeoutId);
-        console.log('Session data loaded successfully:', sessionData);
-        setSession(sessionData);
-        
-        // Get client name from URL params or fetch from target
-        const clientName = searchParams.get('target');
-        if (clientName) {
-          setClient({
-            id: sessionData.target_id,
-            name: decodeURIComponent(clientName),
-            created_at: new Date().toISOString()
-          });
-          console.log('Client set from URL params:', clientName);
-        } else {
-          // Fetch target information if not in URL
-          const { data: targetData, error } = await supabase
-            .from('targets')
-            .select('*')
-            .eq('id', sessionData.target_id)
-            .single();
-          
-          if (targetData && !error && mounted) {
-            setClient({
-              id: targetData.id,
-              name: targetData.target_name,
-              created_at: targetData.created_at
-            });
-            console.log('Client set from database:', targetData.target_name);
-          } else {
-            console.error('Failed to load target data:', error);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading session:', error);
-        if (mounted) {
-          setError('Failed to load session');
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadSession();
-
-    return () => {
-      mounted = false;
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [sessionId, user, getSession, searchParams]);
 
   // Check if we should show onboarding
   useEffect(() => {
@@ -168,6 +39,16 @@ const Chat = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [session?.messages]);
+
+  const handleSessionLoad = (loadedSession: SessionData, loadedClient: Client) => {
+    setSession(loadedSession);
+    setClient(loadedClient);
+  };
+
+  const handleAuthError = (authError: string) => {
+    setError(authError);
+    setLoading(false);
+  };
 
   const handleSessionUpdate = async (updatedSession: SessionData) => {
     setSession(updatedSession);
@@ -194,51 +75,6 @@ const Chat = () => {
   const handleOnboardingSkip = () => {
     setShowOnboarding(false);
   };
-
-  const handleDismissMessage = (messageType: string) => {
-    setDismissedMessages(prev => [...prev, messageType]);
-  };
-
-  const handleStrategistTrigger = async () => {
-    if (!session || !client) return;
-    
-    setIsGeneratingStrategy(true);
-    handleStatusChange('analyzing');
-
-    try {
-      const response = await supabase.functions.invoke('trigger-strategist', {
-        body: {
-          sessionId: session.id,
-          targetName: client.name,
-          chatHistory: session.messages
-        }
-      });
-
-      if (response.error) throw response.error;
-
-      const updatedSession = {
-        ...session,
-        status: 'complete' as SessionStatus,
-        strategist_output: response.data.strategist_output
-      };
-
-      handleSessionUpdate(updatedSession);
-      handleStatusChange('complete');
-      toast.success('Analysis complete! Check out your personalized strategies.');
-    } catch (error) {
-      console.error('Error generating strategy:', error);
-      toast.error('Failed to generate strategy. Please try again.');
-      handleStatusChange('gathering_info');
-    } finally {
-      setIsGeneratingStrategy(false);
-    }
-  };
-
-  const { handleSendMessage } = useChatMessageHandler({
-    session: session!,
-    client: client!,
-    onSessionUpdate: handleSessionUpdate
-  });
 
   if (loading || contextLoading) {
     return (
@@ -318,66 +154,35 @@ const Chat = () => {
       <SecretRoomTheme>
         <EnhancedNavigation user={user} />
         
-        <div className="flex flex-col h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-          <ChatViewHeader
-            session={session}
-            target={client}
-            previousSessions={previousSessions}
-            messages={session.messages}
-            isGeneratingStrategy={isGeneratingStrategy}
-            onBackToTargets={() => navigate('/clients')}
-            onStrategistTrigger={handleStrategistTrigger}
-          />
+        <ChatAuthHandler 
+          onUserLoad={setUser}
+          onError={handleAuthError}
+        />
+        
+        <ChatSessionLoader
+          sessionId={sessionId}
+          user={user}
+          onSessionLoad={handleSessionLoad}
+          onError={setError}
+          onLoading={setLoading}
+        />
 
-          <div className="flex-1 overflow-hidden">
-            <div className="h-full max-w-4xl mx-auto">
-              <div className="flex flex-col h-full">
-                <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
-                  <SessionHistoryLoader
-                    targetId={session.target_id}
-                    currentSessionId={session.id}
-                    onHistoryLoaded={setPreviousSessions}
-                  />
-
-                  {session.messages.length === 0 && previousSessions.length > 0 && (
-                    <SessionContinuityHandler
-                      previousSessions={previousSessions}
-                      onFollowUpSelect={handleSendMessage}
-                    />
-                  )}
-
-                  {session.messages.length === 0 && previousSessions.length === 0 && (
-                    <InformativeMessages 
-                      messageCount={session.messages.length}
-                      onDismiss={handleDismissMessage}
-                      dismissedMessages={dismissedMessages}
-                    />
-                  )}
-
-                  <ChatMessages
-                    sessionId={session.id}
-                    targetId={session.target_id}
-                    messages={session.messages}
-                    isLoading={isGeneratingStrategy}
-                    onSuggestionClick={handleSendMessage}
-                    onStrategistTrigger={handleStrategistTrigger}
-                    sessionStatus={session.status}
-                  />
-
-                  <div ref={messagesEndRef} />
-                </div>
-
-                <ChatInputArea
-                  session={session}
-                  previousSessions={previousSessions}
-                  messages={session.messages}
-                  isLoading={isGeneratingStrategy}
-                  onSubmit={handleSendMessage}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+        <ChatStateManager
+          session={session}
+          client={client}
+          onSessionUpdate={handleSessionUpdate}
+          onStatusChange={handleStatusChange}
+        >
+          {(stateProps) => (
+            <ChatView
+              session={session}
+              client={client}
+              onSessionUpdate={handleSessionUpdate}
+              messagesEndRef={messagesEndRef}
+              {...stateProps}
+            />
+          )}
+        </ChatStateManager>
       </SecretRoomTheme>
     </ErrorBoundary>
   );
