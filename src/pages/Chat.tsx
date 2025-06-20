@@ -7,28 +7,162 @@ import { IntelligentOnboarding } from '@/components/IntelligentOnboarding';
 import { SecretRoomTheme } from '@/components/SecretRoomTheme';
 import ChatView from '@/components/ChatView';
 import { ResultsView } from '@/components/ResultsView';
-import { ChatAuthHandler } from '@/components/ChatAuthHandler';
-import { ChatSessionLoader } from '@/components/ChatSessionLoader';
-import { ChatStateManager } from '@/components/ChatStateManager';
 import { useSupabaseCoaching, SessionData, Client } from '@/hooks/useSupabaseCoaching';
 import { useIntelligentOnboarding } from '@/hooks/useIntelligentOnboarding';
 import { SessionStatus } from '@/types/coaching';
 import { User } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { useSearchParams } from 'react-router-dom';
 
 const Chat = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  // Core states
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<SessionData | null>(null);
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true);
+  
+  // Chat states
+  const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
+  const [previousSessions, setPreviousSessions] = useState<SessionData[]>([]);
+  const [dismissedMessages, setDismissedMessages] = useState<string[]>([]);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const { updateSession } = useSupabaseCoaching();
+  const { updateSession, getSession } = useSupabaseCoaching();
   const { hasContext, loading: contextLoading } = useIntelligentOnboarding(sessionId || '');
+
+  // Simplified authentication check
+  useEffect(() => {
+    let mounted = true;
+
+    const checkAuth = async () => {
+      try {
+        const { data: { session: authSession }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Auth session error:', sessionError);
+          if (mounted) {
+            setError('Authentication failed');
+            setLoading(false);
+          }
+          return;
+        }
+
+        if (!authSession) {
+          console.log('No auth session, redirecting to auth');
+          navigate('/auth');
+          return;
+        }
+
+        if (mounted) {
+          setUser(authSession.user);
+          console.log('User authenticated:', authSession.user.id);
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        if (mounted) {
+          setError('Authentication failed');
+          setLoading(false);
+        }
+      }
+    };
+
+    checkAuth();
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+      
+      console.log('Auth state changed:', event, session?.user?.id);
+      
+      if (session) {
+        setUser(session.user);
+      } else if (event === 'SIGNED_OUT') {
+        navigate('/auth');
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  // Simplified session loading
+  useEffect(() => {
+    let mounted = true;
+
+    const loadSession = async () => {
+      if (!sessionId || !user) {
+        console.log('Missing sessionId or user:', { sessionId: !!sessionId, user: !!user });
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        console.log('Loading session:', sessionId);
+
+        // Verify session access
+        const { data: sessionCheck, error: sessionCheckError } = await supabase
+          .from('coaching_sessions')
+          .select(`
+            id,
+            target_id,
+            targets!inner(user_id, target_name)
+          `)
+          .eq('id', sessionId)
+          .eq('targets.user_id', user.id)
+          .single();
+
+        if (sessionCheckError || !sessionCheck) {
+          console.error('Session access check failed:', sessionCheckError);
+          if (mounted) {
+            setError('Session not found or access denied');
+            setLoading(false);
+          }
+          return;
+        }
+
+        // Load full session data
+        const sessionData = await getSession(sessionId);
+        if (!mounted) return;
+
+        console.log('Session data loaded:', sessionData);
+
+        // Get client info
+        const clientName = searchParams.get('target');
+        const client: Client = {
+          id: sessionData.target_id,
+          name: clientName ? decodeURIComponent(clientName) : sessionCheck.targets.target_name,
+          created_at: new Date().toISOString()
+        };
+
+        if (mounted) {
+          setSession(sessionData);
+          setClient(client);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error loading session:', error);
+        if (mounted) {
+          setError(`Failed to load session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          setLoading(false);
+        }
+      }
+    };
+
+    loadSession();
+
+    return () => {
+      mounted = false;
+    };
+  }, [sessionId, user, getSession, searchParams]);
 
   // Check if we should show onboarding
   useEffect(() => {
@@ -37,39 +171,10 @@ const Chat = () => {
     }
   }, [contextLoading, hasContext, session]);
 
+  // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [session?.messages]);
-
-  const handleSessionLoad = (loadedSession: SessionData, loadedClient: Client) => {
-    console.log('Session loaded in Chat component:', loadedSession.id);
-    setSession(loadedSession);
-    setClient(loadedClient);
-    setLoading(false);
-  };
-
-  const handleAuthLoad = (loadedUser: User | null) => {
-    console.log('User loaded in Chat component:', loadedUser?.id);
-    setUser(loadedUser);
-    setAuthLoading(false);
-  };
-
-  const handleAuthError = (authError: string) => {
-    console.error('Auth error in Chat component:', authError);
-    setError(authError);
-    setAuthLoading(false);
-    
-    // Redirect to auth page after a short delay
-    setTimeout(() => {
-      navigate('/auth');
-    }, 2000);
-  };
-
-  const handleSessionError = (sessionError: string) => {
-    console.error('Session error in Chat component:', sessionError);
-    setError(sessionError);
-    setLoading(false);
-  };
 
   const handleSessionUpdate = async (updatedSession: SessionData) => {
     setSession(updatedSession);
@@ -88,6 +193,14 @@ const Chat = () => {
     }
   };
 
+  const handleStrategistTrigger = () => {
+    setIsGeneratingStrategy(true);
+  };
+
+  const handleDismissMessage = (messageType: string) => {
+    setDismissedMessages(prev => [...prev, messageType]);
+  };
+
   const handleOnboardingComplete = (data: any) => {
     console.log('Onboarding completed with data:', data);
     setShowOnboarding(false);
@@ -98,7 +211,7 @@ const Chat = () => {
   };
 
   // Show loading while auth or context is loading
-  if (authLoading || (loading && !error) || contextLoading) {
+  if (loading || contextLoading) {
     return (
       <SecretRoomTheme>
         <EnhancedNavigation user={user} />
@@ -106,7 +219,7 @@ const Chat = () => {
           <div className="text-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
             <p className="text-slate-300 font-medium">
-              {authLoading ? 'Authenticating...' : contextLoading ? 'Loading context...' : 'Preparing your secure coaching session...'}
+              {contextLoading ? 'Loading context...' : 'Preparing your secure coaching session...'}
             </p>
           </div>
         </div>
@@ -129,34 +242,21 @@ const Chat = () => {
               {error || 'Session not found'}
             </h3>
             <p className="text-slate-400">
-              {error === 'Authentication required' 
-                ? 'Please sign in to access your coaching session.' 
-                : 'We couldn\'t load your coaching session. Please try again.'}
+              We couldn't load your coaching session. Please try again.
             </p>
             <div className="flex gap-4 justify-center">
-              {error === 'Authentication required' ? (
-                <button 
-                  onClick={() => navigate('/auth')} 
-                  className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-                >
-                  Sign In
-                </button>
-              ) : (
-                <>
-                  <button 
-                    onClick={() => window.location.reload()} 
-                    className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-                  >
-                    Retry
-                  </button>
-                  <button 
-                    onClick={() => navigate('/clients')} 
-                    className="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors"
-                  >
-                    Return to Clients
-                  </button>
-                </>
-              )}
+              <button 
+                onClick={() => window.location.reload()} 
+                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+              >
+                Retry
+              </button>
+              <button 
+                onClick={() => navigate('/clients')} 
+                className="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors"
+              >
+                Return to Clients
+              </button>
             </div>
           </div>
         </div>
@@ -198,36 +298,18 @@ const Chat = () => {
     <ErrorBoundary>
       <SecretRoomTheme>
         <EnhancedNavigation user={user} />
-        
-        <ChatAuthHandler 
-          onUserLoad={handleAuthLoad}
-          onError={handleAuthError}
-        />
-        
-        <ChatSessionLoader
-          sessionId={sessionId}
-          user={user}
-          onSessionLoad={handleSessionLoad}
-          onError={handleSessionError}
-          onLoading={setLoading}
-        />
-
-        <ChatStateManager
+        <ChatView
           session={session}
           client={client}
           onSessionUpdate={handleSessionUpdate}
-          onStatusChange={handleStatusChange}
-        >
-          {(stateProps) => (
-            <ChatView
-              session={session}
-              client={client}
-              onSessionUpdate={handleSessionUpdate}
-              messagesEndRef={messagesEndRef}
-              {...stateProps}
-            />
-          )}
-        </ChatStateManager>
+          messagesEndRef={messagesEndRef}
+          isGeneratingStrategy={isGeneratingStrategy}
+          previousSessions={previousSessions}
+          dismissedMessages={dismissedMessages}
+          handleStrategistTrigger={handleStrategistTrigger}
+          handleDismissMessage={handleDismissMessage}
+          setPreviousSessions={setPreviousSessions}
+        />
       </SecretRoomTheme>
     </ErrorBoundary>
   );

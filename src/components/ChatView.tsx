@@ -15,12 +15,12 @@ interface ChatViewProps {
   client: Client;
   onSessionUpdate: (session: SessionData) => void;
   messagesEndRef?: React.RefObject<HTMLDivElement>;
-  isGeneratingStrategy: boolean;
-  previousSessions: SessionData[];
-  dismissedMessages: string[];
-  handleStrategistTrigger: () => void;
-  handleDismissMessage: (messageType: string) => void;
-  setPreviousSessions: (sessions: SessionData[]) => void;
+  isGeneratingStrategy?: boolean;
+  previousSessions?: SessionData[];
+  dismissedMessages?: string[];
+  handleStrategistTrigger?: () => void;
+  handleDismissMessage?: (messageType: string) => void;
+  setPreviousSessions?: (sessions: SessionData[]) => void;
 }
 
 const ChatView = ({ 
@@ -28,12 +28,12 @@ const ChatView = ({
   client, 
   onSessionUpdate,
   messagesEndRef,
-  isGeneratingStrategy,
-  previousSessions,
-  dismissedMessages,
-  handleStrategistTrigger,
-  handleDismissMessage,
-  setPreviousSessions
+  isGeneratingStrategy = false,
+  previousSessions = [],
+  dismissedMessages = [],
+  handleStrategistTrigger = () => {},
+  handleDismissMessage = () => {},
+  setPreviousSessions = () => {}
 }: ChatViewProps) => {
   const navigate = useNavigate();
   const internalMessagesEndRef = useRef<HTMLDivElement>(null);
