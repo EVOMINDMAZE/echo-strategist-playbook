@@ -224,10 +224,10 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
           <div className="space-y-6">
             <div className="text-center">
               <h3 className="text-xl font-semibold text-slate-800 mb-2">
-                Action Taken
+                Which strategies did you try?
               </h3>
               <p className="text-slate-600">
-                How many strategies did you try or plan to try?
+                Select the strategies you've tried or plan to try from your playbook.
               </p>
             </div>
             
@@ -245,8 +245,8 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
                     suggestionsTriedCount: index < feedback.suggestionsTriedCount ? index : index + 1 
                   }))}
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                  <div className="flex items-start space-x-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 mt-1 ${
                       index < feedback.suggestionsTriedCount
                         ? 'bg-indigo-500 border-indigo-500'
                         : 'border-gray-300'
@@ -255,9 +255,16 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
                         <CheckCircle className="w-3 h-3 text-white" />
                       )}
                     </div>
-                    <span className="font-medium text-slate-700">
-                      {suggestion.title}
-                    </span>
+                    <div className="flex-1">
+                      <span className="font-medium text-slate-700 block mb-1">
+                        {suggestion.title}
+                      </span>
+                      {suggestion.reply_example && (
+                        <span className="text-sm text-slate-500 italic">
+                          "{suggestion.reply_example.substring(0, 60)}..."
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -278,10 +285,10 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
           <div className="space-y-6">
             <div className="text-center">
               <h3 className="text-xl font-semibold text-slate-800 mb-2">
-                How did it go?
+                How did the strategies work?
               </h3>
               <p className="text-slate-600">
-                Rate the outcome of trying the suggested strategies.
+                Rate the effectiveness of the strategies you tried.
               </p>
             </div>
             
@@ -301,29 +308,29 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
               ))}
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-4">
               <div>
-                <Label htmlFor="worked-well" className="text-sm font-medium text-slate-700 mb-2 block">
-                  What worked well? (Optional)
+                <Label htmlFor="specific-feedback" className="text-sm font-medium text-slate-700 mb-2 block">
+                  Tell us more about your experience with the strategies (Optional)
                 </Label>
                 <Textarea
-                  id="worked-well"
+                  id="specific-feedback"
                   value={feedback.whatWorkedWell}
                   onChange={(e) => setFeedback(prev => ({ ...prev, whatWorkedWell: e.target.value }))}
-                  placeholder="Share what strategies were effective..."
-                  className="min-h-[100px] resize-none"
+                  placeholder={`For example: "The reply example for '${suggestions[0]?.title || 'Strategy 1'}' worked perfectly..." or "I tried the conversation starter but..."`}
+                  className="min-h-[120px] resize-none"
                 />
               </div>
-              
+
               <div>
-                <Label htmlFor="didnt-work" className="text-sm font-medium text-slate-700 mb-2 block">
-                  What didn't work? (Optional)
+                <Label htmlFor="improvement-suggestions" className="text-sm font-medium text-slate-700 mb-2 block">
+                  How could the strategies be improved? (Optional)
                 </Label>
                 <Textarea
-                  id="didnt-work"
+                  id="improvement-suggestions"
                   value={feedback.whatDidntWork}
                   onChange={(e) => setFeedback(prev => ({ ...prev, whatDidntWork: e.target.value }))}
-                  placeholder="Share what could be improved..."
+                  placeholder="What would have made the strategies more effective for your specific situation?"
                   className="min-h-[100px] resize-none"
                 />
               </div>
@@ -336,19 +343,19 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
                 Quick Thoughts
               </h3>
               <p className="text-slate-600">
-                Any thoughts about the analysis or suggestions?
+                Even if you haven't tried the strategies yet, we'd love your thoughts on the analysis.
               </p>
             </div>
             
             <div>
               <Label htmlFor="quick-notes" className="text-sm font-medium text-slate-700 mb-2 block">
-                Your thoughts (Optional)
+                Your thoughts on the strategic recommendations (Optional)
               </Label>
               <Textarea
                 id="quick-notes"
                 value={feedback.additionalNotes}
                 onChange={(e) => setFeedback(prev => ({ ...prev, additionalNotes: e.target.value }))}
-                placeholder="Share any thoughts or suggestions..."
+                placeholder="What did you think about the strategies provided? Were they relevant to your situation?"
                 className="min-h-[120px] resize-none"
               />
             </div>
@@ -382,7 +389,7 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
                 id="final-notes"
                 value={feedback.additionalNotes}
                 onChange={(e) => setFeedback(prev => ({ ...prev, additionalNotes: e.target.value }))}
-                placeholder="Any final thoughts, suggestions, or feedback..."
+                placeholder="Any final thoughts about the analysis, the strategies, or how we can improve your coaching experience..."
                 className="min-h-[120px] resize-none"
               />
             </div>

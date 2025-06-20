@@ -4,9 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Sparkles, ChevronDown, ChevronUp, RefreshCw, BarChart3, Lightbulb, MessageCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Sparkles, ChevronDown, ChevronUp, RefreshCw, BarChart3, Lightbulb, MessageCircle, Copy, Clock } from 'lucide-react';
 import { Client, SessionData } from '@/types/coaching';
 import { FeedbackCollector } from '@/components/FeedbackCollector';
+import { FeedbackInsights } from '@/components/FeedbackInsights';
+import { toast } from 'sonner';
 
 interface ResultsViewProps {
   session: SessionData;
@@ -32,7 +35,10 @@ export const ResultsView = ({
   const [expandedCards, setExpandedCards] = useState<number[]>([]);
   const [showFeedback, setShowFeedback] = useState(!session.feedback_submitted_at);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(!!session.feedback_submitted_at);
-  const [activeTab, setActiveTab] = useState('results');
+  const [activeTab, setActiveTab] = useState(() => {
+    // Auto-open feedback tab if session is complete but no feedback submitted
+    return session.status === 'complete' && !session.feedback_submitted_at ? 'feedback' : 'results';
+  });
 
   const toggleCard = (index: number) => {
     setExpandedCards(prev => 
@@ -42,13 +48,24 @@ export const ResultsView = ({
     );
   };
 
+  const handleCopyReplyExample = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Reply example copied to clipboard!');
+  };
+
   const handleFeedbackSubmitted = () => {
     setFeedbackSubmitted(true);
     setShowFeedback(false);
-    setActiveTab('analytics');
+    setActiveTab('insights');
   };
 
-  const { analysis, suggestions } = session.strategist_output || {};
+  const handleContinueChat = () => {
+    if (onContinueSession) {
+      onContinueSession();
+    }
+  };
+
+  const { analysis, suggestions, potential_obstacles, success_indicators, follow_up_timeline } = session.strategist_output || {};
 
   console.log('=== RESULTS VIEW: Extracted strategist data:');
   console.log('- Analysis:', analysis);
@@ -128,13 +145,12 @@ export const ResultsView = ({
           <div className="flex space-x-2">
             {onContinueSession && (
               <Button
-                onClick={onContinueSession}
-                variant="outline"
+                onClick={handleContinueChat}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300"
                 size="sm"
-                className="border-indigo-200 hover:bg-indigo-50 dark:border-indigo-700 dark:hover:bg-indigo-900"
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
-                Continue Chat
+                Continue This Chat
               </Button>
             )}
             <Button
@@ -162,10 +178,13 @@ export const ResultsView = ({
               <TabsTrigger value="feedback" className="flex items-center space-x-2 text-sm">
                 <BarChart3 className="w-4 h-4" />
                 <span>Share Feedback</span>
+                {!feedbackSubmitted && (
+                  <Badge variant="destructive" className="ml-1 px-1 py-0 text-xs">!</Badge>
+                )}
               </TabsTrigger>
               <TabsTrigger value="insights" className="flex items-center space-x-2 text-sm">
                 <Lightbulb className="w-4 h-4" />
-                <span>Insights</span>
+                <span>Personal Insights</span>
               </TabsTrigger>
             </TabsList>
 
@@ -195,14 +214,18 @@ export const ResultsView = ({
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-sm">
-                      {analysis}
-                    </p>
+                    <div className="prose prose-sm max-w-none">
+                      {analysis.split('\n').map((line, index) => (
+                        <p key={index} className="text-slate-700 dark:text-slate-300 leading-relaxed text-sm mb-2 last:mb-0">
+                          {line}
+                        </p>
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
               )}
 
-              {/* Suggestions */}
+              {/* Strategic Recommendations */}
               {suggestions && suggestions.length > 0 && (
                 <div className="space-y-4">
                   <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 text-center">
@@ -220,10 +243,47 @@ export const ResultsView = ({
                             {suggestion.title}
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-3">
+                        <CardContent className="space-y-4">
                           <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">
                             {suggestion.description}
                           </p>
+                          
+                          {/* Reply Example - Most prominent section */}
+                          {suggestion.reply_example && (
+                            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border-l-4 border-green-400">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-semibold text-green-800 dark:text-green-300 text-sm flex items-center">
+                                  <MessageCircle className="w-4 h-4 mr-2" />
+                                  Ready-to-Send Message
+                                </h4>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleCopyReplyExample(suggestion.reply_example)}
+                                  className="h-8 px-2 text-green-700 hover:text-green-800 hover:bg-green-100"
+                                >
+                                  <Copy className="w-3 h-3 mr-1" />
+                                  Copy
+                                </Button>
+                              </div>
+                              <p className="text-green-700 dark:text-green-200 leading-relaxed text-sm italic">
+                                "{suggestion.reply_example}"
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Timing Advice */}
+                          {suggestion.timing_advice && (
+                            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border-l-4 border-blue-400">
+                              <h4 className="font-semibold text-blue-800 dark:text-blue-300 text-sm flex items-center mb-1">
+                                <Clock className="w-4 h-4 mr-2" />
+                                Perfect Timing
+                              </h4>
+                              <p className="text-blue-700 dark:text-blue-200 text-sm">
+                                {suggestion.timing_advice}
+                              </p>
+                            </div>
+                          )}
                           
                           <Collapsible 
                             open={expandedCards.includes(index)}
@@ -260,11 +320,53 @@ export const ResultsView = ({
                 </div>
               )}
 
+              {/* Success Indicators & Follow-up Timeline */}
+              {(success_indicators || follow_up_timeline) && (
+                <div className="grid md:grid-cols-2 gap-4">
+                  {success_indicators && (
+                    <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-lg">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm text-green-800 flex items-center">
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Signs It's Working
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-2">
+                          {success_indicators.map((indicator, index) => (
+                            <li key={index} className="text-green-700 text-sm flex items-start">
+                              <span className="w-2 h-2 bg-green-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                              {indicator}
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {follow_up_timeline && (
+                    <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 shadow-lg">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm text-purple-800 flex items-center">
+                          <Clock className="w-4 h-4 mr-2" />
+                          Timeline & Next Steps
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-purple-700 text-sm leading-relaxed">
+                          {follow_up_timeline}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              )}
+
               {/* Action Buttons */}
               <div className="flex justify-center space-x-3 pt-6">
                 {onContinueSession && (
                   <Button
-                    onClick={onContinueSession}
+                    onClick={handleContinueChat}
                     className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300 text-sm"
                     size="default"
                   >
@@ -324,22 +426,12 @@ export const ResultsView = ({
             </TabsContent>
 
             <TabsContent value="insights" className="space-y-6">
-              <div className="text-center">
+              <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">Personal Insights</h2>
                 <p className="text-slate-600 dark:text-slate-400 text-sm">Discover patterns and trends in your coaching journey</p>
               </div>
               
-              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-lg">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Lightbulb className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-blue-800 mb-2">Coming Soon</h3>
-                  <p className="text-blue-700 text-sm">
-                    Personal insights and analytics will be available soon to help you track your progress and identify patterns.
-                  </p>
-                </CardContent>
-              </Card>
+              <FeedbackInsights targetId={session.target_id} />
             </TabsContent>
           </Tabs>
         </div>

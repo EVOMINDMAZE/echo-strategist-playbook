@@ -108,74 +108,78 @@ serve(async (req) => {
       )
     }
 
-    // Enhanced strategist prompt with better structure and completeness
-    const strategistPrompt = `You are an expert relationship strategist and communication coach. Analyze this conversation and provide personalized, actionable strategies.
+    // Enhanced strategist prompt with actionable reply examples
+    const strategistPrompt = `You are an expert relationship strategist and communication coach. Analyze this conversation and provide personalized, actionable strategies with concrete reply examples.
 
 CONVERSATION TO ANALYZE:
 ${conversationText}
 
 TARGET PERSON: ${sessionData.targets?.target_name || 'Unknown'}
 
-Please provide a comprehensive analysis in the following JSON format. Ensure your response is complete and well-structured:
+Please provide a comprehensive analysis in the following JSON format. Make sure your strategic recommendations include specific, copy-paste reply examples:
 
 {
   "relationship_summary": "2-3 sentence summary of the relationship dynamic and main challenges",
   "key_insights": [
-    "Insight 1 about communication patterns",
-    "Insight 2 about emotional dynamics", 
-    "Insight 3 about underlying issues"
+    "Insight 1 about communication patterns or emotional dynamics",
+    "Insight 2 about underlying issues or opportunities", 
+    "Insight 3 about what's working well or areas for improvement"
   ],
-  "communication_strategies": [
+  "strategic_recommendations": [
     {
-      "title": "Strategy 1 Title",
-      "description": "Detailed explanation of this approach",
-      "specific_phrases": ["Exact phrase 1", "Exact phrase 2"],
-      "when_to_use": "Specific situations when this strategy is most effective",
-      "expected_outcome": "What to expect when using this strategy"
+      "strategy_title": "Clear, actionable strategy name",
+      "explanation": "2-3 sentence explanation of this communication approach and when to use it",
+      "reply_example": "Exact text the user can copy and send (tailored to their situation and conversation style)",
+      "why_it_works": "Psychological insight explaining why this approach is effective for this specific relationship dynamic",
+      "timing_advice": "When and how to use this strategy for maximum impact"
     },
     {
-      "title": "Strategy 2 Title", 
-      "description": "Detailed explanation of this approach",
-      "specific_phrases": ["Exact phrase 1", "Exact phrase 2"],
-      "when_to_use": "Specific situations when this strategy is most effective",
-      "expected_outcome": "What to expect when using this strategy"
+      "strategy_title": "Second strategy name",
+      "explanation": "Detailed explanation of this approach",
+      "reply_example": "Another specific, ready-to-use message example",
+      "why_it_works": "Psychology behind why this works for their situation",
+      "timing_advice": "Optimal timing and context for this strategy"
     },
     {
-      "title": "Strategy 3 Title",
-      "description": "Detailed explanation of this approach", 
-      "specific_phrases": ["Exact phrase 1", "Exact phrase 2"],
-      "when_to_use": "Specific situations when this strategy is most effective",
-      "expected_outcome": "What to expect when using this strategy"
+      "strategy_title": "Third strategy name",
+      "explanation": "Comprehensive explanation of this technique",
+      "reply_example": "Third concrete message example they can use",
+      "why_it_works": "Deep insight into the effectiveness of this approach",
+      "timing_advice": "Strategic timing recommendations"
     }
   ],
   "conversation_starters": [
-    "Conversation starter 1 with context",
-    "Conversation starter 2 with context",
-    "Conversation starter 3 with context"
+    "Natural conversation starter 1 that rebuilds connection",
+    "Thoughtful conversation starter 2 that addresses underlying issues",
+    "Positive conversation starter 3 that moves the relationship forward"
   ],
   "potential_obstacles": [
     {
-      "obstacle": "Potential challenge 1",
-      "solution": "How to overcome this challenge"
+      "obstacle": "Most likely challenge they might face",
+      "solution": "Specific strategy to overcome this challenge"
     },
     {
-      "obstacle": "Potential challenge 2", 
-      "solution": "How to overcome this challenge"
+      "obstacle": "Second potential roadblock",
+      "solution": "Practical approach to handle this situation"
     }
   ],
   "success_indicators": [
-    "Sign 1 that the strategy is working",
-    "Sign 2 that the strategy is working",
-    "Sign 3 that the strategy is working"
+    "Sign 1 that the strategies are working",
+    "Sign 2 of improved communication",
+    "Sign 3 of relationship progress"
   ],
-  "follow_up_timeline": "Suggested timeline for checking progress and adjusting approach"
+  "follow_up_timeline": "Suggested timeline for checking progress and adjusting approach (e.g., '2-3 days to try initial strategies, then reassess')"
 }
 
-CRITICAL: Provide a complete, valid JSON response. Ensure all strategies are specific, actionable, and tailored to this relationship dynamic.`
+CRITICAL REQUIREMENTS:
+- Make reply examples specific to their conversation style and situation
+- Ensure strategies are immediately actionable, not theoretical
+- Tailor psychological insights to their specific relationship dynamic
+- Provide concrete, practical guidance they can implement today`
 
     console.log('Sending analysis request to OpenAI...');
 
-    // Call OpenAI for strategist analysis with increased timeout and better error handling
+    // Call OpenAI for strategist analysis
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -183,11 +187,11 @@ CRITICAL: Provide a complete, valid JSON response. Ensure all strategies are spe
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4.1-2025-04-14',
         messages: [
           { role: 'system', content: strategistPrompt }
         ],
-        max_tokens: 2500, // Increased for complete responses
+        max_tokens: 3000,
         temperature: 0.3,
       }),
     })

@@ -275,6 +275,23 @@ const Chat = () => {
     }
   };
 
+  const handleContinueSession = async () => {
+    console.log('=== FRONTEND: handleContinueSession called ===');
+    if (!session) return;
+    
+    // Reset session status to allow re-analysis and continue chatting
+    const continuedSession = {
+      ...session,
+      status: 'gathering_info' as SessionStatus,
+      // Keep messages and strategist_output for context
+    };
+    
+    console.log('=== FRONTEND: Continuing session with status reset ===');
+    await handleSessionUpdate(continuedSession);
+    
+    // The component will automatically re-render and show ChatView instead of ResultsView
+  };
+
   const handleDismissMessage = (messageType: string) => {
     setDismissedMessages(prev => [...prev, messageType]);
   };
@@ -382,6 +399,7 @@ const Chat = () => {
           };
           handleSessionUpdate(newSession);
         }}
+        onContinueSession={handleContinueSession}
       />
     );
   }
