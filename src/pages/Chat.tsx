@@ -12,6 +12,7 @@ import { SessionStatus } from '@/types/coaching';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useSearchParams } from 'react-router-dom';
+import { sanitizeChatHistory } from '@/utils/messageUtils';
 
 const Chat = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -181,7 +182,7 @@ const Chat = () => {
               id: s.id,
               target_id: s.target_id,
               status: s.status as SessionStatus, // Proper type casting
-              messages: Array.isArray(s.raw_chat_history) ? s.raw_chat_history : [],
+              messages: sanitizeChatHistory(s.raw_chat_history), // Use utility function to properly convert
               strategist_output: s.strategist_output,
               case_file_data: s.case_file_data || {},
               feedback_data: s.feedback_data || {},
