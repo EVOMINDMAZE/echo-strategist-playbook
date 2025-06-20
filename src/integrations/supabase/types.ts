@@ -264,6 +264,8 @@ export type Database = {
           id: string
           interaction_history: Json | null
           key_insights: Json | null
+          last_pattern_update: string | null
+          learning_confidence: number | null
           personality_assessment: Json | null
           relationship_type: string
           successful_strategies: Json | null
@@ -279,6 +281,8 @@ export type Database = {
           id?: string
           interaction_history?: Json | null
           key_insights?: Json | null
+          last_pattern_update?: string | null
+          learning_confidence?: number | null
           personality_assessment?: Json | null
           relationship_type: string
           successful_strategies?: Json | null
@@ -294,6 +298,8 @@ export type Database = {
           id?: string
           interaction_history?: Json | null
           key_insights?: Json | null
+          last_pattern_update?: string | null
+          learning_confidence?: number | null
           personality_assessment?: Json | null
           relationship_type?: string
           successful_strategies?: Json | null
@@ -366,24 +372,36 @@ export type Database = {
       }
       session_summaries: {
         Row: {
+          conversation_segment: Json | null
           created_at: string | null
+          emotional_tone: Json | null
+          extracted_patterns: Json | null
           id: string
+          insight_type: string | null
           key_insights: string[] | null
           session_id: string | null
           summary: string | null
           tone_analysis: Json | null
         }
         Insert: {
+          conversation_segment?: Json | null
           created_at?: string | null
+          emotional_tone?: Json | null
+          extracted_patterns?: Json | null
           id?: string
+          insight_type?: string | null
           key_insights?: string[] | null
           session_id?: string | null
           summary?: string | null
           tone_analysis?: Json | null
         }
         Update: {
+          conversation_segment?: Json | null
           created_at?: string | null
+          emotional_tone?: Json | null
+          extracted_patterns?: Json | null
           id?: string
+          insight_type?: string | null
           key_insights?: string[] | null
           session_id?: string | null
           summary?: string | null
@@ -637,7 +655,9 @@ export type Database = {
       user_interaction_patterns: {
         Row: {
           created_at: string
+          effectiveness_history: Json | null
           id: string
+          interaction_context: Json | null
           last_used_at: string | null
           pattern_data: Json
           pattern_type: string
@@ -649,7 +669,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          effectiveness_history?: Json | null
           id?: string
+          interaction_context?: Json | null
           last_used_at?: string | null
           pattern_data: Json
           pattern_type: string
@@ -661,7 +683,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          effectiveness_history?: Json | null
           id?: string
+          interaction_context?: Json | null
           last_used_at?: string | null
           pattern_data?: Json
           pattern_type?: string
