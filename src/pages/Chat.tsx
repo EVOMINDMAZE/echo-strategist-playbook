@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -336,7 +335,6 @@ const Chat = () => {
   if (loading || contextLoading) {
     return (
       <SecretRoomTheme>
-        <EnhancedNavigation user={user} />
         <div className="flex items-center justify-center h-[calc(100vh-80px)]">
           <div className="text-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
@@ -355,7 +353,6 @@ const Chat = () => {
   if (error || !session || !client) {
     return (
       <SecretRoomTheme>
-        <EnhancedNavigation user={user} />
         <div className="flex items-center justify-center h-[calc(100vh-80px)]">
           <div className="text-center space-y-4">
             <div className="w-16 h-16 bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
