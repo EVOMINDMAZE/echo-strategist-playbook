@@ -1,15 +1,26 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { WorldClassNavigation } from '@/components/WorldClassNavigation';
-import ChatView from '@/components/ChatView';
+import { EnhancedNavigation } from '@/components/EnhancedNavigation';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { IntelligentOnboarding } from '@/components/IntelligentOnboarding';
 import { SecretRoomTheme } from '@/components/SecretRoomTheme';
+import { ChatViewHeader } from '@/components/ChatViewHeader';
+import { ChatInputArea } from '@/components/ChatInputArea';
+import { ChatMessages } from '@/components/ChatMessages';
+import { SessionHistoryLoader } from '@/components/SessionHistoryLoader';
+import { SessionContinuityHandler } from '@/components/SessionContinuityHandler';
+import { ResultsView } from '@/components/ResultsView';
+import { InformativeMessages } from '@/components/InformativeMessages';
+import { useChatMessageHandler } from '@/components/ChatMessageHandler';
+import { ChatOnboardingHandler } from '@/components/ChatOnboardingHandler';
 import { useSupabaseCoaching, SessionData, Client } from '@/hooks/useSupabaseCoaching';
 import { useIntelligentOnboarding } from '@/hooks/useIntelligentOnboarding';
 import { SessionStatus } from '@/types/coaching';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
+import { useRef } from 'react';
+import { toast } from 'sonner';
 
 const Chat = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -21,9 +32,13 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
+  const [previousSessions, setPreviousSessions] = useState<SessionData[]>([]);
+  const [dismissedMessages, setDismissedMessages] = useState<string[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { getSession, updateSession } = useSupabaseCoaching();
-  const { hasContext, loading: contextLoading } =useIntelligentOnboarding(sessionId || '');
+  const { hasContext, loading: contextLoading } = useIntelligentOnboarding(sessionId || '');
 
   // Auth effect - runs once
   useEffect(() => {
@@ -35,10 +50,12 @@ const Chat = () => {
         if (!mounted) return;
         
         if (!authSession) {
+          console.log('No auth session, redirecting to auth');
           navigate('/auth');
           return;
         }
         setUser(authSession.user);
+        console.log('User authenticated:', authSession.user.id);
       } catch (error) {
         console.error('Auth initialization error:', error);
         if (mounted) setError('Authentication failed');
@@ -70,7 +87,10 @@ const Chat = () => {
     let timeoutId: NodeJS.Timeout;
 
     const loadSession = async () => {
-      if (!sessionId || !user) return;
+      if (!sessionId || !user) {
+        console.log('Missing sessionId or user:', { sessionId, userId: user?.id });
+        return;
+      }
 
       try {
         setLoading(true);
@@ -79,6 +99,7 @@ const Chat = () => {
         
         timeoutId = setTimeout(() => {
           if (mounted) {
+            console.error('Session loading timed out');
             setError('Session loading timed out');
             setLoading(false);
           }
@@ -88,7 +109,7 @@ const Chat = () => {
         if (!mounted) return;
         
         clearTimeout(timeoutId);
-        console.log('Session data loaded successfully');
+        console.log('Session data loaded successfully:', sessionData);
         setSession(sessionData);
         
         // Get client name from URL params or fetch from target
@@ -99,6 +120,7 @@ const Chat = () => {
             name: decodeURIComponent(clientName),
             created_at: new Date().toISOString()
           });
+          console.log('Client set from URL params:', clientName);
         } else {
           // Fetch target information if not in URL
           const { data: targetData, error } = await supabase
@@ -113,6 +135,9 @@ const Chat = () => {
               name: targetData.target_name,
               created_at: targetData.created_at
             });
+            console.log('Client set from database:', targetData.target_name);
+          } else {
+            console.error('Failed to load target data:', error);
           }
         }
       } catch (error) {
@@ -133,7 +158,7 @@ const Chat = () => {
       mounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [sessionId, user]);
+  }, [sessionId, user, getSession, searchParams]);
 
   // Check if we should show onboarding
   useEffect(() => {
@@ -141,6 +166,10 @@ const Chat = () => {
       setShowOnboarding(true);
     }
   }, [contextLoading, hasContext, session]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [session?.messages]);
 
   const handleSessionUpdate = async (updatedSession: SessionData) => {
     setSession(updatedSession);
@@ -168,10 +197,55 @@ const Chat = () => {
     setShowOnboarding(false);
   };
 
+  const handleDismissMessage = (messageType: string) => {
+    setDismissedMessages(prev => [...prev, messageType]);
+  };
+
+  const handleStrategistTrigger = async () => {
+    if (!session || !client) return;
+    
+    setIsGeneratingStrategy(true);
+    handleStatusChange('analyzing');
+
+    try {
+      const response = await supabase.functions.invoke('trigger-strategist', {
+        body: {
+          sessionId: session.id,
+          targetName: client.name,
+          chatHistory: session.messages
+        }
+      });
+
+      if (response.error) throw response.error;
+
+      const updatedSession = {
+        ...session,
+        status: 'complete' as SessionStatus,
+        strategist_output: response.data.strategist_output
+      };
+
+      handleSessionUpdate(updatedSession);
+      handleStatusChange('complete');
+      toast.success('Analysis complete! Check out your personalized strategies.');
+    } catch (error) {
+      console.error('Error generating strategy:', error);
+      toast.error('Failed to generate strategy. Please try again.');
+      handleStatusChange('gathering_info');
+    } finally {
+      setIsGeneratingStrategy(false);
+    }
+  };
+
+  const { handleSendMessage } = useChatMessageHandler({
+    session: session!,
+    client: client!,
+    onSessionUpdate: handleSessionUpdate
+  });
+
   if (loading || contextLoading) {
     return (
       <SecretRoomTheme>
-        <WorldClassNavigation user={user} />
+        <EnhancedNavigation user={user} />
         <div className="flex items-center justify-center h-[calc(100vh-80px)]">
           <div className="text-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
@@ -185,7 +259,7 @@ const Chat = () => {
   if (error || !session || !client) {
     return (
       <SecretRoomTheme>
-        <WorldClassNavigation user={user} />
+        <EnhancedNavigation user={user} />
         <div className="flex items-center justify-center h-[calc(100vh-80px)]">
           <div className="text-center space-y-4">
             <div className="w-16 h-16 bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -222,11 +296,90 @@ const Chat = () => {
     );
   }
 
+  if (session.status === 'complete' && session.strategist_output) {
+    return (
+      <ResultsView
+        session={session}
+        client={client}
+        onBackToClients={() => navigate('/clients')}
+        onNewSession={() => {
+          const newSession = {
+            ...session,
+            status: 'gathering_info' as SessionStatus,
+            messages: [],
+            strategist_output: undefined
+          };
+          handleSessionUpdate(newSession);
+        }}
+      />
+    );
+  }
+
   return (
     <ErrorBoundary>
       <SecretRoomTheme>
-        <WorldClassNavigation user={user} />
-        <ChatView />
+        <EnhancedNavigation user={user} />
+        
+        <div className="flex flex-col h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+          <ChatViewHeader
+            session={session}
+            target={client}
+            previousSessions={previousSessions}
+            messages={session.messages}
+            isGeneratingStrategy={isGeneratingStrategy}
+            onBackToTargets={() => navigate('/clients')}
+            onStrategistTrigger={handleStrategistTrigger}
+          />
+
+          <div className="flex-1 overflow-hidden">
+            <div className="h-full max-w-4xl mx-auto">
+              <div className="flex flex-col h-full">
+                <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+                  <SessionHistoryLoader
+                    targetId={session.target_id}
+                    currentSessionId={session.id}
+                    onHistoryLoaded={setPreviousSessions}
+                  />
+
+                  {session.messages.length === 0 && previousSessions.length > 0 && (
+                    <SessionContinuityHandler
+                      previousSessions={previousSessions}
+                      onFollowUpSelect={handleSendMessage}
+                    />
+                  )}
+
+                  {session.messages.length === 0 && previousSessions.length === 0 && (
+                    <InformativeMessages 
+                      messageCount={session.messages.length}
+                      onDismiss={handleDismissMessage}
+                      dismissedMessages={dismissedMessages}
+                    />
+                  )}
+
+                  <ChatMessages
+                    sessionId={session.id}
+                    targetId={session.target_id}
+                    messages={session.messages}
+                    isLoading={isGeneratingStrategy}
+                    onSuggestionClick={handleSendMessage}
+                    onStrategistTrigger={handleStrategistTrigger}
+                    sessionStatus={session.status}
+                  />
+
+                  <div ref={messagesEndRef} />
+                </div>
+
+                <ChatInputArea
+                  session={session}
+                  previousSessions={previousSessions}
+                  messages={session.messages}
+                  isLoading={isGeneratingStrategy}
+                  onSubmit={handleSendMessage}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </SecretRoomTheme>
     </ErrorBoundary>
   );
