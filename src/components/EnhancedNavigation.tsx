@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useSupabaseCoaching } from '@/hooks/useSupabaseCoaching';
 import {
   Popover,
   PopoverContent,
@@ -32,7 +34,38 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
+  const [clientCount, setClientCount] = useState(0);
   const { notifications, unreadCount, markAsRead, markAllAsRead, loading } = useNotifications();
+  const { loadUserSessions, sessions } = useSupabaseCoaching();
+
+  // Load real client count
+  useEffect(() => {
+    const loadClientCount = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('targets')
+          .select('id')
+          .eq('user_id', user.id);
+        
+        if (!error && data) {
+          setClientCount(data.length);
+        }
+      } catch (error) {
+        console.error('Error loading client count:', error);
+      }
+    };
+
+    loadClientCount();
+  }, [user]);
+
+  // Load sessions for additional context
+  useEffect(() => {
+    if (user) {
+      loadUserSessions();
+    }
+  }, [user, loadUserSessions]);
 
   const navigationItems = [
     { 
@@ -46,7 +79,7 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
       label: 'Chats', 
       icon: MessageSquare,
       isActive: location.pathname === '/clients',
-      badge: '5'
+      badge: clientCount > 0 ? clientCount.toString() : undefined
     },
     { 
       path: '/analytics', 
@@ -83,21 +116,21 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
   };
 
   return (
-    <nav className="bg-white/80 backdrop-blur-lg border-b border-gray-200 shadow-sm sticky top-0 z-50">
+    <nav className="bg-white/80 backdrop-blur-lg border-b border-gray-200 shadow-sm sticky top-0 z-50 w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center flex-shrink-0">
             <button
               onClick={() => navigate('/')}
               className="flex items-center space-x-2 text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent hover:from-blue-700 hover:to-indigo-700 transition-all"
             >
-              <Zap className="w-8 h-8 text-blue-600" />
-              <span>Coaching Assistant</span>
+              <Zap className="w-8 h-8 text-blue-600 flex-shrink-0" />
+              <span className="whitespace-nowrap">Coaching Assistant</span>
             </button>
           </div>
 
           {user && (
-            <div className="hidden md:flex items-center space-x-1">
+            <div className="hidden md:flex items-center space-x-1 flex-shrink-0">
               {navigationItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -124,7 +157,7 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
             </div>
           )}
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 flex-shrink-0">
             {user && (
               <>
                 <form onSubmit={handleQuickSearch} className="hidden sm:block">
@@ -270,32 +303,34 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
         </div>
       </div>
 
-      <div className="md:hidden border-t border-gray-200 bg-white/90 backdrop-blur-sm">
-        <div className="flex justify-around py-2">
-          {navigationItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Button
-                key={item.path}
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(item.path)}
-                className={`flex flex-col items-center space-y-1 ${
-                  item.isActive ? 'text-blue-600' : 'text-gray-600'
-                }`}
-              >
-                <Icon size={16} />
-                <span className="text-xs">{item.label}</span>
-                {item.badge && (
-                  <Badge variant="secondary" className="absolute -top-1 -right-1 text-xs">
-                    {item.badge}
-                  </Badge>
-                )}
-              </Button>
-            );
-          })}
+      {user && (
+        <div className="md:hidden border-t border-gray-200 bg-white/90 backdrop-blur-sm">
+          <div className="flex justify-around py-2">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Button
+                  key={item.path}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(item.path)}
+                  className={`flex flex-col items-center space-y-1 relative ${
+                    item.isActive ? 'text-blue-600' : 'text-gray-600'
+                  }`}
+                >
+                  <Icon size={16} />
+                  <span className="text-xs">{item.label}</span>
+                  {item.badge && (
+                    <Badge variant="secondary" className="absolute -top-1 -right-1 text-xs">
+                      {item.badge}
+                    </Badge>
+                  )}
+                </Button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </nav>
   );
 };

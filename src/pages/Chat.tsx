@@ -24,6 +24,7 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { updateSession } = useSupabaseCoaching();
@@ -41,12 +42,28 @@ const Chat = () => {
   }, [session?.messages]);
 
   const handleSessionLoad = (loadedSession: SessionData, loadedClient: Client) => {
+    console.log('Session loaded in Chat component:', loadedSession.id);
     setSession(loadedSession);
     setClient(loadedClient);
+    setLoading(false);
+  };
+
+  const handleAuthLoad = (loadedUser: User | null) => {
+    console.log('User loaded in Chat component:', loadedUser?.id);
+    setUser(loadedUser);
+    setAuthLoading(false);
   };
 
   const handleAuthError = (authError: string) => {
+    console.error('Auth error in Chat component:', authError);
     setError(authError);
+    setLoading(false);
+    setAuthLoading(false);
+  };
+
+  const handleSessionError = (sessionError: string) => {
+    console.error('Session error in Chat component:', sessionError);
+    setError(sessionError);
     setLoading(false);
   };
 
@@ -76,14 +93,17 @@ const Chat = () => {
     setShowOnboarding(false);
   };
 
-  if (loading || contextLoading) {
+  // Show loading while auth or context is loading
+  if (authLoading || (loading && !error) || contextLoading) {
     return (
       <SecretRoomTheme>
         <EnhancedNavigation user={user} />
         <div className="flex items-center justify-center h-[calc(100vh-80px)]">
           <div className="text-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
-            <p className="text-slate-300 font-medium">Preparing your secure coaching session...</p>
+            <p className="text-slate-300 font-medium">
+              {authLoading ? 'Authenticating...' : contextLoading ? 'Loading context...' : 'Preparing your secure coaching session...'}
+            </p>
           </div>
         </div>
       </SecretRoomTheme>
@@ -107,12 +127,20 @@ const Chat = () => {
             <p className="text-slate-400">
               We couldn't load your coaching session. Please try again.
             </p>
-            <button 
-              onClick={() => navigate('/clients')} 
-              className="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors"
-            >
-              Return to Clients
-            </button>
+            <div className="flex gap-4 justify-center">
+              <button 
+                onClick={() => window.location.reload()} 
+                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+              >
+                Retry
+              </button>
+              <button 
+                onClick={() => navigate('/clients')} 
+                className="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors"
+              >
+                Return to Clients
+              </button>
+            </div>
           </div>
         </div>
       </SecretRoomTheme>
@@ -155,7 +183,7 @@ const Chat = () => {
         <EnhancedNavigation user={user} />
         
         <ChatAuthHandler 
-          onUserLoad={setUser}
+          onUserLoad={handleAuthLoad}
           onError={handleAuthError}
         />
         
@@ -163,7 +191,7 @@ const Chat = () => {
           sessionId={sessionId}
           user={user}
           onSessionLoad={handleSessionLoad}
-          onError={setError}
+          onError={handleSessionError}
           onLoading={setLoading}
         />
 

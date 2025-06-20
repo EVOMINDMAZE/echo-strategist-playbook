@@ -22,68 +22,72 @@ export const ChatSessionLoader = ({
 }: ChatSessionLoaderProps) => {
   const [searchParams] = useSearchParams();
   const { getSession } = useSupabaseCoaching();
+  const [hasAttempted, setHasAttempted] = useState(false);
 
   useEffect(() => {
     let mounted = true;
     let timeoutId: NodeJS.Timeout;
 
     const loadSession = async () => {
-      if (!sessionId || !user) {
-        console.log('Missing sessionId or user:', { sessionId, userId: user?.id });
+      // Prevent multiple simultaneous attempts
+      if (hasAttempted || !sessionId || !user) {
+        console.log('Skipping session load:', { hasAttempted, sessionId: !!sessionId, user: !!user });
         return;
       }
+
+      setHasAttempted(true);
 
       try {
         onLoading(true);
         onError('');
         console.log('Loading session:', sessionId);
         
+        // Set a timeout to prevent infinite loading
         timeoutId = setTimeout(() => {
           if (mounted) {
-            console.error('Session loading timed out');
-            onError('Session loading timed out');
+            console.error('Session loading timed out after 15 seconds');
+            onError('Session loading timed out. Please try refreshing the page.');
             onLoading(false);
           }
-        }, 10000);
+        }, 15000); // Increased timeout to 15 seconds
 
+        // First verify the session exists and user has access
+        const { data: sessionCheck, error: sessionCheckError } = await supabase
+          .from('coaching_sessions')
+          .select(`
+            id,
+            target_id,
+            targets!inner(user_id, target_name)
+          `)
+          .eq('id', sessionId)
+          .eq('targets.user_id', user.id)
+          .single();
+
+        if (sessionCheckError || !sessionCheck) {
+          console.error('Session access check failed:', sessionCheckError);
+          if (mounted) {
+            onError('Session not found or access denied');
+            onLoading(false);
+          }
+          return;
+        }
+
+        // Now load the full session data
         const sessionData = await getSession(sessionId);
         if (!mounted) return;
         
         clearTimeout(timeoutId);
         console.log('Session data loaded successfully:', sessionData);
         
-        // Get client name from URL params or fetch from target
+        // Get client name from URL params or use the one from database
         const clientName = searchParams.get('target');
-        let client: Client;
+        const client: Client = {
+          id: sessionData.target_id,
+          name: clientName ? decodeURIComponent(clientName) : sessionCheck.targets.target_name,
+          created_at: new Date().toISOString()
+        };
         
-        if (clientName) {
-          client = {
-            id: sessionData.target_id,
-            name: decodeURIComponent(clientName),
-            created_at: new Date().toISOString()
-          };
-          console.log('Client set from URL params:', clientName);
-        } else {
-          // Fetch target information if not in URL
-          const { data: targetData, error } = await supabase
-            .from('targets')
-            .select('*')
-            .eq('id', sessionData.target_id)
-            .single();
-          
-          if (targetData && !error && mounted) {
-            client = {
-              id: targetData.id,
-              name: targetData.target_name,
-              created_at: targetData.created_at
-            };
-            console.log('Client set from database:', targetData.target_name);
-          } else {
-            console.error('Failed to load target data:', error);
-            if (mounted) onError('Failed to load client information');
-            return;
-          }
-        }
+        console.log('Client information:', client);
 
         if (mounted) {
           onSessionLoad(sessionData, client);
@@ -91,7 +95,7 @@ export const ChatSessionLoader = ({
       } catch (error) {
         console.error('Error loading session:', error);
         if (mounted) {
-          onError('Failed to load session');
+          onError(`Failed to load session: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       } finally {
         if (mounted) {
@@ -100,13 +104,21 @@ export const ChatSessionLoader = ({
       }
     };
 
-    loadSession();
+    // Only attempt to load if we haven't tried yet
+    if (!hasAttempted) {
+      loadSession();
+    }
 
     return () => {
       mounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [sessionId, user, getSession, searchParams, onSessionLoad, onError, onLoading]);
+  }, [sessionId, user, getSession, searchParams, onSessionLoad, onError, onLoading, hasAttempted]);
+
+  // Reset hasAttempted when sessionId changes
+  useEffect(() => {
+    setHasAttempted(false);
+  }, [sessionId]);
 
   return null; // This is a logic-only component
 };
