@@ -96,8 +96,7 @@ export const useNotifications = () => {
         }));
 
         setNotifications(mappedNotifications);
-        setUnreadCount(mappedNot
-        ifications.filter(n => !n.is_read).length);
+        setUnreadCount(mappedNotifications.filter(n => !n.is_read).length);
       }
     } catch (error) {
       console.error('Error loading notifications:', error);
