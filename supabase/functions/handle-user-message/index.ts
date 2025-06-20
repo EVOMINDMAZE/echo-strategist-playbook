@@ -52,7 +52,7 @@ serve(async (req) => {
 
     console.log(`Processing message for session ${sessionId}, user ${user.id}`);
 
-    // **PHASE 1: Enhanced Per-Message Context Integration**
+    // Enhanced background context integration
     const backgroundContext = await fetchBackgroundContext(supabase, sessionId, targetId, user.id);
     
     const conversationContext = (messageHistory || [])
@@ -62,14 +62,15 @@ serve(async (req) => {
 
     const systemPrompt = buildEnhancedSystemPrompt(backgroundContext, conversationContext);
 
+    // Increased max_tokens to prevent abrupt cutoffs and improved prompt for complete responses
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
-        { role: 'system', content: systemPrompt },
+        { role: 'system', content: systemPrompt + '\n\nIMPORTANT: Always provide complete, well-rounded responses. Avoid ending abruptly. Aim for thoughtful, complete thoughts in a single response.' },
         { role: 'user', content: message }
       ],
       temperature: 0.8,
-      max_tokens: 800
+      max_tokens: 350 // Increased from 200 to prevent cutoffs
     });
 
     const aiResponse = completion.choices[0]?.message?.content || "I understand. Could you tell me more about that?";
@@ -100,18 +101,17 @@ serve(async (req) => {
       })
       .eq('id', sessionId);
 
-    // **CRITICAL FIX 1: Properly Trigger Continuous Session Analyzer**
-    if (updatedHistory.length >= 4 && updatedHistory.length % 4 === 0) { // Every 4 messages
+    // Trigger continuous session analyzer for learning
+    if (updatedHistory.length >= 4 && updatedHistory.length % 4 === 0) {
       console.log(`Triggering continuous-session-analyzer for session ${sessionId} with ${updatedHistory.length} messages`);
       
-      // Call the analyzer function directly using Supabase client
       try {
         const { data: analyzerResponse, error: analyzerError } = await supabase.functions.invoke('continuous-session-analyzer', {
           body: {
             sessionId,
             targetId,
             userId: user.id,
-            messageHistory: updatedHistory.slice(-6) // Last 6 messages for analysis
+            messageHistory: updatedHistory.slice(-6)
           }
         });
 

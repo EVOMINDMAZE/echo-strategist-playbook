@@ -20,13 +20,6 @@ interface SuggestionRequest {
   lastAiMessage?: string;
 }
 
-interface BackgroundContext {
-  sessionInsights?: string;
-  relationshipProfile?: any;
-  userPatterns?: any;
-  successfulSuggestions?: any[];
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -54,16 +47,58 @@ serve(async (req) => {
 
     console.log(`Generating suggestions for session ${sessionId}, message count: ${messageCount}`);
 
-    // **PHASE 1: Enhanced Context Integration for Suggestions**
-    const backgroundContext = await fetchEnhancedSuggestionContext(supabase, sessionId, targetId, user.id);
+    // Fetch background context for enhanced suggestions
+    const { data: sessionContextData } = await supabase
+      .from('session_contexts')
+      .select('relationship_type, goals, challenges, communication_style, personality_traits')
+      .eq('session_id', sessionId)
+      .maybeSingle();
 
-    // Build conversation context with more detail
-    const recentMessages = messages.slice(-6);
-    const conversationContext = recentMessages
-      .map(msg => `${msg.sender === 'user' ? 'User' : 'AI Coach'}: ${msg.content}`)
+    const { data: relationshipProfileData } = await supabase
+      .from('relationship_profiles')
+      .select('communication_patterns, key_insights, successful_strategies, areas_of_concern, personality_assessment')
+      .eq('target_id', targetId)
+      .maybeSingle();
+
+    const { data: userInteractionPatterns } = await supabase
+      .from('user_interaction_patterns')
+      .select('pattern_data')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    // Get previous successful suggestions for learning
+    const { data: previousInteractions } = await supabase
+      .from('suggestion_interactions')
+      .select(`
+        smart_reply_suggestions(suggestion_text, suggestion_type, context_data),
+        was_effective,
+        follow_up_context
+      `)
+      .eq('target_id', targetId)
+      .eq('user_id', user.id)
+      .eq('was_effective', true)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    // Build conversation context
+    const conversationContext = messages
+      .slice(-6) // Last 6 messages for context
+      .map(msg => `${msg.sender}: ${msg.content}`)
       .join('\n');
 
-    // Determine suggestion type based on message count
+    // Build background context string
+    let backgroundContext = '';
+    if (sessionContextData) {
+      backgroundContext += `Session Context: ${JSON.stringify(sessionContextData)}. `;
+    }
+    if (relationshipProfileData) {
+      backgroundContext += `Relationship Profile: ${JSON.stringify(relationshipProfileData)}. `;
+    }
+    if (userInteractionPatterns) {
+      backgroundContext += `User Patterns: ${JSON.stringify(userInteractionPatterns.pattern_data)}. `;
+    }
+
+    // Determine suggestion type
     let suggestionType = '';
     if (messageCount <= 2) {
       suggestionType = 'getting_started';
@@ -75,28 +110,64 @@ serve(async (req) => {
       suggestionType = 'ready_for_analysis';
     }
 
-    const systemPrompt = buildEnhancedSuggestionPrompt(backgroundContext, conversationContext, lastAiMessage, suggestionType);
+    // Create learning context from previous successful interactions
+    const learningContext = previousInteractions?.map(interaction => 
+      `Previously successful: "${interaction.smart_reply_suggestions?.suggestion_text}"`
+    ).join('\n') || 'No previous interaction data available.';
+
+    const systemPrompt = `You are generating highly specific, concise, and intelligent user responses for a relationship coaching conversation. These are responses the USER would send to the AI coach.
+
+Background Context: ${backgroundContext}
+
+Current conversation:
+${conversationContext}
+
+Learning from successful patterns:
+${learningContext}
+
+AI's most recent message: "${lastAiMessage || 'Please share more about your situation'}"
+
+Generate 4 CONCISE, SPECIFIC user responses that:
+1. Are under 12 words each - be extremely concise
+2. Provide ONE specific detail, fact, or insight per suggestion
+3. Directly answer the AI's question or add meaningful context
+4. Show clear progression from general to specific information
+5. Avoid generic acknowledgments like "I understand" or "That makes sense"
+
+Focus on:
+- Specific names, places, timeframes ("last Tuesday", "my boss Sarah")
+- Concrete actions or events ("they ignored my text", "stormed out of the room")
+- Precise emotions or reactions ("felt betrayed", "was confused")
+- Key relationship details ("we've dated 2 years", "my college roommate")
+
+Response format: Return ONLY a JSON array with "text" and "priority" fields. Keep each "text" under 12 words and highly specific.
+
+Examples of good suggestions:
+- "This happened last Tuesday during our team meeting"
+- "My supervisor Sarah has been ignoring my emails"
+- "We've been dating for 8 months now"
+- "They stormed out when I mentioned my promotion"`;
 
     let suggestions = [];
     try {
-      console.log('Requesting AI-generated suggestions from OpenAI...');
+      console.log('Requesting concise, specific suggestions from OpenAI...');
       const completion = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Generate 4 contextual user responses to: "${lastAiMessage}"` }
+          { role: 'user', content: `Generate 4 concise, specific responses to: "${lastAiMessage}"` }
         ],
         temperature: 0.7,
-        max_tokens: 600
+        max_tokens: 400
       });
 
       const rawContent = completion.choices[0].message.content || '';
-      console.log('Raw OpenAI response:', rawContent);
+      console.log('Raw OpenAI response for suggestions:', rawContent);
 
-      // **CRITICAL FIX: Properly parse OpenAI response that may include markdown**
+      // Parse JSON response, handling potential markdown formatting
       let parsedContent = rawContent;
       
-      // Remove markdown code blocks if present
+      // Clean up markdown code blocks if present
       if (rawContent.includes('```json')) {
         const jsonStart = rawContent.indexOf('```json') + 7;
         const jsonEnd = rawContent.lastIndexOf('```');
@@ -109,55 +180,48 @@ serve(async (req) => {
 
       suggestions = JSON.parse(parsedContent);
       
-      // Validate suggestions structure
+      // Validate suggestions structure and conciseness
       if (!Array.isArray(suggestions) || suggestions.length === 0) {
         throw new Error('Invalid suggestions format from OpenAI');
       }
 
-      console.log(`Successfully generated ${suggestions.length} AI suggestions`);
+      // Filter out overly long suggestions (enforce conciseness)
+      suggestions = suggestions.filter(s => s.text && s.text.split(' ').length <= 15);
+      
+      if (suggestions.length === 0) {
+        throw new Error('All suggestions were too long, generating fallback');
+      }
+
+      console.log(`Successfully generated ${suggestions.length} concise AI suggestions`);
       
     } catch (parseError) {
-      console.error('Error parsing OpenAI suggestions, attempting enhanced fallback:', parseError);
+      console.error('Error parsing OpenAI suggestions, using enhanced contextual fallback:', parseError);
       
-      // **CRITICAL FIX 2: Enhanced Fallback to Prevent Generic Responses**
-      try {
-        const fallbackPrompt = `Generate 4 brief, specific user responses to this AI coach message: "${lastAiMessage || 'Please share more about your situation'}"
-
-Based on this conversation context:
-${conversationContext}
-
-Each response should be a direct, specific answer or follow-up that moves the conversation forward. Return only a valid JSON array with "text" and "priority" fields, no markdown formatting.`;
-
-        const fallbackCompletion = await openai.chat.completions.create({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: 'You are a helpful assistant generating specific conversational responses. Always return valid JSON with no markdown formatting.' },
-            { role: 'user', content: fallbackPrompt }
-          ],
-          temperature: 0.8,
-          max_tokens: 400
-        });
-
-        const fallbackContent = fallbackCompletion.choices[0].message.content || '';
-        
-        // Apply same markdown cleaning to fallback
-        let cleanedFallback = fallbackContent;
-        if (fallbackContent.includes('```json')) {
-          const jsonStart = fallbackContent.indexOf('```json') + 7;
-          const jsonEnd = fallbackContent.lastIndexOf('```');
-          cleanedFallback = fallbackContent.substring(jsonStart, jsonEnd).trim();
-        } else if (fallbackContent.includes('```')) {
-          const jsonStart = fallbackContent.indexOf('```') + 3;
-          const jsonEnd = fallbackContent.lastIndexOf('```');
-          cleanedFallback = fallbackContent.substring(jsonStart, jsonEnd).trim();
-        }
-        
-        suggestions = JSON.parse(cleanedFallback);
-        console.log('Enhanced fallback suggestions generated successfully');
-        
-      } catch (fallbackError) {
-        console.error('Enhanced fallback also failed, using contextual defaults:', fallbackError);
-        suggestions = generateContextualFallbackSuggestions(backgroundContext, lastAiMessage, conversationContext);
+      // Enhanced contextual fallback based on conversation content
+      const lastMessage = lastAiMessage?.toLowerCase() || '';
+      
+      if (lastMessage.includes('feel') || lastMessage.includes('emotion')) {
+        suggestions = [
+          { text: "I felt betrayed when they said that", priority: "high" },
+          { text: "It made me question everything about us", priority: "medium" },
+          { text: "The timing felt deliberately hurtful", priority: "medium" },
+          { text: "I'm still processing how it affected me", priority: "low" }
+        ];
+      } else if (lastMessage.includes('happened') || lastMessage.includes('tell me')) {
+        suggestions = [
+          { text: "It started last Tuesday at dinner", priority: "high" },
+          { text: "My colleague Sarah was there too", priority: "medium" },
+          { text: "They'd been acting strange all week", priority: "medium" },
+          { text: "The argument escalated really quickly", priority: "low" }
+        ];
+      } else {
+        // Default concise contextual responses
+        suggestions = [
+          { text: "Let me give you the specific timeline", priority: "high" },
+          { text: "This person is my direct manager", priority: "medium" },
+          { text: "We've had this issue for 3 weeks", priority: "medium" },
+          { text: "They reacted worse than I expected", priority: "low" }
+        ];
       }
     }
 
@@ -206,136 +270,3 @@ Each response should be a direct, specific answer or follow-up that moves the co
     });
   }
 });
-
-async function fetchEnhancedSuggestionContext(supabase: any, sessionId: string, targetId: string, userId: string): Promise<BackgroundContext> {
-  try {
-    // Fetch session insights
-    const { data: sessionSummary } = await supabase
-      .from('session_summaries')
-      .select('summary, key_insights, extracted_patterns')
-      .eq('session_id', sessionId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    // Fetch relationship profile  
-    const { data: relationshipProfile } = await supabase
-      .from('relationship_profiles')
-      .select('communication_patterns, successful_strategies, key_insights')
-      .eq('target_id', targetId)
-      .eq('user_id', userId)
-      .single();
-
-    // Fetch successful suggestion patterns
-    const { data: successfulSuggestions } = await supabase
-      .from('suggestion_interactions')
-      .select(`
-        smart_reply_suggestions(suggestion_text, suggestion_type, context_data),
-        was_effective,
-        follow_up_context
-      `)
-      .eq('target_id', targetId)
-      .eq('user_id', userId)
-      .eq('was_effective', true)
-      .order('selected_at', { ascending: false })
-      .limit(5);
-
-    // Fetch user patterns
-    const { data: userPatterns } = await supabase
-      .from('user_interaction_patterns')
-      .select('pattern_data, success_rate')
-      .eq('user_id', userId)
-      .eq('target_id', targetId)
-      .order('success_rate', { ascending: false })
-      .limit(3);
-
-    return {
-      sessionInsights: sessionSummary?.key_insights?.join(', ') || sessionSummary?.summary,
-      relationshipProfile,
-      userPatterns,
-      successfulSuggestions
-    };
-  } catch (error) {
-    console.error('Error fetching enhanced suggestion context:', error);
-    return {};
-  }
-}
-
-function buildEnhancedSuggestionPrompt(context: BackgroundContext, conversationContext: string, lastAiMessage: string, suggestionType: string): string {
-  let prompt = `You are generating highly intelligent, contextual reply suggestions for a relationship coaching conversation. These suggestions must be SPECIFIC USER RESPONSES that directly answer or build upon the AI coach's most recent message.
-
-CONVERSATION CONTEXT:
-${conversationContext}
-
-AI Coach's most recent message: "${lastAiMessage || 'Please share more about your situation'}"`;
-
-  // Add learned context sections
-  if (context.successfulSuggestions && context.successfulSuggestions.length > 0) {
-    prompt += `\n\nSUCCESSFUL SUGGESTION PATTERNS:`;
-    context.successfulSuggestions.forEach((interaction: any) => {
-      if (interaction.smart_reply_suggestions) {
-        prompt += `\n- "${interaction.smart_reply_suggestions.suggestion_text}" (Type: ${interaction.smart_reply_suggestions.suggestion_type})`;
-      }
-    });
-  }
-
-  if (context.relationshipProfile?.communication_patterns) {
-    prompt += `\n\nRELATIONSHIP COMMUNICATION PATTERNS:
-${JSON.stringify(context.relationshipProfile.communication_patterns)}`;
-  }
-
-  if (context.userPatterns && context.userPatterns.length > 0) {
-    prompt += `\n\nUSER COMMUNICATION PREFERENCES:`;
-    context.userPatterns.forEach((pattern: any) => {
-      prompt += `\n- ${JSON.stringify(pattern.pattern_data)} (${(pattern.success_rate * 100).toFixed(0)}% effective)`;
-    });
-  }
-
-  if (context.sessionInsights) {
-    prompt += `\n\nCURRENT SESSION INSIGHTS: ${context.sessionInsights}`;
-  }
-
-  prompt += `\n\nSuggestion stage: ${suggestionType}
-
-Generate 4 SPECIFIC user responses that:
-1. DIRECTLY answer or address what the AI coach just asked in their last message
-2. Provide concrete details, examples, or specific information relevant to the question
-3. Build on learned communication patterns and successful interaction styles
-4. Show natural progression of the conversation by adding meaningful context
-5. Align with user's demonstrated communication preferences
-
-CRITICAL: Return ONLY a valid JSON array with no markdown formatting. Each object should have "text" and "priority" (high/medium/low) fields.`;
-
-  return prompt;
-}
-
-function generateContextualFallbackSuggestions(context: BackgroundContext, lastAiMessage?: string, conversationContext?: string): any[] {
-  // Enhanced contextual fallback based on conversation flow
-  const lastMsg = lastAiMessage?.toLowerCase() || '';
-  
-  if (lastMsg.includes('feel') || lastMsg.includes('emotion')) {
-    return [
-      { text: "I felt confused and hurt when they said that - it caught me completely off guard", priority: "high" },
-      { text: "It made me question our entire relationship because they've never acted this way before", priority: "medium" },
-      { text: "The worst part is that it happened in front of other people", priority: "medium" },
-      { text: "I'm still processing how their words made me feel", priority: "low" }
-    ];
-  }
-  
-  if (lastMsg.includes('what happened') || lastMsg.includes('tell me more')) {
-    return [
-      { text: "It started last Tuesday when they completely ignored my text for two days", priority: "high" },
-      { text: "We were at dinner with friends and they made this comment that really stung", priority: "medium" },
-      { text: "They've been acting distant ever since we had that disagreement about my career", priority: "medium" },
-      { text: "The situation escalated when I tried to bring up my concerns directly", priority: "low" }
-    ];
-  }
-  
-  // Default contextual responses
-  return [
-    { text: "Let me give you the specific details about what happened", priority: "high" },
-    { text: "This has been building up over the past few weeks", priority: "medium" },
-    { text: "I should mention that we have a complicated history with this issue", priority: "medium" },
-    { text: "The most challenging part is how they reacted when I tried to address it", priority: "low" }
-  ];
-}

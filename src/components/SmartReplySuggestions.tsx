@@ -27,46 +27,46 @@ const getFallbackSuggestions = (messages: any[]) => {
   // Context-aware suggestions based on recent conversation
   if (lastMessage.includes('feel') || lastMessage.includes('emotion')) {
     return [
-      { id: 'ctx1', text: "I felt confused and hurt when they said that - it caught me completely off guard", priority: 'high' as const, type: 'emotional_response' },
-      { id: 'ctx2', text: "It made me question our entire friendship because they've never acted this way before", priority: 'medium' as const, type: 'emotional_impact' },
-      { id: 'ctx3', text: "The worst part is that it happened in front of other people, which made it even more embarrassing", priority: 'medium' as const, type: 'situational_detail' }
+      { id: 'ctx1', text: "I felt confused and hurt when they said that", priority: 'high' as const, type: 'emotional_response' },
+      { id: 'ctx2', text: "It made me question our entire relationship", priority: 'medium' as const, type: 'emotional_impact' },
+      { id: 'ctx3', text: "The worst part was it happened in front of others", priority: 'medium' as const, type: 'situational_detail' }
     ];
   }
   
   if (lastMessage.includes('work') || lastMessage.includes('colleague')) {
     return [
-      { id: 'work1', text: "This person is my direct supervisor, so it's affecting my daily work productivity", priority: 'high' as const, type: 'workplace_impact' },
-      { id: 'work2', text: "We've worked together for about two years and this behavior started about a month ago", priority: 'medium' as const, type: 'workplace_timeline' },
-      { id: 'work3', text: "I'm worried about bringing it to HR because I don't want to make the situation worse", priority: 'medium' as const, type: 'workplace_concern' }
+      { id: 'work1', text: "This person is my direct supervisor", priority: 'high' as const, type: 'workplace_impact' },
+      { id: 'work2', text: "We've worked together for about two years", priority: 'medium' as const, type: 'workplace_timeline' },
+      { id: 'work3', text: "I'm worried about bringing it to HR", priority: 'medium' as const, type: 'workplace_concern' }
     ];
   }
   
   if (lastMessage.includes('family') || lastMessage.includes('parent') || lastMessage.includes('sibling')) {
     return [
-      { id: 'fam1', text: "This has been a pattern since childhood - they always need to be the center of attention", priority: 'high' as const, type: 'family_pattern' },
-      { id: 'fam2', text: "The rest of my family pretends nothing happened, which makes me feel like I'm going crazy", priority: 'medium' as const, type: 'family_dynamics' },
-      { id: 'fam3', text: "It's especially difficult during holidays when we're all together and I have to act like everything's fine", priority: 'medium' as const, type: 'family_context' }
+      { id: 'fam1', text: "This has been a pattern since childhood", priority: 'high' as const, type: 'family_pattern' },
+      { id: 'fam2', text: "The rest of my family pretends nothing happened", priority: 'medium' as const, type: 'family_dynamics' },
+      { id: 'fam3', text: "It's especially difficult during holidays", priority: 'medium' as const, type: 'family_context' }
     ];
   }
   
   // Default contextual suggestions based on conversation stage
   if (messageCount <= 2) {
     return [
-      { id: 'fb1', text: "This person is my close friend from college - we've known each other for about 5 years", priority: 'high' as const, type: 'relationship_context' },
-      { id: 'fb2', text: "The issue started last week when they completely ignored me at a group gathering", priority: 'medium' as const, type: 'specific_incident' },
-      { id: 'fb3', text: "I'm not sure if I did something wrong or if they're going through something personal", priority: 'medium' as const, type: 'uncertainty' }
+      { id: 'fb1', text: "This person is my close friend from college", priority: 'high' as const, type: 'relationship_context' },
+      { id: 'fb2', text: "The issue started last week at a group gathering", priority: 'medium' as const, type: 'specific_incident' },
+      { id: 'fb3', text: "I'm not sure if I did something wrong", priority: 'medium' as const, type: 'uncertainty' }
     ];
   } else if (messageCount <= 4) {
     return [
-      { id: 'fb4', text: "I tried texting them yesterday but they left me on read, which isn't like them at all", priority: 'high' as const, type: 'communication_attempt' },
-      { id: 'fb5', text: "What bothers me most is that they were fine with me the day before this happened", priority: 'medium' as const, type: 'timing_detail' },
-      { id: 'fb6', text: "I'm hoping to resolve this without involving other mutual friends, but I'm running out of options", priority: 'medium' as const, type: 'resolution_preference' }
+      { id: 'fb4', text: "I tried texting them yesterday but got no response", priority: 'high' as const, type: 'communication_attempt' },
+      { id: 'fb5', text: "They were fine with me the day before this happened", priority: 'medium' as const, type: 'timing_detail' },
+      { id: 'fb6', text: "I don't want to involve other mutual friends", priority: 'medium' as const, type: 'resolution_preference' }
     ];
   } else {
     return [
-      { id: 'fb7', text: "The hardest part is not knowing if this is about something I did or something else entirely", priority: 'high' as const, type: 'core_challenge' },
-      { id: 'fb8', text: "I've noticed they do this passive-aggressive thing whenever they're upset about something", priority: 'medium' as const, type: 'behavioral_pattern' },
-      { id: 'fb9', text: "My other friends have suggested just giving them space, but that doesn't feel right to me", priority: 'medium' as const, type: 'external_advice' }
+      { id: 'fb7', text: "I don't know if this is about something I did", priority: 'high' as const, type: 'core_challenge' },
+      { id: 'fb8', text: "They do this passive-aggressive thing when upset", priority: 'medium' as const, type: 'behavioral_pattern' },
+      { id: 'fb9', text: "My friends suggested giving them space", priority: 'medium' as const, type: 'external_advice' }
     ];
   }
 };
@@ -212,12 +212,12 @@ export const SmartReplySuggestions = ({
                 variant="outline"
                 size="sm"
                 onClick={() => handleSuggestionClick(suggestion)}
-                className={`w-full text-left justify-start text-sm h-auto p-3 border-green-200 hover:bg-green-100 hover:border-green-300 dark:border-green-700 dark:hover:bg-green-900/50 text-green-800 dark:text-green-200 leading-relaxed transition-all ${
+                className={`w-full text-left justify-start text-sm min-h-[3rem] h-auto p-3 border-green-200 hover:bg-green-100 hover:border-green-300 dark:border-green-700 dark:hover:bg-green-900/50 text-green-800 dark:text-green-200 leading-relaxed transition-all whitespace-normal ${
                   suggestion.priority === 'high' ? 'ring-1 ring-green-300 bg-green-50/50' : ''
                 }`}
               >
                 <ArrowRight className="w-3 h-3 mr-2 flex-shrink-0 mt-0.5" />
-                <span className="text-left break-words flex-1 min-w-0">
+                <span className="text-left break-words flex-1 min-w-0 whitespace-normal overflow-visible">
                   {suggestion.text}
                 </span>
                 {suggestion.priority === 'high' && (
