@@ -20,9 +20,9 @@ export const useNotifications = () => {
     loadNotifications();
 
     // Set up real-time subscription for notifications
-    const { data: { user } } = supabase.auth.getUser();
-    user?.then((userData) => {
-      if (userData.user) {
+    const setupRealtimeSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
         const notificationsChannel = supabase
           .channel('notifications-realtime')
           .on('postgres_changes',
@@ -30,7 +30,7 @@ export const useNotifications = () => {
               event: '*', 
               schema: 'public', 
               table: 'notifications', 
-              filter: `user_id=eq.${userData.user.id}` 
+              filter: `user_id=eq.${user.id}` 
             },
             () => {
               console.log('Notifications changed, reloading...');
@@ -43,7 +43,9 @@ export const useNotifications = () => {
           supabase.removeChannel(notificationsChannel);
         };
       }
-    });
+    };
+
+    setupRealtimeSubscription();
   }, []);
 
   const loadNotifications = async () => {
@@ -56,7 +58,7 @@ export const useNotifications = () => {
         return;
       }
 
-      const {  data, error } = await supabase
+      const { data, error } = await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', user.id)

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { SessionData } from '@/types/coaching';
+import { sanitizeChatHistory, validateStrategistOutput } from '@/utils/messageUtils';
 
 interface PersonalInsightsProps {
   userId: string;
@@ -84,14 +85,15 @@ export const PersonalInsights = ({ userId, targetId }: PersonalInsightsProps) =>
       const emotionalThemes: string[] = [];
       
       completedSessions.forEach(session => {
-        if (session.strategist_output?.suggestions) {
-          session.strategist_output.suggestions.forEach((suggestion: any) => {
+        const strategistOutput = validateStrategistOutput(session.strategist_output);
+        if (strategistOutput?.suggestions) {
+          strategistOutput.suggestions.forEach((suggestion) => {
             if (suggestion.title) allSuggestions.push(suggestion.title);
           });
         }
-        if (session.strategist_output?.analysis) {
+        if (strategistOutput?.analysis) {
           // Simple keyword extraction for emotional themes
-          const analysis = session.strategist_output.analysis.toLowerCase();
+          const analysis = strategistOutput.analysis.toLowerCase();
           if (analysis.includes('stress') || analysis.includes('tension')) emotionalThemes.push('Stress Management');
           if (analysis.includes('trust') || analysis.includes('connection')) emotionalThemes.push('Building Trust');
           if (analysis.includes('communication') || analysis.includes('listening')) emotionalThemes.push('Communication');
@@ -127,7 +129,26 @@ export const PersonalInsights = ({ userId, targetId }: PersonalInsightsProps) =>
       };
 
       setAnalytics(analyticsData);
-      setRecentSessions(completedSessions.slice(0, 3));
+      
+      // Map sessions to SessionData format
+      const mappedSessions: SessionData[] = completedSessions.slice(0, 3).map(session => ({
+        id: session.id,
+        target_id: session.target_id,
+        status: session.status as SessionData['status'],
+        messages: sanitizeChatHistory(session.raw_chat_history),
+        strategist_output: validateStrategistOutput(session.strategist_output),
+        case_file_data: session.case_file_data as Record<string, any> || {},
+        feedback_data: session.feedback_data as Record<string, any> || {},
+        user_feedback: session.user_feedback,
+        parent_session_id: session.parent_session_id,
+        is_continued: session.is_continued || false,
+        feedback_submitted_at: session.feedback_submitted_at,
+        feedback_rating: session.feedback_rating,
+        created_at: session.created_at,
+        case_data: session.case_file_data as Record<string, any> || {}
+      }));
+      
+      setRecentSessions(mappedSessions);
 
     } catch (error) {
       console.error('Error loading personal insights:', error);
