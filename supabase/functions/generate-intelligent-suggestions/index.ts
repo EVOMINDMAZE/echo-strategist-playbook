@@ -45,7 +45,7 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    console.log(`Generating suggestions for session ${sessionId}, message count: ${messageCount}`);
+    console.log(`Generating concise suggestions for session ${sessionId}, message count: ${messageCount}`);
 
     // Fetch background context for enhanced suggestions
     const { data: sessionContextData } = await supabase
@@ -115,7 +115,7 @@ serve(async (req) => {
       `Previously successful: "${interaction.smart_reply_suggestions?.suggestion_text}"`
     ).join('\n') || 'No previous interaction data available.';
 
-    const systemPrompt = `You are generating highly specific, concise, and intelligent user responses for a relationship coaching conversation. These are responses the USER would send to the AI coach.
+    const systemPrompt = `You are generating extremely concise, specific user responses for a relationship coaching conversation. These are responses the USER would send to the AI coach.
 
 Background Context: ${backgroundContext}
 
@@ -127,42 +127,37 @@ ${learningContext}
 
 AI's most recent message: "${lastAiMessage || 'Please share more about your situation'}"
 
-Generate 4 CONCISE, SPECIFIC user responses that:
-1. Are under 12 words each - be extremely concise
+Generate 4 EXTREMELY CONCISE user responses that:
+1. Are EXACTLY 12 words or fewer - this is critical
 2. Provide ONE specific detail, fact, or insight per suggestion
 3. Directly answer the AI's question or add meaningful context
-4. Show clear progression from general to specific information
-5. Avoid generic acknowledgments like "I understand" or "That makes sense"
+4. Are diverse and avoid repetition
 
-Focus on:
-- Specific names, places, timeframes ("last Tuesday", "my boss Sarah")
-- Concrete actions or events ("they ignored my text", "stormed out of the room")
-- Precise emotions or reactions ("felt betrayed", "was confused")
-- Key relationship details ("we've dated 2 years", "my college roommate")
-
-Response format: Return ONLY a JSON array with "text" and "priority" fields. Keep each "text" under 12 words and highly specific.
-
-Examples of good suggestions:
+Examples of perfect length:
 - "This happened last Tuesday during our team meeting"
 - "My supervisor Sarah has been ignoring my emails"
 - "We've been dating for 8 months now"
-- "They stormed out when I mentioned my promotion"`;
+- "They stormed out when I mentioned my promotion"
+
+CRITICAL: Each suggestion must be 12 words or fewer. Count carefully.
+
+Response format: Return ONLY a JSON array with "text" and "priority" fields.`;
 
     let suggestions = [];
     try {
-      console.log('Requesting concise, specific suggestions from OpenAI...');
+      console.log('Requesting ultra-concise suggestions from OpenAI...');
       const completion = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Generate 4 concise, specific responses to: "${lastAiMessage}"` }
+          { role: 'user', content: `Generate 4 ultra-concise responses to: "${lastAiMessage}"` }
         ],
         temperature: 0.7,
-        max_tokens: 400
+        max_tokens: 150 // Reduced to force brevity
       });
 
       const rawContent = completion.choices[0].message.content || '';
-      console.log('Raw OpenAI response for suggestions:', rawContent);
+      console.log('Raw OpenAI response for concise suggestions:', rawContent);
 
       // Parse JSON response, handling potential markdown formatting
       let parsedContent = rawContent;
@@ -180,31 +175,40 @@ Examples of good suggestions:
 
       suggestions = JSON.parse(parsedContent);
       
-      // Validate suggestions structure and conciseness
+      // Validate suggestions structure and enforce STRICT conciseness
       if (!Array.isArray(suggestions) || suggestions.length === 0) {
         throw new Error('Invalid suggestions format from OpenAI');
       }
 
-      // Filter out overly long suggestions (enforce conciseness)
-      suggestions = suggestions.filter(s => s.text && s.text.split(' ').length <= 15);
+      // Aggressively filter out suggestions longer than 12 words
+      suggestions = suggestions.filter(s => {
+        if (!s.text) return false;
+        const wordCount = s.text.trim().split(/\s+/).length;
+        console.log(`Suggestion "${s.text}" has ${wordCount} words`);
+        return wordCount <= 12;
+      });
       
       if (suggestions.length === 0) {
-        throw new Error('All suggestions were too long, generating fallback');
+        console.log('All suggestions were too long, generating ultra-concise fallback');
+        throw new Error('All suggestions exceeded 12 word limit, using fallback');
       }
 
-      console.log(`Successfully generated ${suggestions.length} concise AI suggestions`);
+      // Ensure we have exactly 4 suggestions, trim if needed
+      suggestions = suggestions.slice(0, 4);
+      
+      console.log(`Successfully generated ${suggestions.length} ultra-concise AI suggestions`);
       
     } catch (parseError) {
-      console.error('Error parsing OpenAI suggestions, using enhanced contextual fallback:', parseError);
+      console.error('Error parsing OpenAI suggestions, using ultra-concise contextual fallback:', parseError);
       
-      // Enhanced contextual fallback based on conversation content
+      // Ultra-concise contextual fallback based on conversation content
       const lastMessage = lastAiMessage?.toLowerCase() || '';
       
       if (lastMessage.includes('feel') || lastMessage.includes('emotion')) {
         suggestions = [
           { text: "I felt betrayed when they said that", priority: "high" },
-          { text: "It made me question everything about us", priority: "medium" },
-          { text: "The timing felt deliberately hurtful", priority: "medium" },
+          { text: "It made me question our whole relationship", priority: "medium" },
+          { text: "The timing felt deliberately hurtful to me", priority: "medium" },
           { text: "I'm still processing how it affected me", priority: "low" }
         ];
       } else if (lastMessage.includes('happened') || lastMessage.includes('tell me')) {
@@ -215,11 +219,11 @@ Examples of good suggestions:
           { text: "The argument escalated really quickly", priority: "low" }
         ];
       } else {
-        // Default concise contextual responses
+        // Default ultra-concise contextual responses
         suggestions = [
           { text: "Let me give you the specific timeline", priority: "high" },
           { text: "This person is my direct manager", priority: "medium" },
-          { text: "We've had this issue for 3 weeks", priority: "medium" },
+          { text: "We've had this issue for weeks", priority: "medium" },
           { text: "They reacted worse than I expected", priority: "low" }
         ];
       }
@@ -263,7 +267,7 @@ Examples of good suggestions:
     });
 
   } catch (error) {
-    console.error('Error generating suggestions:', error);
+    console.error('Error generating concise suggestions:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
