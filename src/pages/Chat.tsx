@@ -5,7 +5,7 @@ import { EnhancedNavigation } from '@/components/EnhancedNavigation';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { IntelligentOnboarding } from '@/components/IntelligentOnboarding';
 import { SecretRoomTheme } from '@/components/SecretRoomTheme';
-import { ChatView } from '@/components/ChatView';
+import ChatView from '@/components/ChatView';
 import { ResultsView } from '@/components/ResultsView';
 import { ChatAuthHandler } from '@/components/ChatAuthHandler';
 import { ChatSessionLoader } from '@/components/ChatSessionLoader';
