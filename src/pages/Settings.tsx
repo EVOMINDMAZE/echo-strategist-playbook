@@ -96,16 +96,41 @@ const Settings = () => {
 
       if (data && !error) {
         setPreferences({
-          email_notifications: data.email_notifications,
-          push_notifications: data.push_notifications,
-          session_reminders: data.session_reminders,
-          preferred_session_length: data.preferred_session_length,
-          coaching_style: data.coaching_style,
-          timezone: data.timezone
+          email_notifications: data.email_notifications ?? true,
+          push_notifications: data.push_notifications ?? true,
+          session_reminders: data.session_reminders ?? true,
+          preferred_session_length: data.preferred_session_length ?? 30,
+          coaching_style: data.coaching_style ?? 'balanced',
+          timezone: data.timezone ?? 'UTC'
         });
+      } else if (error && error.code === 'PGRST116') {
+        // No preferences found, create default ones
+        await createDefaultPreferences(userId);
       }
     } catch (error) {
       console.error('Error loading preferences:', error);
+    }
+  };
+
+  const createDefaultPreferences = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_preferences')
+        .insert({
+          user_id: userId,
+          email_notifications: true,
+          push_notifications: true,
+          session_reminders: true,
+          preferred_session_length: 30,
+          coaching_style: 'balanced',
+          timezone: 'UTC'
+        });
+
+      if (error) {
+        console.error('Error creating default preferences:', error);
+      }
+    } catch (error) {
+      console.error('Error creating default preferences:', error);
     }
   };
 
@@ -118,7 +143,15 @@ const Settings = () => {
         .from('user_preferences')
         .upsert({
           user_id: user.id,
-          ...preferences
+          email_notifications: preferences.email_notifications,
+          push_notifications: preferences.push_notifications,
+          session_reminders: preferences.session_reminders,
+          preferred_session_length: preferences.preferred_session_length,
+          coaching_style: preferences.coaching_style,
+          timezone: preferences.timezone,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;
@@ -128,6 +161,7 @@ const Settings = () => {
         description: "Your preferences have been updated successfully.",
       });
     } catch (error) {
+      console.error('Save preferences error:', error);
       toast({
         title: "Error",
         description: "Failed to save settings. Please try again.",
@@ -173,9 +207,9 @@ const Settings = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
       <WorldClassNavigation user={user} />
       
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent dark:from-slate-100 dark:to-slate-400">
+      <div className="max-w-4xl mx-auto py-4 sm:py-8 px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent dark:from-slate-100 dark:to-slate-400">
             Settings & Preferences
           </h1>
           <p className="mt-2 text-slate-600 dark:text-slate-400">
@@ -217,7 +251,7 @@ const Settings = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1 min-w-0 pr-4">
                 <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email Notifications</Label>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Receive session reminders and updates via email
@@ -232,7 +266,7 @@ const Settings = () => {
             </div>
             
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1 min-w-0 pr-4">
                 <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Push Notifications</Label>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Get notified about important coaching updates
@@ -247,7 +281,7 @@ const Settings = () => {
             </div>
             
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1 min-w-0 pr-4">
                 <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Session Reminders</Label>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Remind me before scheduled coaching sessions
@@ -346,11 +380,11 @@ const Settings = () => {
         </Card>
 
         {/* Save Button */}
-        <div className="flex justify-end">
+        <div className="flex justify-end sticky bottom-4 z-10">
           <Button 
             onClick={savePreferences}
             disabled={saving}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-2 rounded-lg transition-colors"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-2 rounded-lg transition-colors shadow-lg"
           >
             {saving ? 'Saving...' : 'Save Preferences'}
           </Button>
