@@ -8,17 +8,26 @@ export const validateChatMessage = (obj: any): obj is ChatMessage => {
     typeof obj.id === 'string' &&
     typeof obj.content === 'string' &&
     (obj.sender === 'user' || obj.sender === 'ai') &&
-    typeof obj.timestamp === 'string'
+    typeof obj.timestamp === 'string' &&
+    obj.timestamp.length > 0 &&
+    !isNaN(new Date(obj.timestamp).getTime())
   );
 };
 
 export const sanitizeChatHistory = (rawHistory: any): ChatMessage[] => {
   if (!Array.isArray(rawHistory)) {
+    console.warn('Raw history is not an array:', typeof rawHistory);
     return [];
   }
 
   return rawHistory
-    .filter(validateChatMessage)
+    .filter((msg, index) => {
+      const isValid = validateChatMessage(msg);
+      if (!isValid) {
+        console.warn(`Invalid message at index ${index}:`, msg);
+      }
+      return isValid;
+    })
     .map(msg => ({
       id: msg.id,
       content: msg.content,
@@ -50,4 +59,14 @@ export const validateStrategistOutput = (rawOutput: any): any => {
   }
 
   return Object.keys(result).length > 0 ? result : undefined;
+};
+
+// Helper function to clean corrupted chat histories
+export const cleanChatHistory = (messages: ChatMessage[]): ChatMessage[] => {
+  return messages.map(msg => ({
+    ...msg,
+    timestamp: msg.timestamp && !isNaN(new Date(msg.timestamp).getTime()) 
+      ? msg.timestamp 
+      : new Date().toISOString()
+  })).filter(msg => msg.content && msg.content.trim().length > 0);
 };

@@ -82,6 +82,10 @@ const Chat = () => {
         
         if (!mounted) return;
 
+        // Clean and validate messages
+        const cleanedMessages = sanitizeChatHistory(sessionData.messages);
+        console.log('Cleaned messages:', cleanedMessages.length, 'from', sessionData.messages.length);
+
         // Get client info
         const clientName = searchParams.get('target');
         const client: Client = {
@@ -90,17 +94,20 @@ const Chat = () => {
           created_at: new Date().toISOString()
         };
 
-        // Load previous sessions for context
+        // Load previous sessions for context (reduced for performance)
         const { data: prevSessions } = await supabase
           .from('coaching_sessions')
           .select('*')
           .eq('target_id', sessionData.target_id)
           .neq('id', sessionId)
           .order('created_at', { ascending: false })
-          .limit(3); // Reduced from 5 to 3 for better performance
+          .limit(3);
 
         if (mounted) {
-          setSession(sessionData);
+          setSession({
+            ...sessionData,
+            messages: cleanedMessages
+          });
           setClient(client);
           
           if (prevSessions) {
@@ -168,6 +175,7 @@ const Chat = () => {
   }, [session?.messages]);
 
   const handleSessionUpdate = async (updatedSession: SessionData) => {
+    console.log('Updating session with messages:', updatedSession.messages.length);
     setSession(updatedSession);
     try {
       await updateSession(updatedSession.id, updatedSession);

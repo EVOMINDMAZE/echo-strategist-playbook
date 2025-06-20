@@ -138,7 +138,7 @@ If they seem ready (after 8-10 exchanges), you can suggest: "It sounds like we h
 
     const aiMessage = aiResponse.choices[0]?.message?.content || 'I apologize, but I couldn\'t generate a response. Please try again.';
 
-    // Create response with timestamp
+    // Create standardized response format
     const response = {
       message: aiMessage,
       timestamp: new Date().toISOString(),
