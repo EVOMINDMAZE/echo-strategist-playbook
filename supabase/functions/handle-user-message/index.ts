@@ -62,15 +62,18 @@ serve(async (req) => {
 
     const systemPrompt = buildEnhancedSystemPrompt(backgroundContext, conversationContext);
 
-    // Increased max_tokens to prevent abrupt cutoffs and improved prompt for complete responses
+    // Significantly increased max_tokens and enhanced completion instructions
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
-        { role: 'system', content: systemPrompt + '\n\nIMPORTANT: Always provide complete, well-rounded responses. Avoid ending abruptly. Aim for thoughtful, complete thoughts in a single response.' },
+        { 
+          role: 'system', 
+          content: systemPrompt + '\n\nCRITICAL INSTRUCTIONS: You MUST provide complete, well-rounded responses that never end abruptly. Always finish your thoughts completely. Provide thoughtful, complete responses in a single turn that feel natural and complete. Never end mid-sentence or leave thoughts incomplete. Take as much space as needed to provide a helpful, complete response.' 
+        },
         { role: 'user', content: message }
       ],
       temperature: 0.8,
-      max_tokens: 350 // Increased from 200 to prevent cutoffs
+      max_tokens: 600 // Significantly increased from 350 to prevent cutoffs
     });
 
     const aiResponse = completion.choices[0]?.message?.content || "I understand. Could you tell me more about that?";

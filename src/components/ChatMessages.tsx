@@ -125,7 +125,7 @@ export const ChatMessages = ({
       })}
 
       {/* Inline Strategist Prompt - shows after a few messages */}
-      {sessionStatus === 'gathering_info' && onStrategistTrigger && messages.length >= 4 && (
+      {sessionStatus === 'gathering_info' && onStrategistTrigger && messages.length >= 4 && !isLoading && (
         <InlineStrategistPrompt
           onTrigger={onStrategistTrigger}
           messageCount={messages.length}
@@ -133,8 +133,17 @@ export const ChatMessages = ({
         />
       )}
 
-      {/* Smart Reply Suggestions - Now with improved AI integration */}
-      {messages.length > 0 && messages[messages.length - 1]?.sender === 'ai' && !isLoading && (
+      {/* AI Thinking Animation - Enhanced positioning and visibility */}
+      {isLoading && (
+        <div className="flex justify-start animate-fade-in">
+          <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl px-6 py-4 border border-slate-700/50 shadow-lg">
+            <ThinkingAnimation />
+          </div>
+        </div>
+      )}
+
+      {/* Smart Reply Suggestions - Only show when not loading and after AI response */}
+      {!isLoading && messages.length > 0 && messages[messages.length - 1]?.sender === 'ai' && (
         <SmartReplySuggestions
           sessionId={sessionId}
           targetId={targetId}
@@ -143,14 +152,6 @@ export const ChatMessages = ({
           onDismiss={() => {}}
           isVisible={true}
         />
-      )}
-
-      {isLoading && (
-        <div className="flex justify-start animate-fade-in">
-          <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl px-6 py-4 border border-slate-700/50">
-            <ThinkingAnimation />
-          </div>
-        </div>
       )}
     </>
   );
