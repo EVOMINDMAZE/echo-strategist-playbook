@@ -19,6 +19,15 @@ export const InlineStrategistPrompt = ({
 
   if (messageCount < 3 || isAnalyzing || isDismissed) return null;
 
+  const handleTriggerClick = () => {
+    console.log('=== InlineStrategistPrompt: Analyze Now button clicked ===');
+    console.log('Message count:', messageCount);
+    console.log('Is analyzing:', isAnalyzing);
+    console.log('Calling onTrigger function...');
+    
+    onTrigger();
+  };
+
   return (
     <Card className="bg-gradient-to-r from-indigo-50/80 to-blue-50/80 border-indigo-200/60 shadow-sm animate-fade-in my-3 mx-4">
       <CardContent className="p-4">
@@ -38,7 +47,7 @@ export const InlineStrategistPrompt = ({
           </div>
           <div className="flex items-center space-x-2">
             <Button
-              onClick={onTrigger}
+              onClick={handleTriggerClick}
               className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white text-xs px-3 py-1.5 h-auto"
               size="sm"
             >

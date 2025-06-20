@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { EnhancedNavigation } from '@/components/EnhancedNavigation';
@@ -13,6 +14,7 @@ import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useSearchParams } from 'react-router-dom';
 import { sanitizeChatHistory, validateStrategistOutput } from '@/utils/messageUtils';
+import { toast } from 'sonner';
 
 const Chat = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -185,8 +187,71 @@ const Chat = () => {
     }
   };
 
-  const handleStrategistTrigger = () => {
+  const handleStrategistTrigger = async () => {
+    console.log('=== FRONTEND: handleStrategistTrigger called ===');
+    console.log('Session ID:', sessionId);
+    console.log('Session object:', session);
+    console.log('Client object:', client);
+    
+    if (!session || !client || !sessionId) {
+      console.error('Missing required data for strategist trigger:', {
+        hasSession: !!session,
+        hasClient: !!client,
+        hasSessionId: !!sessionId
+      });
+      toast.error('Missing session data. Please refresh the page.');
+      return;
+    }
+
+    console.log('Messages count:', session.messages?.length || 0);
+    console.log('Target name:', client.name);
+    
     setIsGeneratingStrategy(true);
+    
+    try {
+      console.log('=== FRONTEND: About to invoke trigger-strategist ===');
+      console.log('Payload will be:', {
+        sessionId: sessionId,
+        targetName: client.name,
+        chatHistory: session.messages
+      });
+
+      const response = await supabase.functions.invoke('trigger-strategist', {
+        body: {
+          sessionId: sessionId,
+          targetName: client.name,
+          chatHistory: session.messages
+        }
+      });
+
+      console.log('=== FRONTEND: trigger-strategist response received ===');
+      console.log('Response:', response);
+      
+      if (response.error) {
+        console.error('Edge function returned error:', response.error);
+        throw new Error(response.error.details || response.error.message || 'Analysis failed');
+      }
+
+      console.log('=== FRONTEND: Analysis successful, reloading session ===');
+      
+      // Reload the session to get the updated strategist output
+      const updatedSessionData = await getSession(sessionId);
+      console.log('Updated session status:', updatedSessionData.status);
+      console.log('Has strategist output:', !!updatedSessionData.strategist_output);
+      
+      setSession(updatedSessionData);
+      toast.success('Strategic analysis complete!');
+      
+    } catch (error) {
+      console.error('=== FRONTEND: Error in handleStrategistTrigger ===');
+      console.error('Error details:', error);
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+      
+      toast.error(`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      // Reset the generating state on error
+      setIsGeneratingStrategy(false);
+    }
   };
 
   const handleDismissMessage = (messageType: string) => {
