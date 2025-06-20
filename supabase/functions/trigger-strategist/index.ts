@@ -108,7 +108,7 @@ serve(async (req) => {
       )
     }
 
-    // Enhanced strategist prompt
+    // Enhanced strategist prompt with better structure and completeness
     const strategistPrompt = `You are an expert relationship strategist and communication coach. Analyze this conversation and provide personalized, actionable strategies.
 
 CONVERSATION TO ANALYZE:
@@ -116,7 +116,7 @@ ${conversationText}
 
 TARGET PERSON: ${sessionData.targets?.target_name || 'Unknown'}
 
-Please provide a comprehensive analysis in the following JSON format:
+Please provide a comprehensive analysis in the following JSON format. Ensure your response is complete and well-structured:
 
 {
   "relationship_summary": "2-3 sentence summary of the relationship dynamic and main challenges",
@@ -171,16 +171,11 @@ Please provide a comprehensive analysis in the following JSON format:
   "follow_up_timeline": "Suggested timeline for checking progress and adjusting approach"
 }
 
-Ensure all strategies are:
-1. Specific and actionable
-2. Tailored to this particular relationship dynamic
-3. Include exact phrases the person can use
-4. Consider the emotional context revealed in the conversation
-5. Practical for real-world implementation`
+CRITICAL: Provide a complete, valid JSON response. Ensure all strategies are specific, actionable, and tailored to this relationship dynamic.`
 
     console.log('Sending analysis request to OpenAI...');
 
-    // Call OpenAI for strategist analysis
+    // Call OpenAI for strategist analysis with increased timeout and better error handling
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -192,7 +187,7 @@ Ensure all strategies are:
         messages: [
           { role: 'system', content: strategistPrompt }
         ],
-        max_tokens: 2000,
+        max_tokens: 2500, // Increased for complete responses
         temperature: 0.3,
       }),
     })
@@ -219,8 +214,24 @@ Ensure all strategies are:
     let strategistOutput
     try {
       const responseContent = aiResponse.choices[0]?.message?.content
-      strategistOutput = JSON.parse(responseContent)
-      console.log('Successfully parsed strategist output');
+      if (!responseContent) {
+        throw new Error('No content in OpenAI response')
+      }
+      
+      console.log('Raw OpenAI response content length:', responseContent.length);
+      
+      // Clean up the response content before parsing
+      let cleanContent = responseContent.trim()
+      
+      // Remove markdown code blocks if present
+      if (cleanContent.startsWith('```json')) {
+        cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '')
+      } else if (cleanContent.startsWith('```')) {
+        cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '')
+      }
+      
+      strategistOutput = JSON.parse(cleanContent)
+      console.log('Successfully parsed strategist output with keys:', Object.keys(strategistOutput));
     } catch (parseError) {
       console.error('Failed to parse strategist output:', parseError);
       console.error('Raw content:', aiResponse.choices[0]?.message?.content);
@@ -232,7 +243,7 @@ Ensure all strategies are:
         .eq('id', sessionId)
 
       return new Response(
-        JSON.stringify({ error: 'Failed to parse strategic analysis' }),
+        JSON.stringify({ error: 'Failed to parse strategic analysis', details: parseError.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
