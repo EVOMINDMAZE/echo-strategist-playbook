@@ -25,15 +25,18 @@ export const ChatMessages = ({
   onStrategistTrigger,
   sessionStatus = 'gathering_info'
 }: ChatMessagesProps) => {
-  // Helper function to format timestamp
+  // Helper function to format timestamp with better error handling
   const formatTimestamp = (timestamp: string) => {
     try {
-      const date = new Date(timestamp);
-      if (isNaN(date.getTime())) {
-        console.warn('Invalid timestamp:', timestamp);
+      if (!timestamp || timestamp === 'Invalid Date') {
         return new Date().toLocaleTimeString();
       }
-      return date.toLocaleTimeString();
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid timestamp provided:', timestamp);
+        return new Date().toLocaleTimeString();
+      }
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } catch (error) {
       console.error('Error formatting timestamp:', error);
       return new Date().toLocaleTimeString();
@@ -71,8 +74,8 @@ export const ChatMessages = ({
 
       {/* Messages */}
       {messages.map((message, index) => {
-        // Skip messages with invalid content
-        if (!message.content || !message.timestamp) {
+        // Skip messages with invalid content but with better validation
+        if (!message?.content || typeof message.content !== 'string' || message.content.trim().length === 0) {
           console.warn('Skipping invalid message:', message);
           return null;
         }
@@ -107,7 +110,7 @@ export const ChatMessages = ({
               </div>
               <div className="flex justify-between items-center mt-3 pt-2 border-t border-slate-600/30">
                 <span className="text-xs opacity-70">
-                  {formatTimestamp(message.timestamp)}
+                  {formatTimestamp(message.timestamp || new Date().toISOString())}
                 </span>
                 {message.sender === 'ai' && (
                   <div className="flex items-center space-x-1 text-xs opacity-70">
@@ -130,7 +133,7 @@ export const ChatMessages = ({
         />
       )}
 
-      {/* Smart Reply Suggestions - Now with real database integration */}
+      {/* Smart Reply Suggestions - Now with improved AI integration */}
       {messages.length > 0 && messages[messages.length - 1]?.sender === 'ai' && !isLoading && (
         <SmartReplySuggestions
           sessionId={sessionId}

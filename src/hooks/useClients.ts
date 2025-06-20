@@ -9,27 +9,58 @@ export const useClients = () => {
 
   useEffect(() => {
     loadClients();
+    
+    // Set up real-time subscription for targets table
+    const channel = supabase
+      .channel('targets-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'targets' },
+        (payload) => {
+          console.log('Target change detected:', payload);
+          loadClients(); // Reload clients when any target changes
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadClients = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.log('No user found, setting empty clients');
+        setClients([]);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('targets')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading clients:', error);
+        setClients([]);
+      } else {
+        console.log('Loaded clients:', data?.length || 0);
+        const formattedClients: Client[] = data?.map(target => ({
+          id: target.id,
+          name: target.target_name,
+          created_at: target.created_at,
+          is_favorite: target.is_favorite || false
+        })) || [];
 
-      const formattedClients: Client[] = data.map(target => ({
-        id: target.id,
-        name: target.target_name,
-        created_at: target.created_at,
-        is_favorite: target.is_favorite || false
-      }));
-
-      setClients(formattedClients);
+        setClients(formattedClients);
+      }
     } catch (error) {
       console.error('Error loading clients:', error);
+      setClients([]);
     } finally {
       setLoading(false);
     }

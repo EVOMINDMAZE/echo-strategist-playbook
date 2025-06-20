@@ -59,10 +59,10 @@ serve(async (req) => {
       .order('created_at', { ascending: false })
       .limit(10);
 
-    // Build conversation context
-    const conversationContext = messages
-      .slice(-8) // Last 8 messages for context
-      .map(msg => `${msg.sender}: ${msg.content}`)
+    // Build conversation context with more detail
+    const recentMessages = messages.slice(-6); // Last 6 messages for better context
+    const conversationContext = recentMessages
+      .map(msg => `${msg.sender === 'user' ? 'User' : 'AI Coach'}: ${msg.content}`)
       .join('\n');
 
     // Determine suggestion type based on message count
@@ -82,53 +82,67 @@ serve(async (req) => {
       `Previously successful: "${interaction.smart_reply_suggestions?.suggestion_text}" (Type: ${interaction.smart_reply_suggestions?.suggestion_type})`
     ).join('\n') || 'No previous interaction data available.';
 
-    const systemPrompt = `You are generating smart reply suggestions for a relationship coaching conversation. These suggestions should be potential USER RESPONSES that the user can click to send to the AI coach.
+    const systemPrompt = `You are generating highly intelligent, contextual reply suggestions for a relationship coaching conversation. These suggestions must be SPECIFIC USER RESPONSES that directly answer or build upon the AI coach's most recent message.
+
+CRITICAL REQUIREMENTS:
+1. Analyze the AI coach's LAST MESSAGE carefully and generate responses that DIRECTLY address what the AI just asked or said
+2. Each suggestion must be a SPECIFIC, ACTIONABLE user response that provides concrete information
+3. Avoid generic responses like "That makes sense" - instead provide detailed, situational answers
+4. Consider the full conversation context to ensure responses are relevant and progressive
+5. Generate responses AS IF you are the user answering the AI coach's specific question or request
 
 Current conversation:
 ${conversationContext}
 
-Learning from previous successful suggestions for this person:
+AI Coach's most recent message: "${lastAiMessage || 'Please share more about your situation'}"
+
+Learning from previous successful suggestions:
 ${learningContext}
 
 Message count: ${messageCount}
 Suggestion stage: ${suggestionType}
 
-Generate 4 specific, contextual USER RESPONSES that:
-1. Are natural responses the user might want to send to the AI coach
-2. Build directly on what the AI just said in their last message
-3. Provide relevant details, acknowledgments, or answers that advance the conversation
-4. Are concise, conversational, and feel authentic to how a real person would respond
+Generate 4 SPECIFIC user responses that:
+1. DIRECTLY answer or address what the AI coach just asked in their last message
+2. Provide concrete details, examples, or specific information relevant to the question
+3. Show natural progression of the conversation by adding meaningful context
+4. Demonstrate authentic human responses with specific situational details
 
-These should be ANSWERS or STATEMENTS from the user's perspective, not questions. Think of them as "smart autocomplete" responses that save the user typing time.
+Examples of GOOD contextual responses (adapt to the actual conversation):
+- If AI asked about a friend: "My friend Sarah from work - we've been close for about 3 years but lately she's been distant"
+- If AI asked about context: "This happened last Tuesday during our team meeting when she interrupted me in front of everyone"
+- If AI asked about feelings: "I felt embarrassed and confused because she's never done that before - it caught me off guard"
+- If AI asked about attempts: "I tried texting her yesterday to ask if everything was okay, but she just replied with 'fine' and nothing else"
 
-Examples of good user responses:
-- "That makes sense, let me think about that approach"
-- "Yes, that's exactly what happened last week"
-- "I haven't tried that before, but I'm willing to give it a shot"
-- "Actually, there's more context I should share about this situation"
+AVOID these generic responses:
+- "That makes sense"
+- "Yes, exactly"
+- "I haven't thought about it that way"
+- "Tell me more"
 
 Response format: Return a JSON array of objects with "text" and "priority" (high/medium/low) fields.
-Focus on natural user responses that feel authentic and helpful.`;
+Focus on creating responses that sound like real, specific answers a person would give when asked the AI's exact question.`;
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Generate user response suggestions for: ${lastAiMessage || 'conversation continuation'}` }
+        { role: 'user', content: `The AI coach just said: "${lastAiMessage || 'Please tell me about your situation'}". Generate 4 specific user responses that directly address this message and provide concrete, relevant details based on the conversation context.` }
       ],
-      temperature: 0.7,
-      max_tokens: 500
+      temperature: 0.8,
+      max_tokens: 600
     });
 
     let suggestions = [];
     try {
       suggestions = JSON.parse(completion.choices[0].message.content || '[]');
     } catch (e) {
-      // Fallback to user-response style suggestions if parsing fails
+      // Improved fallback suggestions that are more contextual
       suggestions = [
-        { text: "That makes sense, let me share more details about the situation", priority: "high" },
-        { text: "Yes, that's exactly what I've been experiencing", priority: "medium" },
-        { text: "I haven't thought about it that way before", priority: "medium" }
+        { text: "Let me give you more specific details about what happened", priority: "high" },
+        { text: "This situation has been building up for about two weeks now", priority: "medium" },
+        { text: "I should mention that this person and I have a complicated history", priority: "medium" },
+        { text: "The most frustrating part is how they responded when I tried to address it", priority: "low" }
       ];
     }
 
@@ -145,7 +159,8 @@ Focus on natural user responses that feel authentic and helpful.`;
           context_data: {
             conversation_context: conversationContext,
             message_count: messageCount,
-            priority: suggestion.priority
+            priority: suggestion.priority,
+            last_ai_message: lastAiMessage
           },
           message_count: messageCount,
           last_ai_message: lastAiMessage
