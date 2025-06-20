@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { EnhancedNavigation } from '@/components/EnhancedNavigation';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -13,13 +13,11 @@ import { SessionContinuityHandler } from '@/components/SessionContinuityHandler'
 import { ResultsView } from '@/components/ResultsView';
 import { InformativeMessages } from '@/components/InformativeMessages';
 import { useChatMessageHandler } from '@/components/ChatMessageHandler';
-import { ChatOnboardingHandler } from '@/components/ChatOnboardingHandler';
 import { useSupabaseCoaching, SessionData, Client } from '@/hooks/useSupabaseCoaching';
 import { useIntelligentOnboarding } from '@/hooks/useIntelligentOnboarding';
 import { SessionStatus } from '@/types/coaching';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { useRef } from 'react';
 import { toast } from 'sonner';
 
 const Chat = () => {
@@ -40,7 +38,7 @@ const Chat = () => {
   const { getSession, updateSession } = useSupabaseCoaching();
   const { hasContext, loading: contextLoading } = useIntelligentOnboarding(sessionId || '');
 
-  // Auth effect - runs once
+  // Auth effect
   useEffect(() => {
     let mounted = true;
     
@@ -81,7 +79,7 @@ const Chat = () => {
     };
   }, [navigate]);
 
-  // Session loading effect - runs when sessionId and user change
+  // Session loading effect
   useEffect(() => {
     let mounted = true;
     let timeoutId: NodeJS.Timeout;
