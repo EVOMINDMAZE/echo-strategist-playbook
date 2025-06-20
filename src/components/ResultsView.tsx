@@ -23,6 +23,12 @@ export const ResultsView = ({
   onNewSession,
   onContinueSession 
 }: ResultsViewProps) => {
+  console.log('=== RESULTS VIEW: Component rendering with props:');
+  console.log('- Session ID:', session?.id);
+  console.log('- Session status:', session?.status);
+  console.log('- Client name:', client?.name);
+  console.log('- Strategist output:', session?.strategist_output);
+
   const [expandedCards, setExpandedCards] = useState<number[]>([]);
   const [showFeedback, setShowFeedback] = useState(!session.feedback_submitted_at);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(!!session.feedback_submitted_at);
@@ -43,6 +49,52 @@ export const ResultsView = ({
   };
 
   const { analysis, suggestions } = session.strategist_output || {};
+
+  console.log('=== RESULTS VIEW: Extracted strategist data:');
+  console.log('- Analysis:', analysis);
+  console.log('- Suggestions count:', Array.isArray(suggestions) ? suggestions.length : 'Not an array or undefined');
+  console.log('- Suggestions:', suggestions);
+
+  if (!session.strategist_output) {
+    console.log('=== RESULTS VIEW: No strategist output, rendering error state');
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
+        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-700/50 p-4 shadow-sm">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onBackToClients}
+              className="hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Chats
+            </Button>
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="max-w-6xl mx-auto">
+            <Card className="bg-gradient-to-r from-red-50 to-orange-50 border-red-200 shadow-lg">
+              <CardContent className="p-8 text-center">
+                <h3 className="text-xl font-bold text-red-800 mb-2">No Strategic Analysis Available</h3>
+                <p className="text-red-700 mb-4">
+                  The strategic analysis data is not available. This might be a temporary issue.
+                </p>
+                <Button onClick={onBackToClients} className="mr-2">
+                  Back to Chats
+                </Button>
+                <Button onClick={onNewSession} variant="outline">
+                  Start New Chat
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  console.log('=== RESULTS VIEW: Rendering full results view');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">

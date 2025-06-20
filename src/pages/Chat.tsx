@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { EnhancedNavigation } from '@/components/EnhancedNavigation';
@@ -79,10 +78,18 @@ const Chat = () => {
         }
 
         // Load session data
-        console.log('Loading session:', sessionId);
+        console.log('=== FRONTEND: Loading session:', sessionId);
         const sessionData = await getSession(sessionId);
         
         if (!mounted) return;
+
+        console.log('=== FRONTEND: Raw session data from database:');
+        console.log('- ID:', sessionData.id);
+        console.log('- Status:', sessionData.status);
+        console.log('- Messages count:', sessionData.messages.length);
+        console.log('- Raw strategist_output from DB:', sessionData.strategist_output);
+        console.log('- Strategist output type:', typeof sessionData.strategist_output);
+        console.log('- Strategist output keys:', sessionData.strategist_output ? Object.keys(sessionData.strategist_output) : 'null/undefined');
 
         // Clean and validate messages
         const cleanedMessages = sanitizeChatHistory(sessionData.messages);
@@ -106,10 +113,17 @@ const Chat = () => {
           .limit(3);
 
         if (mounted) {
-          setSession({
+          const finalSessionData = {
             ...sessionData,
             messages: cleanedMessages
-          });
+          };
+
+          console.log('=== FRONTEND: Setting final session state:');
+          console.log('- Status:', finalSessionData.status);
+          console.log('- Strategist output:', finalSessionData.strategist_output);
+          console.log('- Should show ResultsView?:', finalSessionData.status === 'complete' && !!finalSessionData.strategist_output);
+
+          setSession(finalSessionData);
           setClient(client);
           
           if (prevSessions) {
@@ -177,11 +191,15 @@ const Chat = () => {
   }, [session?.messages]);
 
   const handleSessionUpdate = async (updatedSession: SessionData) => {
-    console.log('Updating session with messages:', updatedSession.messages.length);
+    console.log('=== FRONTEND: handleSessionUpdate called');
+    console.log('- Updated session status:', updatedSession.status);
+    console.log('- Updated strategist output:', updatedSession.strategist_output);
+    console.log('- Messages count:', updatedSession.messages.length);
+    
     setSession(updatedSession);
     try {
       await updateSession(updatedSession.id, updatedSession);
-      console.log('Session updated successfully');
+      console.log('Session updated successfully in database');
     } catch (error) {
       console.error('Error saving session:', error);
     }
@@ -236,8 +254,11 @@ const Chat = () => {
       
       // Reload the session to get the updated strategist output
       const updatedSessionData = await getSession(sessionId);
-      console.log('Updated session status:', updatedSessionData.status);
-      console.log('Has strategist output:', !!updatedSessionData.strategist_output);
+      console.log('=== FRONTEND: Updated session data after reload:');
+      console.log('- Updated session status:', updatedSessionData.status);
+      console.log('- Updated strategist output exists:', !!updatedSessionData.strategist_output);
+      console.log('- Updated strategist output content:', updatedSessionData.strategist_output);
+      console.log('- Will trigger ResultsView?:', updatedSessionData.status === 'complete' && !!updatedSessionData.strategist_output);
       
       setSession(updatedSessionData);
       toast.success('Strategic analysis complete!');
@@ -335,7 +356,18 @@ const Chat = () => {
     );
   }
 
+  console.log('=== FRONTEND: About to render, checking conditions:');
+  console.log('- Session status:', session?.status);
+  console.log('- Has strategist output:', !!session?.strategist_output);
+  console.log('- Should show ResultsView:', session?.status === 'complete' && !!session?.strategist_output);
+
   if (session.status === 'complete' && session.strategist_output) {
+    console.log('=== FRONTEND: Rendering ResultsView with session:', {
+      id: session.id,
+      status: session.status,
+      strategist_output: session.strategist_output
+    });
+
     return (
       <ResultsView
         session={session}
@@ -353,6 +385,8 @@ const Chat = () => {
       />
     );
   }
+
+  console.log('=== FRONTEND: Rendering ChatView (analysis not complete or no output)');
 
   return (
     <ErrorBoundary>
