@@ -82,7 +82,7 @@ serve(async (req) => {
       `Previously successful: "${interaction.smart_reply_suggestions?.suggestion_text}" (Type: ${interaction.smart_reply_suggestions?.suggestion_type})`
     ).join('\n') || 'No previous interaction data available.';
 
-    const systemPrompt = `You are generating contextual reply suggestions for a relationship coaching conversation. 
+    const systemPrompt = `You are generating smart reply suggestions for a relationship coaching conversation. These suggestions should be potential USER RESPONSES that the user can click to send to the AI coach.
 
 Current conversation:
 ${conversationContext}
@@ -93,20 +93,28 @@ ${learningContext}
 Message count: ${messageCount}
 Suggestion stage: ${suggestionType}
 
-Generate 4 specific, contextual suggestions that:
-1. Build directly on what was just discussed
-2. Are relevant to this specific conversation flow
-3. Learn from previously successful suggestions
-4. Help the user provide more details or move the conversation forward
+Generate 4 specific, contextual USER RESPONSES that:
+1. Are natural responses the user might want to send to the AI coach
+2. Build directly on what the AI just said in their last message
+3. Provide relevant details, acknowledgments, or answers that advance the conversation
+4. Are concise, conversational, and feel authentic to how a real person would respond
+
+These should be ANSWERS or STATEMENTS from the user's perspective, not questions. Think of them as "smart autocomplete" responses that save the user typing time.
+
+Examples of good user responses:
+- "That makes sense, let me think about that approach"
+- "Yes, that's exactly what happened last week"
+- "I haven't tried that before, but I'm willing to give it a shot"
+- "Actually, there's more context I should share about this situation"
 
 Response format: Return a JSON array of objects with "text" and "priority" (high/medium/low) fields.
-Focus on natural conversation flow, not generic prompts.`;
+Focus on natural user responses that feel authentic and helpful.`;
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Generate suggestions for: ${lastAiMessage || 'conversation continuation'}` }
+        { role: 'user', content: `Generate user response suggestions for: ${lastAiMessage || 'conversation continuation'}` }
       ],
       temperature: 0.7,
       max_tokens: 500
@@ -116,11 +124,11 @@ Focus on natural conversation flow, not generic prompts.`;
     try {
       suggestions = JSON.parse(completion.choices[0].message.content || '[]');
     } catch (e) {
-      // Fallback to simple suggestions if parsing fails
+      // Fallback to user-response style suggestions if parsing fails
       suggestions = [
-        { text: "Can you tell me more about that specific situation?", priority: "high" },
-        { text: "How did that make you feel in the moment?", priority: "medium" },
-        { text: "What would you ideally want to happen instead?", priority: "medium" }
+        { text: "That makes sense, let me share more details about the situation", priority: "high" },
+        { text: "Yes, that's exactly what I've been experiencing", priority: "medium" },
+        { text: "I haven't thought about it that way before", priority: "medium" }
       ];
     }
 
