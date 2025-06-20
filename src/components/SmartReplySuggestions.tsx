@@ -14,7 +14,7 @@ interface SmartReplySuggestionsProps {
     sender: string;
     timestamp: string;
   }>;
-  on SuggestionClick: (suggestion: string) => void;
+  onSuggestionClick: (suggestion: string) => void;
   onDismiss?: () => void;
   isVisible: boolean;
 }
