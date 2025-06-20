@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { WorldClassNavigation } from '@/components/WorldClassNavigation';
@@ -227,13 +226,7 @@ const Chat = () => {
     <ErrorBoundary>
       <SecretRoomTheme>
         <WorldClassNavigation user={user} />
-        <ChatView
-          session={session}
-          target={client}
-          onSessionUpdate={handleSessionUpdate}
-          onStatusChange={handleStatusChange}
-          onBackToTargets={() => navigate('/clients')}
-        />
+        <ChatView />
       </SecretRoomTheme>
     </ErrorBoundary>
   );

@@ -63,23 +63,25 @@ export const SmartReplySuggestions = ({
   };
 
   return (
-    <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-700 shadow-sm animate-fade-in mb-4">
+    <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-700 shadow-sm animate-fade-in mb-4 max-w-full overflow-hidden">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm text-green-800 dark:text-green-200 flex items-center">
-            <Brain className="w-4 h-4 mr-2" />
-            AI-Powered Suggestions
-            <Badge variant="outline" className="ml-2 text-xs border-green-300 text-green-600">
+          <CardTitle className="text-sm text-green-800 dark:text-green-200 flex items-center flex-wrap gap-2">
+            <div className="flex items-center">
+              <Brain className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span className="whitespace-nowrap">AI-Powered Suggestions</span>
+            </div>
+            <Badge variant="outline" className="text-xs border-green-300 text-green-600 flex-shrink-0">
               {getSuggestionTypeLabel()}
             </Badge>
           </CardTitle>
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-1 flex-shrink-0">
             {!loading && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={shuffleSuggestions}
-                className="text-green-600 hover:text-green-800 hover:bg-green-100 dark:hover:bg-green-900/50 h-6 w-6 p-0"
+                className="text-green-600 hover:text-green-800 hover:bg-green-100 dark:hover:bg-green-900/50 h-6 w-6 p-0 flex-shrink-0"
                 title="Shuffle suggestions"
               >
                 <Shuffle className="w-3 h-3" />
@@ -90,7 +92,7 @@ export const SmartReplySuggestions = ({
                 variant="ghost"
                 size="sm"
                 onClick={onDismiss}
-                className="text-green-500 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900/50 h-6 w-6 p-0"
+                className="text-green-500 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900/50 h-6 w-6 p-0 flex-shrink-0"
               >
                 <X className="w-3 h-3" />
               </Button>
@@ -100,9 +102,9 @@ export const SmartReplySuggestions = ({
       </CardHeader>
       
       <CardContent className="space-y-2">
-        <div className="flex items-center space-x-2 mb-3">
-          <Lightbulb className="w-4 h-4 text-green-600" />
-          <p className="text-xs text-green-700 dark:text-green-300">
+        <div className="flex items-start space-x-2 mb-3">
+          <Lightbulb className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-green-700 dark:text-green-300 leading-relaxed">
             {loading ? 'Generating contextual suggestions...' : 'Smart suggestions based on your conversation:'}
           </p>
         </div>
@@ -125,10 +127,12 @@ export const SmartReplySuggestions = ({
                   suggestion.priority === 'high' ? 'ring-1 ring-green-300' : ''
                 }`}
               >
-                <ArrowRight className="w-3 h-3 mr-2 flex-shrink-0" />
-                <span className="text-left leading-relaxed">{suggestion.text}</span>
+                <ArrowRight className="w-3 h-3 mr-2 flex-shrink-0 mt-0.5" />
+                <span className="text-left leading-relaxed break-words flex-1 min-w-0">
+                  {suggestion.text}
+                </span>
                 {suggestion.priority === 'high' && (
-                  <Badge className="ml-auto text-xs bg-green-600/20 text-green-700 border-green-500/30">
+                  <Badge className="ml-2 text-xs bg-green-600/20 text-green-700 border-green-500/30 flex-shrink-0">
                     Priority
                   </Badge>
                 )}
