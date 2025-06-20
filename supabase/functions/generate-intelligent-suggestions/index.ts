@@ -52,6 +52,8 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
+    console.log(`Generating suggestions for session ${sessionId}, message count: ${messageCount}`);
+
     // **PHASE 1: Enhanced Context Integration for Suggestions**
     const backgroundContext = await fetchEnhancedSuggestionContext(supabase, sessionId, targetId, user.id);
 
@@ -75,22 +77,61 @@ serve(async (req) => {
 
     const systemPrompt = buildEnhancedSuggestionPrompt(backgroundContext, conversationContext, lastAiMessage, suggestionType);
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Generate 4 contextual user responses to: "${lastAiMessage}"` }
-      ],
-      temperature: 0.8,
-      max_tokens: 600
-    });
-
     let suggestions = [];
     try {
-      suggestions = JSON.parse(completion.choices[0].message.content || '[]');
-    } catch (e) {
-      // Enhanced fallback suggestions based on context
-      suggestions = generateContextualFallbackSuggestions(backgroundContext, lastAiMessage);
+      console.log('Requesting AI-generated suggestions from OpenAI...');
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Generate 4 contextual user responses to: "${lastAiMessage}"` }
+        ],
+        temperature: 0.7,
+        max_tokens: 600
+      });
+
+      const rawContent = completion.choices[0].message.content || '';
+      console.log('Raw OpenAI response:', rawContent);
+
+      suggestions = JSON.parse(rawContent);
+      
+      // Validate suggestions structure
+      if (!Array.isArray(suggestions) || suggestions.length === 0) {
+        throw new Error('Invalid suggestions format from OpenAI');
+      }
+
+      console.log(`Successfully generated ${suggestions.length} AI suggestions`);
+      
+    } catch (parseError) {
+      console.error('Error parsing OpenAI suggestions, attempting enhanced fallback:', parseError);
+      
+      // **CRITICAL FIX 2: Enhanced Fallback to Prevent Generic Responses**
+      try {
+        const fallbackPrompt = `Generate 4 brief, specific user responses to this AI coach message: "${lastAiMessage || 'Please share more about your situation'}"
+
+Based on this conversation context:
+${conversationContext}
+
+Each response should be a direct, specific answer or follow-up that moves the conversation forward. Format as JSON array with "text" and "priority" fields.`;
+
+        const fallbackCompletion = await openai.chat.completions.create({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: 'You are a helpful assistant generating specific conversational responses. Always return valid JSON.' },
+            { role: 'user', content: fallbackPrompt }
+          ],
+          temperature: 0.8,
+          max_tokens: 400
+        });
+
+        const fallbackContent = fallbackCompletion.choices[0].message.content || '';
+        suggestions = JSON.parse(fallbackContent);
+        console.log('Enhanced fallback suggestions generated successfully');
+        
+      } catch (fallbackError) {
+        console.error('Enhanced fallback also failed, using contextual defaults:', fallbackError);
+        suggestions = generateContextualFallbackSuggestions(backgroundContext, lastAiMessage, conversationContext);
+      }
     }
 
     // Store suggestions in database
@@ -242,21 +283,33 @@ Focus on creating responses that sound authentic and provide concrete, relevant 
   return prompt;
 }
 
-function generateContextualFallbackSuggestions(context: BackgroundContext, lastAiMessage?: string): any[] {
-  const basePrompts = [
-    "Let me give you more specific details about what happened",
-    "This situation has been building up for some time now",
-    "I should mention that this person and I have a complicated history",
-    "The most challenging part is how they responded when I tried to address it"
-  ];
-
-  // Enhance with context if available
-  if (context.relationshipProfile?.communication_patterns) {
-    basePrompts[0] = "Based on how they usually communicate, let me explain what happened";
+function generateContextualFallbackSuggestions(context: BackgroundContext, lastAiMessage?: string, conversationContext?: string): any[] {
+  // Enhanced contextual fallback based on conversation flow
+  const lastMsg = lastAiMessage?.toLowerCase() || '';
+  
+  if (lastMsg.includes('feel') || lastMsg.includes('emotion')) {
+    return [
+      { text: "I felt confused and hurt when they said that - it caught me completely off guard", priority: "high" },
+      { text: "It made me question our entire relationship because they've never acted this way before", priority: "medium" },
+      { text: "The worst part is that it happened in front of other people", priority: "medium" },
+      { text: "I'm still processing how their words made me feel", priority: "low" }
+    ];
   }
-
-  return basePrompts.map((text, index) => ({
-    text,
-    priority: index === 0 ? "high" : index === 1 ? "medium" : "low"
-  }));
+  
+  if (lastMsg.includes('what happened') || lastMsg.includes('tell me more')) {
+    return [
+      { text: "It started last Tuesday when they completely ignored my text for two days", priority: "high" },
+      { text: "We were at dinner with friends and they made this comment that really stung", priority: "medium" },
+      { text: "They've been acting distant ever since we had that disagreement about my career", priority: "medium" },
+      { text: "The situation escalated when I tried to bring up my concerns directly", priority: "low" }
+    ];
+  }
+  
+  // Default contextual responses
+  return [
+    { text: "Let me give you the specific details about what happened", priority: "high" },
+    { text: "This has been building up over the past few weeks", priority: "medium" },
+    { text: "I should mention that we have a complicated history with this issue", priority: "medium" },
+    { text: "The most challenging part is how they reacted when I tried to address it", priority: "low" }
+  ];
 }

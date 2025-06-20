@@ -50,6 +50,8 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
+    console.log(`Processing message for session ${sessionId}, user ${user.id}`);
+
     // **PHASE 1: Enhanced Per-Message Context Integration**
     const backgroundContext = await fetchBackgroundContext(supabase, sessionId, targetId, user.id);
     
@@ -98,11 +100,29 @@ serve(async (req) => {
       })
       .eq('id', sessionId);
 
-    // **PHASE 2: Trigger Continuous Session Analyzer (Non-blocking)**
-    if (updatedHistory.length % 4 === 0) { // Every 4 messages
-      EdgeRuntime.waitUntil(
-        triggerContinuousAnalyzer(supabase, sessionId, targetId, user.id, updatedHistory)
-      );
+    // **CRITICAL FIX 1: Properly Trigger Continuous Session Analyzer**
+    if (updatedHistory.length >= 4 && updatedHistory.length % 4 === 0) { // Every 4 messages
+      console.log(`Triggering continuous-session-analyzer for session ${sessionId} with ${updatedHistory.length} messages`);
+      
+      // Call the analyzer function directly using Supabase client
+      try {
+        const { data: analyzerResponse, error: analyzerError } = await supabase.functions.invoke('continuous-session-analyzer', {
+          body: {
+            sessionId,
+            targetId,
+            userId: user.id,
+            messageHistory: updatedHistory.slice(-6) // Last 6 messages for analysis
+          }
+        });
+
+        if (analyzerError) {
+          console.error('Error calling continuous-session-analyzer:', analyzerError);
+        } else {
+          console.log('Continuous-session-analyzer completed successfully:', analyzerResponse);
+        }
+      } catch (analyzerInvokeError) {
+        console.error('Failed to invoke continuous-session-analyzer:', analyzerInvokeError);
+      }
     }
 
     return new Response(JSON.stringify({
@@ -206,19 +226,4 @@ ${context.sessionInsights}`;
 5. Keep responses conversational and supportive`;
 
   return prompt;
-}
-
-async function triggerContinuousAnalyzer(supabase: any, sessionId: string, targetId: string, userId: string, messageHistory: any[]): Promise<void> {
-  try {
-    await supabase.functions.invoke('continuous-session-analyzer', {
-      body: {
-        sessionId,
-        targetId,
-        userId,
-        messageHistory: messageHistory.slice(-6) // Last 6 messages for analysis
-      }
-    });
-  } catch (error) {
-    console.error('Error triggering continuous analyzer:', error);
-  }
 }
