@@ -55,7 +55,7 @@ serve(async (req) => {
     // **PHASE 1: Enhanced Per-Message Context Integration**
     const backgroundContext = await fetchBackgroundContext(supabase, sessionId, targetId, user.id);
     
-    const conversationContext = messageHistory
+    const conversationContext = (messageHistory || [])
       .slice(-8) // Last 8 messages for context
       .map(msg => `${msg.sender === 'user' ? 'User' : 'AI Coach'}: ${msg.content}`)
       .join('\n');
@@ -76,7 +76,7 @@ serve(async (req) => {
 
     // Update session with new message
     const updatedHistory = [
-      ...messageHistory,
+      ...(messageHistory || []),
       {
         content: message,
         sender: 'user',

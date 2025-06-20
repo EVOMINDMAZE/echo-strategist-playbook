@@ -93,7 +93,21 @@ serve(async (req) => {
       const rawContent = completion.choices[0].message.content || '';
       console.log('Raw OpenAI response:', rawContent);
 
-      suggestions = JSON.parse(rawContent);
+      // **CRITICAL FIX: Properly parse OpenAI response that may include markdown**
+      let parsedContent = rawContent;
+      
+      // Remove markdown code blocks if present
+      if (rawContent.includes('```json')) {
+        const jsonStart = rawContent.indexOf('```json') + 7;
+        const jsonEnd = rawContent.lastIndexOf('```');
+        parsedContent = rawContent.substring(jsonStart, jsonEnd).trim();
+      } else if (rawContent.includes('```')) {
+        const jsonStart = rawContent.indexOf('```') + 3;
+        const jsonEnd = rawContent.lastIndexOf('```');
+        parsedContent = rawContent.substring(jsonStart, jsonEnd).trim();
+      }
+
+      suggestions = JSON.parse(parsedContent);
       
       // Validate suggestions structure
       if (!Array.isArray(suggestions) || suggestions.length === 0) {
@@ -112,12 +126,12 @@ serve(async (req) => {
 Based on this conversation context:
 ${conversationContext}
 
-Each response should be a direct, specific answer or follow-up that moves the conversation forward. Format as JSON array with "text" and "priority" fields.`;
+Each response should be a direct, specific answer or follow-up that moves the conversation forward. Return only a valid JSON array with "text" and "priority" fields, no markdown formatting.`;
 
         const fallbackCompletion = await openai.chat.completions.create({
           model: 'gpt-4o-mini',
           messages: [
-            { role: 'system', content: 'You are a helpful assistant generating specific conversational responses. Always return valid JSON.' },
+            { role: 'system', content: 'You are a helpful assistant generating specific conversational responses. Always return valid JSON with no markdown formatting.' },
             { role: 'user', content: fallbackPrompt }
           ],
           temperature: 0.8,
@@ -125,7 +139,20 @@ Each response should be a direct, specific answer or follow-up that moves the co
         });
 
         const fallbackContent = fallbackCompletion.choices[0].message.content || '';
-        suggestions = JSON.parse(fallbackContent);
+        
+        // Apply same markdown cleaning to fallback
+        let cleanedFallback = fallbackContent;
+        if (fallbackContent.includes('```json')) {
+          const jsonStart = fallbackContent.indexOf('```json') + 7;
+          const jsonEnd = fallbackContent.lastIndexOf('```');
+          cleanedFallback = fallbackContent.substring(jsonStart, jsonEnd).trim();
+        } else if (fallbackContent.includes('```')) {
+          const jsonStart = fallbackContent.indexOf('```') + 3;
+          const jsonEnd = fallbackContent.lastIndexOf('```');
+          cleanedFallback = fallbackContent.substring(jsonStart, jsonEnd).trim();
+        }
+        
+        suggestions = JSON.parse(cleanedFallback);
         console.log('Enhanced fallback suggestions generated successfully');
         
       } catch (fallbackError) {
@@ -277,8 +304,7 @@ Generate 4 SPECIFIC user responses that:
 4. Show natural progression of the conversation by adding meaningful context
 5. Align with user's demonstrated communication preferences
 
-Response format: Return a JSON array of objects with "text" and "priority" (high/medium/low) fields.
-Focus on creating responses that sound authentic and provide concrete, relevant details based on the conversation context and learned patterns.`;
+CRITICAL: Return ONLY a valid JSON array with no markdown formatting. Each object should have "text" and "priority" (high/medium/low) fields.`;
 
   return prompt;
 }

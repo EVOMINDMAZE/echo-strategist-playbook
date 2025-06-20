@@ -41,9 +41,9 @@ export const useChatMessageHandler = ({
       const response = await supabase.functions.invoke('handle-user-message', {
         body: {
           sessionId: session.id,
+          targetId: session.target_id,
           message: message,
-          previousMessages: session.messages,
-          userMessageCount: session.messages.filter(m => m.sender === 'user').length + 1
+          messageHistory: session.messages
         }
       });
 
@@ -56,10 +56,10 @@ export const useChatMessageHandler = ({
 
       const { data } = response;
       
-      if (data && data.message) {
+      if (data && data.response) {
         const aiMessage: ChatMessage = {
           id: crypto.randomUUID(),
-          content: data.message,
+          content: data.response,
           sender: 'ai',
           timestamp: data.timestamp || new Date().toISOString()
         };
@@ -70,7 +70,7 @@ export const useChatMessageHandler = ({
         
         console.log('AI message added successfully');
       } else {
-        console.error('No message in response data:', data);
+        console.error('No response in data:', data);
         throw new Error('No AI response received');
       }
     } catch (error) {
