@@ -22,7 +22,7 @@ export const useDashboardData = (userId: string) => {
 
   const loadDashboardData = async (userId: string) => {
     try {
-      // Load recent coaching sessions
+      // Load recent coaching sessions with target names
       const { data: sessions } = await supabase
         .from('coaching_sessions')
         .select(`
@@ -40,15 +40,47 @@ export const useDashboardData = (userId: string) => {
         setRecentActivity(sessions);
       }
 
-      // Load quick stats
+      // Use the new database function for accurate stats
+      const { data: statsData, error: statsError } = await supabase
+        .rpc('get_user_stats', { user_id_input: userId });
+
+      if (statsError) {
+        console.error('Error loading stats:', statsError);
+        // Fallback to manual calculation
+        await loadStatsManually(userId);
+      } else if (statsData && statsData.length > 0) {
+        const stats = statsData[0];
+        setQuickStats({
+          totalChats: Number(stats.total_sessions) || 0,
+          activeClients: Number(stats.active_targets) || 0,
+          thisWeekSessions: Number(stats.this_week_sessions) || 0,
+          avgSessionTime: '25 min', // Placeholder - could be calculated from session data
+          completionRate: stats.total_sessions > 0 
+            ? Math.round((Number(stats.completed_sessions) / Number(stats.total_sessions)) * 100) 
+            : 0
+        });
+      }
+
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      // Fallback to manual loading
+      await loadStatsManually(userId);
+    }
+  };
+
+  const loadStatsManually = async (userId: string) => {
+    try {
+      // Load targets count
       const { data: targets } = await supabase
         .from('targets')
         .select('id')
         .eq('user_id', userId);
 
+      // Load all sessions
       const { data: allSessions } = await supabase
         .from('coaching_sessions')
-        .select('id, status, created_at');
+        .select('id, status, created_at')
+        .in('target_id', targets?.map(t => t.id) || []);
 
       const thisWeekStart = new Date();
       thisWeekStart.setDate(thisWeekStart.getDate() - 7);
@@ -69,7 +101,7 @@ export const useDashboardData = (userId: string) => {
       });
 
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
+      console.error('Error in manual stats loading:', error);
     }
   };
 

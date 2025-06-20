@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,10 +19,37 @@ interface SmartReplySuggestionsProps {
   isVisible: boolean;
 }
 
-// Fallback suggestions based on conversation context
+// Enhanced fallback suggestions with better context awareness
 const getFallbackSuggestions = (messages: any[]) => {
   const messageCount = messages.length;
+  const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
   
+  // Context-aware suggestions based on recent conversation
+  if (lastMessage.includes('feel') || lastMessage.includes('emotion')) {
+    return [
+      { id: 'ctx1', text: "Can you tell me more about how this situation affects you emotionally?", priority: 'high' as const, type: 'emotional_exploration' },
+      { id: 'ctx2', text: "What emotions come up for you when you think about this person?", priority: 'medium' as const, type: 'emotional_exploration' },
+      { id: 'ctx3', text: "How do you typically handle these feelings?", priority: 'medium' as const, type: 'coping_strategies' }
+    ];
+  }
+  
+  if (lastMessage.includes('work') || lastMessage.includes('colleague')) {
+    return [
+      { id: 'work1', text: "How does this workplace dynamic affect your daily work?", priority: 'high' as const, type: 'workplace_impact' },
+      { id: 'work2', text: "What's the professional hierarchy between you and this person?", priority: 'medium' as const, type: 'workplace_context' },
+      { id: 'work3', text: "Have you considered speaking with HR or a supervisor about this?", priority: 'medium' as const, type: 'workplace_resources' }
+    ];
+  }
+  
+  if (lastMessage.includes('family') || lastMessage.includes('parent') || lastMessage.includes('sibling')) {
+    return [
+      { id: 'fam1', text: "How long has this family dynamic been an issue?", priority: 'high' as const, type: 'family_history' },
+      { id: 'fam2', text: "What role do other family members play in this situation?", priority: 'medium' as const, type: 'family_dynamics' },
+      { id: 'fam3', text: "What family traditions or expectations might be influencing this?", priority: 'medium' as const, type: 'family_context' }
+    ];
+  }
+  
+  // Default suggestions based on conversation stage
   if (messageCount <= 2) {
     return [
       { id: 'fb1', text: "Can you tell me more about your relationship with this person?", priority: 'high' as const, type: 'context_gathering' },
@@ -60,18 +88,27 @@ export const SmartReplySuggestions = ({
 
   const [displayedSuggestions, setDisplayedSuggestions] = useState(suggestions);
   const [usingFallback, setUsingFallback] = useState(false);
+  const [lastMessageCount, setLastMessageCount] = useState(0);
 
   useEffect(() => {
-    if (suggestions.length > 0) {
-      setDisplayedSuggestions(suggestions);
-      setUsingFallback(false);
-    } else if (!loading && messages.length > 0) {
-      // Use fallback suggestions when API fails or returns empty
-      const fallbacks = getFallbackSuggestions(messages);
-      setDisplayedSuggestions(fallbacks);
-      setUsingFallback(true);
+    // Only update suggestions if message count changed significantly or we got new AI suggestions
+    if (messages.length !== lastMessageCount || suggestions.length > 0) {
+      if (suggestions.length > 0) {
+        // Remove duplicates from AI suggestions
+        const uniqueSuggestions = suggestions.filter((suggestion, index, self) => 
+          index === self.findIndex(s => s.text.toLowerCase() === suggestion.text.toLowerCase())
+        );
+        setDisplayedSuggestions(uniqueSuggestions);
+        setUsingFallback(false);
+      } else if (!loading && messages.length > 0) {
+        // Use enhanced fallback suggestions
+        const fallbacks = getFallbackSuggestions(messages);
+        setDisplayedSuggestions(fallbacks);
+        setUsingFallback(true);
+      }
+      setLastMessageCount(messages.length);
     }
-  }, [suggestions, loading, messages]);
+  }, [suggestions, loading, messages, lastMessageCount]);
 
   const handleSuggestionClick = async (suggestion: any) => {
     if (!usingFallback) {
@@ -81,8 +118,14 @@ export const SmartReplySuggestions = ({
   };
 
   const shuffleSuggestions = () => {
-    const shuffled = [...displayedSuggestions].sort(() => Math.random() - 0.5);
-    setDisplayedSuggestions(shuffled);
+    // For AI suggestions, shuffle; for fallback, get new context-aware ones
+    if (usingFallback) {
+      const newFallbacks = getFallbackSuggestions(messages);
+      setDisplayedSuggestions(newFallbacks);
+    } else {
+      const shuffled = [...displayedSuggestions].sort(() => Math.random() - 0.5);
+      setDisplayedSuggestions(shuffled);
+    }
   };
 
   if (!isVisible || (!loading && displayedSuggestions.length === 0)) {
@@ -93,7 +136,7 @@ export const SmartReplySuggestions = ({
     const messageCount = messages.length;
     if (messageCount <= 2) return 'Getting Started';
     if (messageCount <= 4) return 'Building Context';
-    if (messageCount <= 6) return 'Exploring Details';
+    if (message <6) return 'Exploring Details';
     return 'Deep Dive';
   };
 
@@ -119,7 +162,7 @@ export const SmartReplySuggestions = ({
                 size="sm"
                 onClick={shuffleSuggestions}
                 className="text-green-600 hover:text-green-800 hover:bg-green-100 dark:hover:bg-green-900/50 h-6 w-6 p-0 flex-shrink-0"
-                title="Shuffle suggestions"
+                title="Get new suggestions"
               >
                 <Shuffle className="w-3 h-3" />
               </Button>

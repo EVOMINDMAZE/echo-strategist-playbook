@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { EnhancedNavigation } from '@/components/EnhancedNavigation';
@@ -37,13 +36,16 @@ const Chat = () => {
   const { updateSession, getSession } = useSupabaseCoaching();
   const { hasContext, loading: contextLoading } = useIntelligentOnboarding(sessionId || '');
 
-  // Simplified authentication check with timeout
+  // Streamlined authentication and session loading
   useEffect(() => {
     let mounted = true;
-    let timeoutId: NodeJS.Timeout;
 
-    const checkAuth = async () => {
+    const initializeSession = async () => {
       try {
+        setLoading(true);
+        setError(null);
+        
+        // Get current session quickly
         const { data: { session: authSession }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -61,29 +63,78 @@ const Chat = () => {
           return;
         }
 
+        if (!sessionId) {
+          console.log('No session ID provided');
+          if (mounted) {
+            setError('Session ID is required');
+            setLoading(false);
+          }
+          return;
+        }
+
         if (mounted) {
           setUser(authSession.user);
-          console.log('User authenticated:', authSession.user.id);
+        }
+
+        // Load session data
+        console.log('Loading session:', sessionId);
+        const sessionData = await getSession(sessionId);
+        
+        if (!mounted) return;
+
+        // Get client info
+        const clientName = searchParams.get('target');
+        const client: Client = {
+          id: sessionData.target_id,
+          name: clientName ? decodeURIComponent(clientName) : 'Client',
+          created_at: new Date().toISOString()
+        };
+
+        // Load previous sessions for context
+        const { data: prevSessions } = await supabase
+          .from('coaching_sessions')
+          .select('*')
+          .eq('target_id', sessionData.target_id)
+          .neq('id', sessionId)
+          .order('created_at', { ascending: false })
+          .limit(3); // Reduced from 5 to 3 for better performance
+
+        if (mounted) {
+          setSession(sessionData);
+          setClient(client);
+          
+          if (prevSessions) {
+            const formattedSessions: SessionData[] = prevSessions.map(s => ({
+              id: s.id,
+              target_id: s.target_id,
+              status: s.status as SessionStatus,
+              messages: sanitizeChatHistory(s.raw_chat_history),
+              strategist_output: validateStrategistOutput(s.strategist_output),
+              case_file_data: (s.case_file_data && typeof s.case_file_data === 'object' && !Array.isArray(s.case_file_data)) ? s.case_file_data as Record<string, any> : {},
+              feedback_data: (s.feedback_data && typeof s.feedback_data === 'object' && !Array.isArray(s.feedback_data)) ? s.feedback_data as Record<string, any> : {},
+              user_feedback: s.user_feedback,
+              parent_session_id: s.parent_session_id,
+              is_continued: s.is_continued || false,
+              feedback_submitted_at: s.feedback_submitted_at,
+              feedback_rating: s.feedback_rating,
+              created_at: s.created_at,
+              case_data: (s.case_file_data && typeof s.case_file_data === 'object' && !Array.isArray(s.case_file_data)) ? s.case_file_data as Record<string, any> : {}
+            }));
+            setPreviousSessions(formattedSessions);
+          }
+          
+          setLoading(false);
         }
       } catch (error) {
-        console.error('Auth check error:', error);
+        console.error('Error initializing session:', error);
         if (mounted) {
-          setError('Authentication failed');
+          setError(`Failed to load session: ${error instanceof Error ? error.message : 'Unknown error'}`);
           setLoading(false);
         }
       }
     };
 
-    // Set timeout to prevent infinite loading
-    timeoutId = setTimeout(() => {
-      if (mounted && loading) {
-        console.warn('Authentication check timeout');
-        setError('Authentication timeout - please refresh the page');
-        setLoading(false);
-      }
-    }, 10000); // 10 second timeout
-
-    checkAuth();
+    initializeSession();
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -100,122 +151,9 @@ const Chat = () => {
 
     return () => {
       mounted = false;
-      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
-  }, [navigate, loading]);
-
-  // Simplified session loading with timeout
-  useEffect(() => {
-    let mounted = true;
-    let timeoutId: NodeJS.Timeout;
-
-    const loadSession = async () => {
-      if (!sessionId || !user) {
-        console.log('Missing sessionId or user:', { sessionId: !!sessionId, user: !!user });
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-        console.log('Loading session:', sessionId);
-
-        // Set timeout for session loading
-        timeoutId = setTimeout(() => {
-          if (mounted && loading) {
-            console.warn('Session loading timeout');
-            setError('Session loading timeout - please try again');
-            setLoading(false);
-          }
-        }, 15000); // 15 second timeout
-
-        // Verify session access
-        const { data: sessionCheck, error: sessionCheckError } = await supabase
-          .from('coaching_sessions')
-          .select(`
-            id,
-            target_id,
-            targets!inner(user_id, target_name)
-          `)
-          .eq('id', sessionId)
-          .eq('targets.user_id', user.id)
-          .single();
-
-        if (sessionCheckError || !sessionCheck) {
-          console.error('Session access check failed:', sessionCheckError);
-          if (mounted) {
-            setError('Session not found or access denied');
-            setLoading(false);
-          }
-          return;
-        }
-
-        // Load full session data
-        const sessionData = await getSession(sessionId);
-        if (!mounted) return;
-
-        console.log('Session data loaded:', sessionData);
-
-        // Get client info
-        const clientName = searchParams.get('target');
-        const client: Client = {
-          id: sessionData.target_id,
-          name: clientName ? decodeURIComponent(clientName) : sessionCheck.targets.target_name,
-          created_at: new Date().toISOString()
-        };
-
-        // Load previous sessions for context with proper type casting
-        const { data: prevSessions } = await supabase
-          .from('coaching_sessions')
-          .select('*')
-          .eq('target_id', sessionData.target_id)
-          .neq('id', sessionId)
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        if (mounted) {
-          setSession(sessionData);
-          setClient(client);
-          if (prevSessions) {
-            // Properly cast the database results to SessionData type
-            const formattedSessions: SessionData[] = prevSessions.map(s => ({
-              id: s.id,
-              target_id: s.target_id,
-              status: s.status as SessionStatus, // Proper type casting
-              messages: sanitizeChatHistory(s.raw_chat_history), // Use utility function to properly convert
-              strategist_output: validateStrategistOutput(s.strategist_output), // Use utility function for proper type conversion
-              case_file_data: (s.case_file_data && typeof s.case_file_data === 'object' && !Array.isArray(s.case_file_data)) ? s.case_file_data as Record<string, any> : {},
-              feedback_data: (s.feedback_data && typeof s.feedback_data === 'object' && !Array.isArray(s.feedback_data)) ? s.feedback_data as Record<string, any> : {},
-              user_feedback: s.user_feedback,
-              parent_session_id: s.parent_session_id,
-              is_continued: s.is_continued || false,
-              feedback_submitted_at: s.feedback_submitted_at,
-              feedback_rating: s.feedback_rating,
-              created_at: s.created_at,
-              case_data: (s.case_file_data && typeof s.case_file_data === 'object' && !Array.isArray(s.case_file_data)) ? s.case_file_data as Record<string, any> : {} // For backward compatibility
-            }));
-            setPreviousSessions(formattedSessions);
-          }
-          clearTimeout(timeoutId);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Error loading session:', error);
-        if (mounted) {
-          setError(`Failed to load session: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          setLoading(false);
-        }
-      }
-    };
-
-    loadSession();
-
-    return () => {
-      mounted = false;
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [sessionId, user, getSession, searchParams, loading]);
+  }, [sessionId, navigate, getSession, searchParams]);
 
   // Check if we should show onboarding
   useEffect(() => {
@@ -256,7 +194,7 @@ const Chat = () => {
     setShowOnboarding(false);
   };
 
-  // Show loading while auth or context is loading
+  // Show loading with better messaging
   if (loading || contextLoading) {
     return (
       <SecretRoomTheme>
@@ -265,10 +203,10 @@ const Chat = () => {
           <div className="text-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
             <p className="text-slate-300 font-medium">
-              {contextLoading ? 'Loading context...' : 'Preparing your secure coaching session...'}
+              {contextLoading ? 'Loading conversation context...' : 'Loading your coaching session...'}
             </p>
             <p className="text-slate-400 text-sm">
-              If this takes too long, please refresh the page
+              This should only take a few seconds
             </p>
           </div>
         </div>
