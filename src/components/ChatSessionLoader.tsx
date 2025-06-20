@@ -45,11 +45,11 @@ export const ChatSessionLoader = ({
         // Set a timeout to prevent infinite loading
         timeoutId = setTimeout(() => {
           if (mounted) {
-            console.error('Session loading timed out after 15 seconds');
+            console.error('Session loading timed out after 10 seconds');
             onError('Session loading timed out. Please try refreshing the page.');
             onLoading(false);
           }
-        }, 15000); // Increased timeout to 15 seconds
+        }, 10000);
 
         // First verify the session exists and user has access
         const { data: sessionCheck, error: sessionCheckError } = await supabase

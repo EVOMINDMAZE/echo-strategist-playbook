@@ -57,8 +57,12 @@ const Chat = () => {
   const handleAuthError = (authError: string) => {
     console.error('Auth error in Chat component:', authError);
     setError(authError);
-    setLoading(false);
     setAuthLoading(false);
+    
+    // Redirect to auth page after a short delay
+    setTimeout(() => {
+      navigate('/auth');
+    }, 2000);
   };
 
   const handleSessionError = (sessionError: string) => {
@@ -125,21 +129,34 @@ const Chat = () => {
               {error || 'Session not found'}
             </h3>
             <p className="text-slate-400">
-              We couldn't load your coaching session. Please try again.
+              {error === 'Authentication required' 
+                ? 'Please sign in to access your coaching session.' 
+                : 'We couldn\'t load your coaching session. Please try again.'}
             </p>
             <div className="flex gap-4 justify-center">
-              <button 
-                onClick={() => window.location.reload()} 
-                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-              >
-                Retry
-              </button>
-              <button 
-                onClick={() => navigate('/clients')} 
-                className="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors"
-              >
-                Return to Clients
-              </button>
+              {error === 'Authentication required' ? (
+                <button 
+                  onClick={() => navigate('/auth')} 
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                >
+                  Sign In
+                </button>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => window.location.reload()} 
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                  >
+                    Retry
+                  </button>
+                  <button 
+                    onClick={() => navigate('/clients')} 
+                    className="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors"
+                  >
+                    Return to Clients
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

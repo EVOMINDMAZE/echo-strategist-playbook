@@ -18,7 +18,6 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { useNotifications } from '@/hooks/useNotifications';
-import { useSupabaseCoaching } from '@/hooks/useSupabaseCoaching';
 import {
   Popover,
   PopoverContent,
@@ -35,37 +34,41 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [clientCount, setClientCount] = useState(0);
+  const [loadingCount, setLoadingCount] = useState(true);
   const { notifications, unreadCount, markAsRead, markAllAsRead, loading } = useNotifications();
-  const { loadUserSessions, sessions } = useSupabaseCoaching();
 
   // Load real client count
   useEffect(() => {
     const loadClientCount = async () => {
-      if (!user) return;
+      if (!user) {
+        setClientCount(0);
+        setLoadingCount(false);
+        return;
+      }
       
       try {
+        setLoadingCount(true);
         const { data, error } = await supabase
           .from('targets')
           .select('id')
           .eq('user_id', user.id);
         
-        if (!error && data) {
-          setClientCount(data.length);
+        if (error) {
+          console.error('Error loading client count:', error);
+          setClientCount(0);
+        } else {
+          setClientCount(data?.length || 0);
         }
       } catch (error) {
         console.error('Error loading client count:', error);
+        setClientCount(0);
+      } finally {
+        setLoadingCount(false);
       }
     };
 
     loadClientCount();
   }, [user]);
-
-  // Load sessions for additional context
-  useEffect(() => {
-    if (user) {
-      loadUserSessions();
-    }
-  }, [user, loadUserSessions]);
 
   const navigationItems = [
     { 
@@ -79,7 +82,7 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
       label: 'Chats', 
       icon: MessageSquare,
       isActive: location.pathname === '/clients',
-      badge: clientCount > 0 ? clientCount.toString() : undefined
+      badge: loadingCount ? '...' : (clientCount > 0 ? clientCount.toString() : undefined)
     },
     { 
       path: '/analytics', 
@@ -119,18 +122,19 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
     <nav className="bg-white/80 backdrop-blur-lg border-b border-gray-200 shadow-sm sticky top-0 z-50 w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center flex-shrink-0">
+          <div className="flex items-center flex-shrink-0 min-w-0">
             <button
               onClick={() => navigate('/')}
-              className="flex items-center space-x-2 text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent hover:from-blue-700 hover:to-indigo-700 transition-all"
+              className="flex items-center space-x-2 text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent hover:from-blue-700 hover:to-indigo-700 transition-all"
             >
-              <Zap className="w-8 h-8 text-blue-600 flex-shrink-0" />
-              <span className="whitespace-nowrap">Coaching Assistant</span>
+              <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 flex-shrink-0" />
+              <span className="hidden sm:block whitespace-nowrap">Coaching Assistant</span>
+              <span className="sm:hidden">Coach</span>
             </button>
           </div>
 
           {user && (
-            <div className="hidden md:flex items-center space-x-1 flex-shrink-0">
+            <div className="hidden md:flex items-center space-x-1 flex-shrink-0 mx-4">
               {navigationItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -138,14 +142,14 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
                     key={item.path}
                     variant={item.isActive ? "default" : "ghost"}
                     onClick={() => navigate(item.path)}
-                    className={`relative flex items-center space-x-2 transition-all duration-200 ${
+                    className={`relative flex items-center space-x-2 transition-all duration-200 text-sm ${
                       item.isActive 
                         ? 'bg-blue-600 text-white shadow-md' 
                         : 'hover:bg-blue-50 hover:text-blue-700'
                     }`}
                   >
                     <Icon size={16} />
-                    <span>{item.label}</span>
+                    <span className="hidden lg:block">{item.label}</span>
                     {item.badge && (
                       <Badge variant="secondary" className="ml-1 text-xs">
                         {item.badge}
@@ -157,7 +161,7 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
             </div>
           )}
 
-          <div className="flex items-center space-x-4 flex-shrink-0">
+          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
             {user && (
               <>
                 <form onSubmit={handleQuickSearch} className="hidden sm:block">
@@ -168,7 +172,7 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
                       placeholder="Quick search..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all w-64"
+                      className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all w-48 lg:w-64"
                     />
                   </div>
                 </form>
@@ -176,7 +180,7 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="ghost" size="icon" className="relative">
-                      <Bell size={20} />
+                      <Bell size={18} />
                       {unreadCount > 0 && (
                         <Badge 
                           variant="destructive" 
@@ -252,9 +256,9 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
 
                 <ThemeToggle />
 
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2 sm:space-x-3">
                   <div className="hidden sm:block text-right">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-gray-900 truncate max-w-32">
                       {user.user_metadata?.full_name || user.email}
                     </div>
                     <div className="text-xs text-gray-500">
@@ -269,7 +273,7 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
                       onClick={() => navigate('/profile')}
                       className="hover:bg-blue-50"
                     >
-                      <User size={18} />
+                      <User size={16} />
                     </Button>
                     
                     <Button
@@ -278,7 +282,7 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
                       onClick={() => navigate('/settings')}
                       className="hover:bg-blue-50"
                     >
-                      <Settings size={18} />
+                      <Settings size={16} />
                     </Button>
                     
                     <Button
@@ -287,7 +291,7 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
                       onClick={handleSignOut}
                       className="hover:bg-red-50 hover:text-red-600"
                     >
-                      <LogOut size={18} />
+                      <LogOut size={16} />
                     </Button>
                   </div>
                 </div>

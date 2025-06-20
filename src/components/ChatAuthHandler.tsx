@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 
@@ -10,6 +9,8 @@ interface ChatAuthHandlerProps {
 }
 
 export const ChatAuthHandler = ({ onUserLoad, onError }: ChatAuthHandlerProps) => {
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
+
   useEffect(() => {
     let mounted = true;
     
@@ -19,26 +20,34 @@ export const ChatAuthHandler = ({ onUserLoad, onError }: ChatAuthHandlerProps) =
         if (!mounted) return;
         
         if (!authSession) {
-          console.log('No auth session, redirecting to auth');
-          window.location.href = '/auth';
+          console.log('No auth session found');
+          onError('Authentication required');
           return;
         }
+        
         onUserLoad(authSession.user);
-        console.log('User authenticated:', authSession.user.id);
+        console.log('User authenticated successfully:', authSession.user.id);
       } catch (error) {
         console.error('Auth initialization error:', error);
         if (mounted) onError('Authentication failed');
+      } finally {
+        if (mounted) setHasCheckedAuth(true);
       }
     };
 
-    initAuth();
+    // Only run once
+    if (!hasCheckedAuth) {
+      initAuth();
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!mounted) return;
+        console.log('Auth state changed:', event, session?.user?.id);
+        
         if (session) {
           onUserLoad(session.user);
-        } else {
+        } else if (event === 'SIGNED_OUT') {
           window.location.href = '/auth';
         }
       }
@@ -48,7 +57,7 @@ export const ChatAuthHandler = ({ onUserLoad, onError }: ChatAuthHandlerProps) =
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [onUserLoad, onError]);
+  }, [onUserLoad, onError, hasCheckedAuth]);
 
   return null; // This is a logic-only component
 };
