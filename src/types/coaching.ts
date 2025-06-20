@@ -1,3 +1,4 @@
+
 export interface Client {
   id: string;
   name: string;
@@ -14,6 +15,14 @@ export interface ChatMessage {
 
 export type SessionStatus = 'gathering_info' | 'analyzing' | 'complete' | 'error';
 
+export interface StrategicSuggestion {
+  title: string;
+  description: string;
+  reply_example?: string;
+  why_it_works: string;
+  timing_advice?: string;
+}
+
 export interface SessionData {
   id: string;
   target_id: string;
@@ -21,11 +30,13 @@ export interface SessionData {
   messages: ChatMessage[];
   strategist_output?: {
     analysis?: string;
-    suggestions?: Array<{
-      title: string;
-      description: string;
-      why_it_works: string;
+    suggestions?: StrategicSuggestion[];
+    potential_obstacles?: Array<{
+      obstacle: string;
+      solution: string;
     }>;
+    success_indicators?: string[];
+    follow_up_timeline?: string;
   };
   case_file_data?: Record<string, any>;
   feedback_data?: Record<string, any>;

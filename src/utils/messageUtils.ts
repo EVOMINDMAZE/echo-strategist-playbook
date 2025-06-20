@@ -68,7 +68,7 @@ export const validateStrategistOutput = (rawOutput: any): any => {
     console.log('=== UTILS: Created analysis from relationship_summary and key_insights');
   }
 
-  // Map strategic_recommendations to suggestions with enhanced structure
+  // Map strategic_recommendations to suggestions with enhanced structure including reply_example and timing_advice
   if (Array.isArray(output.strategic_recommendations)) {
     result.suggestions = output.strategic_recommendations.map((rec: any, index: number) => {
       console.log(`=== UTILS: Processing recommendation ${index}:`, rec);
@@ -121,7 +121,7 @@ export const validateStrategistOutput = (rawOutput: any): any => {
     }
   }
 
-  // Add additional context data
+  // Add additional context data with proper mapping
   if (Array.isArray(output.potential_obstacles)) {
     result.potential_obstacles = output.potential_obstacles;
   }
@@ -140,7 +140,8 @@ export const validateStrategistOutput = (rawOutput: any): any => {
     hasAnalysis: !!result.analysis,
     suggestionCount: result.suggestions ? result.suggestions.length : 0,
     hasObstacles: !!result.potential_obstacles,
-    hasSuccessIndicators: !!result.success_indicators
+    hasSuccessIndicators: !!result.success_indicators,
+    hasFollowUpTimeline: !!result.follow_up_timeline
   });
 
   return hasValidContent ? result : undefined;
