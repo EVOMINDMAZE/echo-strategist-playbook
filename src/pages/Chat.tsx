@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { EnhancedNavigation } from '@/components/EnhancedNavigation';
@@ -184,15 +185,15 @@ const Chat = () => {
               status: s.status as SessionStatus, // Proper type casting
               messages: sanitizeChatHistory(s.raw_chat_history), // Use utility function to properly convert
               strategist_output: validateStrategistOutput(s.strategist_output), // Use utility function for proper type conversion
-              case_file_data: s.case_file_data || {},
-              feedback_data: s.feedback_data || {},
+              case_file_data: (s.case_file_data && typeof s.case_file_data === 'object' && !Array.isArray(s.case_file_data)) ? s.case_file_data as Record<string, any> : {},
+              feedback_data: (s.feedback_data && typeof s.feedback_data === 'object' && !Array.isArray(s.feedback_data)) ? s.feedback_data as Record<string, any> : {},
               user_feedback: s.user_feedback,
               parent_session_id: s.parent_session_id,
               is_continued: s.is_continued || false,
               feedback_submitted_at: s.feedback_submitted_at,
               feedback_rating: s.feedback_rating,
               created_at: s.created_at,
-              case_data: s.case_file_data || {} // For backward compatibility
+              case_data: (s.case_file_data && typeof s.case_file_data === 'object' && !Array.isArray(s.case_file_data)) ? s.case_file_data as Record<string, any> : {} // For backward compatibility
             }));
             setPreviousSessions(formattedSessions);
           }
