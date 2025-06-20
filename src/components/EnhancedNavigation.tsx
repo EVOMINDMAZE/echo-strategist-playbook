@@ -27,55 +27,74 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [clientCount, setClientCount] = useState(0);
-  const [loadingCount, setLoadingCount] = useState(true);
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [loadingCounts, setLoadingCounts] = useState(true);
 
-  // Load real client count
+  // Load real counts
   useEffect(() => {
-    const loadClientCount = async () => {
+    const loadCounts = async () => {
       if (!user) {
         setClientCount(0);
-        setLoadingCount(false);
+        setNotificationCount(0);
+        setLoadingCounts(false);
         return;
       }
       
       try {
-        setLoadingCount(true);
-        const { data, error } = await supabase
+        // Load client count
+        const { data: targets, error: targetsError } = await supabase
           .from('targets')
           .select('id')
           .eq('user_id', user.id);
         
-        if (error) {
-          console.error('Error loading client count:', error);
-          setClientCount(0);
+        if (targetsError) {
+          console.error('Error loading client count:', targetsError);
         } else {
-          setClientCount(data?.length || 0);
+          setClientCount(targets?.length || 0);
+        }
+
+        // Load notification count
+        const { data: notifications, error: notificationsError } = await supabase
+          .from('notifications')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('is_read', false);
+        
+        if (notificationsError) {
+          console.error('Error loading notification count:', notificationsError);
+        } else {
+          setNotificationCount(notifications?.length || 0);
         }
       } catch (error) {
-        console.error('Error loading client count:', error);
-        setClientCount(0);
+        console.error('Error loading counts:', error);
       } finally {
-        setLoadingCount(false);
+        setLoadingCounts(false);
       }
     };
 
-    loadClientCount();
+    loadCounts();
 
-    // Set up real-time updates for client count
+    // Set up real-time updates
     if (user) {
-      const channel = supabase
-        .channel('targets-changes')
+      const targetsChannel = supabase
+        .channel('targets-realtime')
         .on('postgres_changes', 
           { event: '*', schema: 'public', table: 'targets', filter: `user_id=eq.${user.id}` },
-          () => {
-            console.log('Targets changed, reloading count');
-            loadClientCount();
-          }
+          () => loadCounts()
+        )
+        .subscribe();
+
+      const notificationsChannel = supabase
+        .channel('notifications-realtime')
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+          () => loadCounts()
         )
         .subscribe();
 
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(targetsChannel);
+        supabase.removeChannel(notificationsChannel);
       };
     }
   }, [user]);
@@ -92,7 +111,7 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
       label: 'Chats', 
       icon: MessageSquare,
       isActive: location.pathname === '/clients',
-      badge: loadingCount ? '...' : (clientCount > 0 ? clientCount.toString() : undefined)
+      badge: loadingCounts ? '...' : (clientCount > 0 ? clientCount.toString() : undefined)
     },
     { 
       path: '/analytics', 
@@ -118,14 +137,14 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
     <nav className="bg-white/80 backdrop-blur-lg border-b border-gray-200 shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo section - fixed width to prevent shifting */}
-          <div className="flex items-center flex-shrink-0 w-64">
+          {/* Logo section */}
+          <div className="flex items-center space-x-4 min-w-0 flex-shrink-0">
             <button
               onClick={() => navigate('/')}
               className="flex items-center space-x-2 text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent hover:from-blue-700 hover:to-indigo-700 transition-all"
             >
               <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 flex-shrink-0" />
-              <span className="hidden sm:block truncate">Coaching Assistant</span>
+              <span className="hidden sm:block">Coaching Assistant</span>
               <span className="sm:hidden">Coach</span>
             </button>
           </div>
@@ -140,14 +159,14 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
                     key={item.path}
                     variant={item.isActive ? "default" : "ghost"}
                     onClick={() => navigate(item.path)}
-                    className={`relative flex items-center space-x-2 transition-all duration-200 text-sm ${
+                    className={`relative flex items-center space-x-2 transition-all duration-200 text-sm whitespace-nowrap ${
                       item.isActive 
                         ? 'bg-blue-600 text-white shadow-md' 
                         : 'hover:bg-blue-50 hover:text-blue-700'
                     }`}
                   >
                     <Icon size={16} />
-                    <span className="whitespace-nowrap">{item.label}</span>
+                    <span>{item.label}</span>
                     {item.badge && (
                       <Badge variant="secondary" className="ml-1 text-xs">
                         {item.badge}
@@ -159,11 +178,11 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
             </div>
           )}
 
-          {/* Right section - fixed width */}
-          <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0 w-64 justify-end">
+          {/* Right section */}
+          <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
             {user && (
               <>
-                {/* Search - hidden on small screens to save space */}
+                {/* Search - hidden on small screens */}
                 <form onSubmit={handleQuickSearch} className="hidden lg:block">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -177,9 +196,14 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
                   </div>
                 </form>
 
-                {/* Notifications - simplified, no popup for now */}
-                <Button variant="ghost" size="icon">
+                {/* Notifications */}
+                <Button variant="ghost" size="icon" className="relative">
                   <Bell size={18} />
+                  {notificationCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 text-xs bg-red-500 text-white">
+                      {notificationCount > 9 ? '9+' : notificationCount}
+                    </Badge>
+                  )}
                 </Button>
 
                 <ThemeToggle />
@@ -255,7 +279,7 @@ export const EnhancedNavigation = ({ user }: EnhancedNavigationProps) => {
                   <Icon size={16} />
                   <span className="text-xs truncate">{item.label}</span>
                   {item.badge && (
-                    <Badge variant="secondary" className="absolute -top-1 -right-1 text-xs">
+                    <Badge variant="secondary" className="absolute -top-1 -right-1 text-xs h-5 w-5">
                       {item.badge}
                     </Badge>
                   )}

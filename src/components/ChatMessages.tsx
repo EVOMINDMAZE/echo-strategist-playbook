@@ -27,6 +27,33 @@ export const ChatMessages = ({
 }: ChatMessagesProps) => {
   return (
     <>
+      {/* Welcome message if no messages */}
+      {messages.length === 0 && !isLoading && (
+        <div className="flex justify-start animate-fade-in">
+          <div className="max-w-[80%] rounded-2xl px-6 py-4 bg-slate-800/60 backdrop-blur-sm text-slate-100 shadow-lg border border-slate-700/50">
+            <div className="prose prose-sm max-w-none">
+              <p className="mb-2 text-sm text-slate-100">
+                Hi there! I'm here to help you navigate your relationship with this person. 
+                Feel free to share what's on your mind - whether it's a specific situation, 
+                ongoing challenges, or something you'd like advice on.
+              </p>
+              <p className="mb-0 text-sm text-slate-300">
+                What would you like to talk about today?
+              </p>
+            </div>
+            <div className="flex justify-between items-center mt-3 pt-2 border-t border-slate-600/30">
+              <span className="text-xs opacity-70">
+                {new Date().toLocaleTimeString()}
+              </span>
+              <div className="flex items-center space-x-1 text-xs opacity-70">
+                <Lock className="w-3 h-3" />
+                <span>AI Response</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Messages */}
       {messages.map((message, index) => (
         <div
@@ -43,13 +70,13 @@ export const ChatMessages = ({
             <div className="prose prose-sm max-w-none">
               <ReactMarkdown
                 components={{
-                  p: ({ children }) => <p className="mb-2 last:mb-0 text-inherit">{children}</p>,
-                  ul: ({ children }) => <ul className="list-disc pl-4 mb-2 text-inherit">{children}</ul>,
-                  ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 text-inherit">{children}</ol>,
-                  li: ({ children }) => <li className="mb-1 text-inherit">{children}</li>,
+                  p: ({ children }) => <p className="mb-2 last:mb-0 text-sm text-inherit leading-relaxed">{children}</p>,
+                  ul: ({ children }) => <ul className="list-disc pl-4 mb-2 text-sm text-inherit">{children}</ul>,
+                  ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 text-sm text-inherit">{children}</ol>,
+                  li: ({ children }) => <li className="mb-1 text-sm text-inherit">{children}</li>,
                   strong: ({ children }) => <strong className="font-semibold text-inherit">{children}</strong>,
                   code: ({ children }) => (
-                    <code className="bg-slate-700/50 px-1 py-0.5 rounded text-sm text-inherit">{children}</code>
+                    <code className="bg-slate-700/50 px-1 py-0.5 rounded text-xs text-inherit">{children}</code>
                   ),
                 }}
               >
@@ -72,7 +99,7 @@ export const ChatMessages = ({
       ))}
 
       {/* Inline Strategist Prompt - shows after a few messages */}
-      {sessionStatus === 'gathering_info' && onStrategistTrigger && (
+      {sessionStatus === 'gathering_info' && onStrategistTrigger && messages.length >= 4 && (
         <InlineStrategistPrompt
           onTrigger={onStrategistTrigger}
           messageCount={messages.length}
@@ -80,7 +107,7 @@ export const ChatMessages = ({
         />
       )}
 
-      {/* Smart Reply Suggestions - Now with full database integration */}
+      {/* Smart Reply Suggestions - Now with real database integration */}
       {messages.length > 0 && messages[messages.length - 1]?.sender === 'ai' && !isLoading && (
         <SmartReplySuggestions
           sessionId={sessionId}

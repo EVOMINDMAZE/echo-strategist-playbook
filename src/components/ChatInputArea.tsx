@@ -33,6 +33,16 @@ export const ChatInputArea = ({
     if (!messageText) setInput(''); // Only clear input if not using preset message
   };
 
+  const getPlaceholderText = () => {
+    if (previousSessions.length > 0 && messages.length === 0) {
+      return "Continue the conversation or click a suggestion above...";
+    }
+    if (messages.length === 0) {
+      return "Share what's on your mind about this person or situation...";
+    }
+    return "Continue sharing your thoughts and feelings...";
+  };
+
   return (
     <div className="border-t border-slate-700/50 bg-slate-800/60 backdrop-blur-xl">
       <div className="px-4 py-4">
@@ -41,12 +51,8 @@ export const ChatInputArea = ({
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={
-                previousSessions.length > 0 && messages.length === 0
-                  ? "Continue the conversation or click a follow-up question above..."
-                  : "Share your thoughts, feelings, and situation details..."
-              }
-              className="min-h-[60px] max-h-32 resize-none bg-slate-700/50 border-slate-600/50 text-white placeholder-slate-400 focus:border-purple-500/50 focus:ring-purple-500/20 rounded-xl"
+              placeholder={getPlaceholderText()}
+              className="min-h-[60px] max-h-32 resize-none bg-slate-700/50 border-slate-600/50 text-white placeholder-slate-400 focus:border-purple-500/50 focus:ring-purple-500/20 rounded-xl text-sm leading-relaxed"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -67,6 +73,9 @@ export const ChatInputArea = ({
             <Send className="w-4 h-4" />
           </Button>
         </form>
+        <div className="mt-2 text-xs text-slate-500 text-center">
+          Press Enter to send • Shift+Enter for new line
+        </div>
       </div>
     </div>
   );

@@ -36,9 +36,10 @@ const Chat = () => {
   const { updateSession, getSession } = useSupabaseCoaching();
   const { hasContext, loading: contextLoading } = useIntelligentOnboarding(sessionId || '');
 
-  // Simplified authentication check
+  // Simplified authentication check with timeout
   useEffect(() => {
     let mounted = true;
+    let timeoutId: NodeJS.Timeout;
 
     const checkAuth = async () => {
       try {
@@ -72,6 +73,15 @@ const Chat = () => {
       }
     };
 
+    // Set timeout to prevent infinite loading
+    timeoutId = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('Authentication check timeout');
+        setError('Authentication timeout - please refresh the page');
+        setLoading(false);
+      }
+    }, 10000); // 10 second timeout
+
     checkAuth();
 
     // Set up auth state listener
@@ -89,13 +99,15 @@ const Chat = () => {
 
     return () => {
       mounted = false;
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, loading]);
 
-  // Simplified session loading
+  // Simplified session loading with timeout
   useEffect(() => {
     let mounted = true;
+    let timeoutId: NodeJS.Timeout;
 
     const loadSession = async () => {
       if (!sessionId || !user) {
@@ -107,6 +119,15 @@ const Chat = () => {
         setLoading(true);
         setError(null);
         console.log('Loading session:', sessionId);
+
+        // Set timeout for session loading
+        timeoutId = setTimeout(() => {
+          if (mounted && loading) {
+            console.warn('Session loading timeout');
+            setError('Session loading timeout - please try again');
+            setLoading(false);
+          }
+        }, 15000); // 15 second timeout
 
         // Verify session access
         const { data: sessionCheck, error: sessionCheckError } = await supabase
@@ -143,9 +164,26 @@ const Chat = () => {
           created_at: new Date().toISOString()
         };
 
+        // Load previous sessions for context
+        const { data: prevSessions } = await supabase
+          .from('coaching_sessions')
+          .select('*')
+          .eq('target_id', sessionData.target_id)
+          .neq('id', sessionId)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
         if (mounted) {
           setSession(sessionData);
           setClient(client);
+          if (prevSessions) {
+            setPreviousSessions(prevSessions.map(s => ({
+              ...s,
+              messages: Array.isArray(s.raw_chat_history) ? s.raw_chat_history : [],
+              case_data: s.case_file_data || {}
+            })));
+          }
+          clearTimeout(timeoutId);
           setLoading(false);
         }
       } catch (error) {
@@ -161,8 +199,9 @@ const Chat = () => {
 
     return () => {
       mounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [sessionId, user, getSession, searchParams]);
+  }, [sessionId, user, getSession, searchParams, loading]);
 
   // Check if we should show onboarding
   useEffect(() => {
@@ -183,13 +222,6 @@ const Chat = () => {
       console.log('Session updated successfully');
     } catch (error) {
       console.error('Error saving session:', error);
-    }
-  };
-
-  const handleStatusChange = (status: SessionStatus) => {
-    if (session) {
-      const updatedSession = { ...session, status };
-      setSession(updatedSession);
     }
   };
 
@@ -220,6 +252,9 @@ const Chat = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
             <p className="text-slate-300 font-medium">
               {contextLoading ? 'Loading context...' : 'Preparing your secure coaching session...'}
+            </p>
+            <p className="text-slate-400 text-sm">
+              If this takes too long, please refresh the page
             </p>
           </div>
         </div>

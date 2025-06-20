@@ -14,10 +14,35 @@ interface SmartReplySuggestionsProps {
     sender: string;
     timestamp: string;
   }>;
-  onSuggestionClick: (suggestion: string) => void;
+  on SuggestionClick: (suggestion: string) => void;
   onDismiss?: () => void;
   isVisible: boolean;
 }
+
+// Fallback suggestions based on conversation context
+const getFallbackSuggestions = (messages: any[]) => {
+  const messageCount = messages.length;
+  
+  if (messageCount <= 2) {
+    return [
+      { id: 'fb1', text: "Can you tell me more about your relationship with this person?", priority: 'high' as const },
+      { id: 'fb2', text: "What specific situation are you dealing with right now?", priority: 'medium' as const },
+      { id: 'fb3', text: "How long have you known each other?", priority: 'medium' as const }
+    ];
+  } else if (messageCount <= 4) {
+    return [
+      { id: 'fb4', text: "How does this situation make you feel?", priority: 'high' as const },
+      { id: 'fb5', text: "What have you tried before to address this?", priority: 'medium' as const },
+      { id: 'fb6', text: "What would an ideal outcome look like for you?", priority: 'medium' as const }
+    ];
+  } else {
+    return [
+      { id: 'fb7', text: "What's the most challenging aspect of this situation?", priority: 'high' as const },
+      { id: 'fb8', text: "Are there any patterns you've noticed in your interactions?", priority: 'medium' as const },
+      { id: 'fb9', text: "What support do you have in dealing with this?", priority: 'medium' as const }
+    ];
+  }
+};
 
 export const SmartReplySuggestions = ({ 
   sessionId,
@@ -35,13 +60,24 @@ export const SmartReplySuggestions = ({
   });
 
   const [displayedSuggestions, setDisplayedSuggestions] = useState(suggestions);
+  const [usingFallback, setUsingFallback] = useState(false);
 
   useEffect(() => {
-    setDisplayedSuggestions(suggestions);
-  }, [suggestions]);
+    if (suggestions.length > 0) {
+      setDisplayedSuggestions(suggestions);
+      setUsingFallback(false);
+    } else if (!loading && messages.length > 0) {
+      // Use fallback suggestions when API fails or returns empty
+      const fallbacks = getFallbackSuggestions(messages);
+      setDisplayedSuggestions(fallbacks);
+      setUsingFallback(true);
+    }
+  }, [suggestions, loading, messages]);
 
   const handleSuggestionClick = async (suggestion: any) => {
-    await recordSuggestionClick(suggestion.id, suggestion.text);
+    if (!usingFallback) {
+      await recordSuggestionClick(suggestion.id, suggestion.text);
+    }
     onSuggestionClick(suggestion.text);
   };
 
@@ -57,8 +93,8 @@ export const SmartReplySuggestions = ({
   const getSuggestionTypeLabel = () => {
     const messageCount = messages.length;
     if (messageCount <= 2) return 'Getting Started';
-    if (messageCount <= 4) return 'Adding Context';
-    if (messageCount <= 6) return 'Specific Details';
+    if (messageCount <= 4) return 'Building Context';
+    if (messageCount <= 6) return 'Exploring Details';
     return 'Deep Dive';
   };
 
@@ -69,7 +105,9 @@ export const SmartReplySuggestions = ({
           <CardTitle className="text-sm text-green-800 dark:text-green-200 flex items-center flex-wrap gap-2">
             <div className="flex items-center">
               <Brain className="w-4 h-4 mr-2 flex-shrink-0" />
-              <span className="whitespace-nowrap">AI-Powered Suggestions</span>
+              <span className="whitespace-nowrap">
+                {usingFallback ? 'Coaching Questions' : 'AI-Powered Suggestions'}
+              </span>
             </div>
             <Badge variant="outline" className="text-xs border-green-300 text-green-600 flex-shrink-0">
               {getSuggestionTypeLabel()}
@@ -105,7 +143,12 @@ export const SmartReplySuggestions = ({
         <div className="flex items-start space-x-2 mb-3">
           <Lightbulb className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-green-700 dark:text-green-300 leading-relaxed">
-            {loading ? 'Generating contextual suggestions...' : 'Smart suggestions based on your conversation:'}
+            {loading 
+              ? 'Generating contextual suggestions...' 
+              : usingFallback 
+                ? 'Here are some questions to help deepen our conversation:'
+                : 'Smart suggestions based on your conversation:'
+            }
           </p>
         </div>
         
@@ -123,12 +166,12 @@ export const SmartReplySuggestions = ({
                 variant="outline"
                 size="sm"
                 onClick={() => handleSuggestionClick(suggestion)}
-                className={`w-full text-left justify-start text-xs h-auto p-3 border-green-200 hover:bg-green-100 hover:border-green-300 dark:border-green-700 dark:hover:bg-green-900/50 text-green-800 dark:text-green-200 ${
+                className={`w-full text-left justify-start text-sm h-auto p-3 border-green-200 hover:bg-green-100 hover:border-green-300 dark:border-green-700 dark:hover:bg-green-900/50 text-green-800 dark:text-green-200 leading-relaxed ${
                   suggestion.priority === 'high' ? 'ring-1 ring-green-300' : ''
                 }`}
               >
                 <ArrowRight className="w-3 h-3 mr-2 flex-shrink-0 mt-0.5" />
-                <span className="text-left leading-relaxed break-words flex-1 min-w-0">
+                <span className="text-left break-words flex-1 min-w-0">
                   {suggestion.text}
                 </span>
                 {suggestion.priority === 'high' && (
