@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { EnhancedNavigation } from '@/components/EnhancedNavigation';
@@ -164,7 +163,7 @@ const Chat = () => {
           created_at: new Date().toISOString()
         };
 
-        // Load previous sessions for context
+        // Load previous sessions for context with proper type casting
         const { data: prevSessions } = await supabase
           .from('coaching_sessions')
           .select('*')
@@ -177,11 +176,24 @@ const Chat = () => {
           setSession(sessionData);
           setClient(client);
           if (prevSessions) {
-            setPreviousSessions(prevSessions.map(s => ({
-              ...s,
+            // Properly cast the database results to SessionData type
+            const formattedSessions: SessionData[] = prevSessions.map(s => ({
+              id: s.id,
+              target_id: s.target_id,
+              status: s.status as SessionStatus, // Proper type casting
               messages: Array.isArray(s.raw_chat_history) ? s.raw_chat_history : [],
-              case_data: s.case_file_data || {}
-            })));
+              strategist_output: s.strategist_output,
+              case_file_data: s.case_file_data || {},
+              feedback_data: s.feedback_data || {},
+              user_feedback: s.user_feedback,
+              parent_session_id: s.parent_session_id,
+              is_continued: s.is_continued || false,
+              feedback_submitted_at: s.feedback_submitted_at,
+              feedback_rating: s.feedback_rating,
+              created_at: s.created_at,
+              case_data: s.case_file_data || {} // For backward compatibility
+            }));
+            setPreviousSessions(formattedSessions);
           }
           clearTimeout(timeoutId);
           setLoading(false);

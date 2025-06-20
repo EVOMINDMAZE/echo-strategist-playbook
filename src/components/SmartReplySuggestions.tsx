@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,21 +24,21 @@ const getFallbackSuggestions = (messages: any[]) => {
   
   if (messageCount <= 2) {
     return [
-      { id: 'fb1', text: "Can you tell me more about your relationship with this person?", priority: 'high' as const },
-      { id: 'fb2', text: "What specific situation are you dealing with right now?", priority: 'medium' as const },
-      { id: 'fb3', text: "How long have you known each other?", priority: 'medium' as const }
+      { id: 'fb1', text: "Can you tell me more about your relationship with this person?", priority: 'high' as const, type: 'context_gathering' },
+      { id: 'fb2', text: "What specific situation are you dealing with right now?", priority: 'medium' as const, type: 'situation_clarification' },
+      { id: 'fb3', text: "How long have you known each other?", priority: 'medium' as const, type: 'relationship_history' }
     ];
   } else if (messageCount <= 4) {
     return [
-      { id: 'fb4', text: "How does this situation make you feel?", priority: 'high' as const },
-      { id: 'fb5', text: "What have you tried before to address this?", priority: 'medium' as const },
-      { id: 'fb6', text: "What would an ideal outcome look like for you?", priority: 'medium' as const }
+      { id: 'fb4', text: "How does this situation make you feel?", priority: 'high' as const, type: 'emotional_exploration' },
+      { id: 'fb5', text: "What have you tried before to address this?", priority: 'medium' as const, type: 'previous_attempts' },
+      { id: 'fb6', text: "What would an ideal outcome look like for you?", priority: 'medium' as const, type: 'goal_setting' }
     ];
   } else {
     return [
-      { id: 'fb7', text: "What's the most challenging aspect of this situation?", priority: 'high' as const },
-      { id: 'fb8', text: "Are there any patterns you've noticed in your interactions?", priority: 'medium' as const },
-      { id: 'fb9', text: "What support do you have in dealing with this?", priority: 'medium' as const }
+      { id: 'fb7', text: "What's the most challenging aspect of this situation?", priority: 'high' as const, type: 'challenge_identification' },
+      { id: 'fb8', text: "Are there any patterns you've noticed in your interactions?", priority: 'medium' as const, type: 'pattern_recognition' },
+      { id: 'fb9', text: "What support do you have in dealing with this?", priority: 'medium' as const, type: 'support_assessment' }
     ];
   }
 };
