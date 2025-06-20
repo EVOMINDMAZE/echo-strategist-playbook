@@ -27,8 +27,9 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [needsFeedback, setNeedsFeedback] = useState(false);
   
-  // Chat states
+  // Chat states - Fixed loading state management
   const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
   const [previousSessions, setPreviousSessions] = useState<SessionData[]>([]);
   const [dismissedMessages, setDismissedMessages] = useState<string[]>([]);
@@ -197,6 +198,12 @@ const Chat = () => {
     console.log('- Messages count:', updatedSession.messages.length);
     
     setSession(updatedSession);
+    
+    // Reset loading state when session is updated
+    if (updatedSession.status === 'complete' && updatedSession.strategist_output) {
+      setIsGeneratingStrategy(false);
+    }
+    
     try {
       await updateSession(updatedSession.id, updatedSession);
       console.log('Session updated successfully in database');
@@ -261,6 +268,7 @@ const Chat = () => {
       console.log('- Will trigger ResultsView?:', updatedSessionData.status === 'complete' && !!updatedSessionData.strategist_output);
       
       setSession(updatedSessionData);
+      setIsGeneratingStrategy(false); // Explicitly reset loading state
       toast.success('Strategic analysis complete!');
       
     } catch (error) {
@@ -279,6 +287,13 @@ const Chat = () => {
     console.log('=== FRONTEND: handleContinueSession called ===');
     if (!session) return;
     
+    // Check if feedback is required before continuing
+    if (session.status === 'complete' && !session.feedback_submitted_at) {
+      console.log('=== FRONTEND: Feedback required before continuing ===');
+      setNeedsFeedback(true);
+      return;
+    }
+    
     // Reset session status to allow re-analysis and continue chatting
     const continuedSession = {
       ...session,
@@ -287,9 +302,20 @@ const Chat = () => {
     };
     
     console.log('=== FRONTEND: Continuing session with status reset ===');
+    setIsGeneratingStrategy(false); // Ensure loading state is reset
     await handleSessionUpdate(continuedSession);
-    
-    // The component will automatically re-render and show ChatView instead of ResultsView
+  };
+
+  const handleFeedbackComplete = () => {
+    setNeedsFeedback(false);
+    // Now continue the session after feedback is complete
+    if (session) {
+      const continuedSession = {
+        ...session,
+        status: 'gathering_info' as SessionStatus,
+      };
+      handleSessionUpdate(continuedSession);
+    }
   };
 
   const handleDismissMessage = (messageType: string) => {
@@ -377,8 +403,38 @@ const Chat = () => {
   console.log('- Session status:', session?.status);
   console.log('- Has strategist output:', !!session?.strategist_output);
   console.log('- Should show ResultsView:', session?.status === 'complete' && !!session?.strategist_output);
+  console.log('- Needs feedback:', needsFeedback);
 
-  if (session.status === 'complete' && session.strategist_output) {
+  // Show feedback modal if needed
+  if (needsFeedback && session && client) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <h3 className="text-lg font-semibold mb-4">Feedback Required</h3>
+          <p className="text-gray-600 mb-6">
+            Please provide feedback on your previous analysis before continuing the chat.
+          </p>
+          <div className="flex space-x-3">
+            <Button 
+              onClick={handleFeedbackComplete}
+              className="flex-1"
+            >
+              Provide Feedback
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => setNeedsFeedback(false)}
+              className="flex-1"
+            >
+              Skip for Now
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (session?.status === 'complete' && session?.strategist_output && !needsFeedback) {
     console.log('=== FRONTEND: Rendering ResultsView with session:', {
       id: session.id,
       status: session.status,
@@ -397,6 +453,7 @@ const Chat = () => {
             messages: [],
             strategist_output: undefined
           };
+          setIsGeneratingStrategy(false);
           handleSessionUpdate(newSession);
         }}
         onContinueSession={handleContinueSession}
@@ -408,8 +465,7 @@ const Chat = () => {
 
   return (
     <ErrorBoundary>
-      <SecretRoomTheme>
-        <EnhancedNavigation user={user} />
+      <div className="h-screen flex flex-col overflow-hidden">
         <ChatView
           session={session}
           client={client}
@@ -422,7 +478,7 @@ const Chat = () => {
           handleDismissMessage={handleDismissMessage}
           setPreviousSessions={setPreviousSessions}
         />
-      </SecretRoomTheme>
+      </div>
     </ErrorBoundary>
   );
 };

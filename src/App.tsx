@@ -12,7 +12,7 @@ import { User } from "@supabase/supabase-js";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
-import About from "./pages/About";
+import About from "./pages/About";  
 import Pricing from "./pages/Pricing";
 import Clients from "./pages/Clients";
 import Profile from "./pages/Profile";
@@ -72,10 +72,10 @@ const AppContent = () => {
   if (shouldShowSidebar) {
     return (
       <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+        <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 overflow-hidden">
           <AppSidebar user={user} />
-          <SidebarInset className="flex-1">
-            <main className="flex-1 overflow-auto">
+          <SidebarInset className="flex-1 overflow-hidden">
+            <main className="flex-1 h-screen overflow-auto">
               <Routes>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/clients" element={<Clients />} />
@@ -94,7 +94,7 @@ const AppContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 overflow-x-hidden">
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Auth />} />

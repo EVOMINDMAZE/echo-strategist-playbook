@@ -46,7 +46,7 @@ const ChatView = ({
   });
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
       <ChatViewHeader
         session={session}
         target={client}
@@ -60,7 +60,7 @@ const ChatView = ({
       <div className="flex-1 overflow-hidden">
         <div className="h-full max-w-4xl mx-auto">
           <div className="flex flex-col h-full">
-            <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+            <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 custom-scrollbar">
               <SessionHistoryLoader
                 targetId={session.target_id}
                 currentSessionId={session.id}
@@ -95,13 +95,15 @@ const ChatView = ({
               <div ref={activeMessagesEndRef} />
             </div>
 
-            <ChatInputArea
-              session={session}
-              previousSessions={previousSessions}
-              messages={session.messages}
-              isLoading={isGeneratingStrategy}
-              onSubmit={handleSendMessage}
-            />
+            <div className="flex-shrink-0">
+              <ChatInputArea
+                session={session}
+                previousSessions={previousSessions}
+                messages={session.messages}
+                isLoading={isGeneratingStrategy}
+                onSubmit={handleSendMessage}
+              />
+            </div>
           </div>
         </div>
       </div>
