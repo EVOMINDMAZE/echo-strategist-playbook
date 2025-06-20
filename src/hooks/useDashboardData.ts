@@ -22,6 +22,8 @@ export const useDashboardData = (userId: string) => {
 
   const loadDashboardData = async (userId: string) => {
     try {
+      console.log('Loading dashboard data for user:', userId);
+
       // Load recent coaching sessions with target names
       const { data: sessions } = await supabase
         .from('coaching_sessions')
@@ -37,29 +39,12 @@ export const useDashboardData = (userId: string) => {
         .limit(5);
 
       if (sessions) {
+        console.log('Recent sessions loaded:', sessions.length);
         setRecentActivity(sessions);
       }
 
-      // Use the new database function for accurate stats
-      const { data: statsData, error: statsError } = await supabase
-        .rpc('get_user_stats', { user_id_input: userId });
-
-      if (statsError) {
-        console.error('Error loading stats:', statsError);
-        // Fallback to manual calculation
-        await loadStatsManually(userId);
-      } else if (statsData && statsData.length > 0) {
-        const stats = statsData[0];
-        setQuickStats({
-          totalChats: Number(stats.total_sessions) || 0,
-          activeClients: Number(stats.active_targets) || 0,
-          thisWeekSessions: Number(stats.this_week_sessions) || 0,
-          avgSessionTime: '25 min', // Placeholder - could be calculated from session data
-          completionRate: stats.total_sessions > 0 
-            ? Math.round((Number(stats.completed_sessions) / Number(stats.total_sessions)) * 100) 
-            : 0
-        });
-      }
+      // Load stats manually using existing queries
+      await loadStatsManually(userId);
 
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -70,17 +55,47 @@ export const useDashboardData = (userId: string) => {
 
   const loadStatsManually = async (userId: string) => {
     try {
+      console.log('Loading stats manually for user:', userId);
+
       // Load targets count
-      const { data: targets } = await supabase
+      const { data: targets, error: targetsError } = await supabase
         .from('targets')
         .select('id')
         .eq('user_id', userId);
 
-      // Load all sessions
-      const { data: allSessions } = await supabase
+      if (targetsError) {
+        console.error('Error loading targets:', targetsError);
+        return;
+      }
+
+      console.log('Targets loaded:', targets?.length || 0);
+
+      // Load all sessions for this user's targets
+      const targetIds = targets?.map(t => t.id) || [];
+      
+      if (targetIds.length === 0) {
+        console.log('No targets found, setting empty stats');
+        setQuickStats({
+          totalChats: 0,
+          activeClients: 0,
+          thisWeekSessions: 0,
+          avgSessionTime: '0 min',
+          completionRate: 0
+        });
+        return;
+      }
+
+      const { data: allSessions, error: sessionsError } = await supabase
         .from('coaching_sessions')
         .select('id, status, created_at')
-        .in('target_id', targets?.map(t => t.id) || []);
+        .in('target_id', targetIds);
+
+      if (sessionsError) {
+        console.error('Error loading sessions:', sessionsError);
+        return;
+      }
+
+      console.log('Sessions loaded:', allSessions?.length || 0);
 
       const thisWeekStart = new Date();
       thisWeekStart.setDate(thisWeekStart.getDate() - 7);
@@ -92,13 +107,16 @@ export const useDashboardData = (userId: string) => {
       const completedSessions = allSessions?.filter(s => s.status === 'complete').length || 0;
       const totalSessions = allSessions?.length || 0;
 
-      setQuickStats({
+      const newStats = {
         totalChats: totalSessions,
         activeClients: targets?.length || 0,
         thisWeekSessions,
         avgSessionTime: '25 min',
         completionRate: totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0
-      });
+      };
+
+      console.log('Updated stats:', newStats);
+      setQuickStats(newStats);
 
     } catch (error) {
       console.error('Error in manual stats loading:', error);
@@ -107,6 +125,7 @@ export const useDashboardData = (userId: string) => {
 
   useEffect(() => {
     if (userId) {
+      console.log('Dashboard data hook: loading data for user', userId);
       loadDashboardData(userId);
     }
   }, [userId]);

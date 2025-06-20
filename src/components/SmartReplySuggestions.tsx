@@ -136,7 +136,7 @@ export const SmartReplySuggestions = ({
     const messageCount = messages.length;
     if (messageCount <= 2) return 'Getting Started';
     if (messageCount <= 4) return 'Building Context';
-    if (message <6) return 'Exploring Details';
+    if (messageCount <= 6) return 'Exploring Details';
     return 'Deep Dive';
   };
 
