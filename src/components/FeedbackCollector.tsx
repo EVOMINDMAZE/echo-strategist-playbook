@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Star, Send, CheckCircle, MessageSquare, Sparkles, ArrowRight } from 'lucide-react';
 import { SessionData, Client } from '@/types/coaching';
 import { SmartFeedbackPrompts } from '@/components/SmartFeedbackPrompts';
@@ -19,7 +20,7 @@ interface FeedbackCollectorProps {
 
 interface FeedbackData {
   rating: number;
-  suggestionsTriedCount: number;
+  selectedSuggestions: string[];
   outcomeRating: number;
   whatWorkedWell: string;
   whatDidntWork: string;
@@ -36,7 +37,7 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
 
   const [feedback, setFeedback] = useState<FeedbackData>({
     rating: 0,
-    suggestionsTriedCount: 0,
+    selectedSuggestions: [],
     outcomeRating: 0,
     whatWorkedWell: '',
     whatDidntWork: '',
@@ -48,6 +49,15 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
 
   const handleRatingClick = (rating: number, field: 'rating' | 'outcomeRating') => {
     setFeedback(prev => ({ ...prev, [field]: rating }));
+  };
+
+  const handleSuggestionToggle = (suggestionTitle: string) => {
+    setFeedback(prev => ({
+      ...prev,
+      selectedSuggestions: prev.selectedSuggestions.includes(suggestionTitle)
+        ? prev.selectedSuggestions.filter(title => title !== suggestionTitle)
+        : [...prev.selectedSuggestions, suggestionTitle]
+    }));
   };
 
   const handleSmartPromptSelect = (prompt: string) => {
@@ -98,7 +108,7 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
           user_id: user.id,
           target_id: session.target_id,
           rating: feedback.rating,
-          suggestions_tried: suggestions.slice(0, feedback.suggestionsTriedCount).map(s => s.title),
+          suggestions_tried: feedback.selectedSuggestions,
           outcome_rating: feedback.outcomeRating || null,
           what_worked_well: feedback.whatWorkedWell || null,
           what_didnt_work: feedback.whatDidntWork || null,
@@ -115,7 +125,7 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
           feedback_submitted_at: new Date().toISOString(),
           feedback_data: {
             outcome_rating: feedback.outcomeRating,
-            suggestions_tried_count: feedback.suggestionsTriedCount,
+            suggestions_tried_count: feedback.selectedSuggestions.length,
             has_detailed_feedback: !!(feedback.whatWorkedWell || feedback.whatDidntWork || feedback.additionalNotes)
           }
         })
@@ -171,7 +181,7 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MessageSquare className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-slate-800 mb-2">
@@ -234,27 +244,20 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
             <div className="space-y-3">
               {suggestions.map((suggestion, index) => (
                 <div
-                  key={index}
+                  key={`${suggestion.title}-${index}`}
                   className={`p-4 rounded-lg border cursor-pointer transition-all duration-300 transform hover:scale-105 ${
-                    index < feedback.suggestionsTriedCount
-                      ? 'bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-200 shadow-md'
+                    feedback.selectedSuggestions.includes(suggestion.title)
+                      ? 'bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200 shadow-md'
                       : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
                   }`}
-                  onClick={() => setFeedback(prev => ({ 
-                    ...prev, 
-                    suggestionsTriedCount: index < feedback.suggestionsTriedCount ? index : index + 1 
-                  }))}
+                  onClick={() => handleSuggestionToggle(suggestion.title)}
                 >
                   <div className="flex items-start space-x-3">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 mt-1 ${
-                      index < feedback.suggestionsTriedCount
-                        ? 'bg-indigo-500 border-indigo-500'
-                        : 'border-gray-300'
-                    }`}>
-                      {index < feedback.suggestionsTriedCount && (
-                        <CheckCircle className="w-3 h-3 text-white" />
-                      )}
-                    </div>
+                    <Checkbox
+                      checked={feedback.selectedSuggestions.includes(suggestion.title)}
+                      onChange={() => {}} // Handled by parent click
+                      className="mt-1"
+                    />
                     <div className="flex-1">
                       <span className="font-medium text-slate-700 block mb-1">
                         {suggestion.title}
@@ -270,10 +273,10 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
               ))}
             </div>
             
-            {feedback.suggestionsTriedCount > 0 && (
+            {feedback.selectedSuggestions.length > 0 && (
               <div className="text-center animate-fade-in">
                 <Badge variant="secondary" className="px-4 py-2">
-                  {feedback.suggestionsTriedCount} of {suggestions.length} strategies selected
+                  {feedback.selectedSuggestions.length} of {suggestions.length} strategies selected
                 </Badge>
               </div>
             )}
@@ -281,7 +284,7 @@ export const FeedbackCollector = ({ session, client, onFeedbackSubmitted }: Feed
         );
 
       case 3:
-        return feedback.suggestionsTriedCount > 0 ? (
+        return feedback.selectedSuggestions.length > 0 ? (
           <div className="space-y-6">
             <div className="text-center">
               <h3 className="text-xl font-semibold text-slate-800 mb-2">

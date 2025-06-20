@@ -18,37 +18,91 @@ export const useNotifications = () => {
 
   useEffect(() => {
     loadNotifications();
+
+    // Set up real-time subscription for notifications
+    const { data: { user } } = supabase.auth.getUser();
+    user?.then((userData) => {
+      if (userData.user) {
+        const notificationsChannel = supabase
+          .channel('notifications-realtime')
+          .on('postgres_changes',
+            { 
+              event: '*', 
+              schema: 'public', 
+              table: 'notifications', 
+              filter: `user_id=eq.${userData.user.id}` 
+            },
+            () => {
+              console.log('Notifications changed, reloading...');
+              loadNotifications();
+            }
+          )
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(notificationsChannel);
+        };
+      }
+    });
   }, []);
 
   const loadNotifications = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setNotifications([]);
+        setUnreadCount(0);
+        setLoading(false);
+        return;
+      }
 
-      const { data, error } = await supabase
+      const {  data, error } = await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading notifications:', error);
+        // Create a sample notification if none exist for demo purposes
+        if (error.code === 'PGRST116') { // No rows returned
+          const sampleNotifications: Notification[] = [
+            {
+              id: 'sample-1',
+              title: 'Welcome to Coaching Assistant!',
+              message: 'Start your first coaching session to get personalized relationship insights.',
+              type: 'info',
+              is_read: false,
+              created_at: new Date().toISOString()
+            }
+          ];
+          setNotifications(sampleNotifications);
+          setUnreadCount(1);
+        } else {
+          setNotifications([]);
+          setUnreadCount(0);
+        }
+      } else {
+        // Map database types to our interface types
+        const mappedNotifications: Notification[] = (data || []).map(notification => ({
+          id: notification.id,
+          title: notification.title,
+          message: notification.message,
+          type: (['info', 'success', 'warning', 'error'].includes(notification.type) 
+            ? notification.type 
+            : 'info') as Notification['type'],
+          is_read: notification.is_read || false,
+          created_at: notification.created_at
+        }));
 
-      // Map database types to our interface types
-      const mappedNotifications: Notification[] = (data || []).map(notification => ({
-        id: notification.id,
-        title: notification.title,
-        message: notification.message,
-        type: (['info', 'success', 'warning', 'error'].includes(notification.type) 
-          ? notification.type 
-          : 'info') as Notification['type'],
-        is_read: notification.is_read || false,
-        created_at: notification.created_at
-      }));
-
-      setNotifications(mappedNotifications);
-      setUnreadCount(mappedNotifications.filter(n => !n.is_read).length);
+        setNotifications(mappedNotifications);
+        setUnreadCount(mappedNot
+        ifications.filter(n => !n.is_read).length);
+      }
     } catch (error) {
       console.error('Error loading notifications:', error);
+      setNotifications([]);
+      setUnreadCount(0);
     } finally {
       setLoading(false);
     }
@@ -56,6 +110,15 @@ export const useNotifications = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
+      // For sample notifications, just update local state
+      if (notificationId.startsWith('sample-')) {
+        setNotifications(prev => prev.map(n => 
+          n.id === notificationId ? { ...n, is_read: true } : n
+        ));
+        setUnreadCount(prev => Math.max(0, prev - 1));
+        return;
+      }
+
       const { error } = await supabase
         .from('notifications')
         .update({ is_read: true })
@@ -76,6 +139,14 @@ export const useNotifications = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      // For sample notifications, just update local state
+      const hasSampleNotifications = notifications.some(n => n.id.startsWith('sample-'));
+      if (hasSampleNotifications) {
+        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+        setUnreadCount(0);
+        return;
+      }
 
       const { error } = await supabase
         .from('notifications')
