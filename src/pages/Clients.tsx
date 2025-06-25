@@ -8,9 +8,10 @@ import { ClientsHeader } from '@/components/ClientsHeader';
 import { ClientCard } from '@/components/ClientCard';
 import { ClientsEmptyState } from '@/components/ClientsEmptyState';
 import { ClientsProTips } from '@/components/ClientsProTips';
-import { Users, Star } from 'lucide-react';
+import { Users, Star, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
+import { Badge, Input, Search } from '@/components/ui';
 
 const Clients = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -187,28 +188,68 @@ const Clients = () => {
   }
 
   return (
-    <div className="min-h-screen warm-gradient">
+    <div className="min-h-screen bg-cream-50 dark:bg-slate-900">
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <ClientsHeader
-          clients={clients}
-          favoriteClients={favoriteClients}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          onCreateClient={handleCreateClient}
-        />
+        {/* Enhanced Header with Better Contrast */}
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-8 space-y-4 lg:space-y-0">
+          <div className="flex-1">
+            <h1 className="text-4xl font-bold font-serif warm-text mb-2">
+              My Clients
+            </h1>
+            <p className="text-lg warm-text-muted mb-4">
+              Manage your coaching relationships and track progress
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge variant="info" className="px-3 py-1 text-sm">
+                <Users className="w-4 h-4 mr-1" />
+                {clients.length} Total Client{clients.length !== 1 ? 's' : ''}
+              </Badge>
+              {favoriteClients.length > 0 && (
+                <Badge variant="warning" className="px-3 py-1 text-sm">
+                  <Star className="w-4 h-4 mr-1" />
+                  {favoriteClients.length} Favorite{favoriteClients.length !== 1 ? 's' : ''}
+                </Badge>
+              )}
+              <Badge variant="success" className="px-3 py-1 text-sm">
+                <TrendingUp className="w-4 h-4 mr-1" />
+                Growing Strong
+              </Badge>
+            </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-visible w-4 h-4" />
+              <Input
+                placeholder="Search clients..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-full sm:w-64 warm-input"
+              />
+            </div>
+            <ClientsHeader
+              clients={clients}
+              favoriteClients={favoriteClients}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              onCreateClient={handleCreateClient}
+            />
+          </div>
+        </div>
 
+        {/* Enhanced Tabs with Consistent Structure */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2 bg-white dark:bg-charcoal-800 shadow-soft border border-sage-200 dark:border-charcoal-600">
+          <TabsList className="grid w-full max-w-md grid-cols-2 bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700">
             <TabsTrigger 
               value="all" 
-              className="flex items-center gap-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white"
+              className="flex items-center gap-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white warm-text"
             >
               <Users size={16} />
               All Clients ({clients.length})
             </TabsTrigger>
             <TabsTrigger 
               value="favorites" 
-              className="flex items-center gap-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white"
+              className="flex items-center gap-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white warm-text"
             >
               <Star size={16} />
               Favorites ({favoriteClients.length})

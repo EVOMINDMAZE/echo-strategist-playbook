@@ -7,13 +7,26 @@ export const ThemeToggle = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    // Check system preference first, then localStorage
+    // Check localStorage first, then system preference
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
     const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
     
     setTheme(initialTheme);
     applyTheme(initialTheme);
+
+    // Listen for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (!localStorage.getItem('theme')) {
+        const newTheme = e.matches ? 'dark' : 'light';
+        setTheme(newTheme);
+        applyTheme(newTheme);
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
   const applyTheme = (newTheme: 'light' | 'dark') => {
@@ -37,7 +50,7 @@ export const ThemeToggle = () => {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      className="hover:bg-sage-100 hover:text-charcoal transition-colors"
+      className="icon-interactive hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
     >
       {theme === 'light' ? (
         <Moon className="h-5 w-5" />

@@ -68,7 +68,7 @@ const Dashboard = () => {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen warm-gradient">
+      <div className="min-h-screen bg-cream-50 dark:bg-slate-900">
         <div className="flex items-center justify-center h-screen">
           <div className="text-center space-y-4">
             <div className="animate-warm-pulse rounded-full h-12 w-12 bg-teal-600 mx-auto flex items-center justify-center">
@@ -82,19 +82,19 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen warm-gradient">
+    <div className="min-h-screen bg-cream-50 dark:bg-slate-900">
       <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
         <AnimationWrapper type="fade-in" delay={0}>
           <DashboardHeader user={user} />
         </AnimationWrapper>
 
-        {/* Welcome Message with Warm Design */}
+        {/* Enhanced Welcome Message */}
         <AnimationWrapper type="fade-in" delay={50}>
           <Card className="mb-6 sm:mb-8 warm-card border-teal-200 dark:border-teal-700/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-teal-100 dark:bg-teal-900/30 rounded-full shadow-soft">
+                  <div className="p-3 bg-teal-100 dark:bg-teal-900/30 rounded-full shadow-sm">
                     <Heart className="w-6 h-6 text-teal-700 dark:text-teal-300" />
                   </div>
                   <div>
@@ -107,7 +107,7 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="hidden sm:flex items-center space-x-3">
-                  <Badge className="bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-700/30">
+                  <Badge variant="info" className="text-sm">
                     Premium Experience
                   </Badge>
                 </div>
@@ -116,16 +116,16 @@ const Dashboard = () => {
           </Card>
         </AnimationWrapper>
 
-        {/* Tab Navigation with Warm Design */}
+        {/* Enhanced Tab Navigation */}
         <AnimationWrapper type="fade-in" delay={100}>
-          <div className="flex space-x-1 bg-white dark:bg-charcoal-800 p-1 rounded-xl mb-6 sm:mb-8 max-w-md shadow-soft border border-sage-200 dark:border-charcoal-600">
+          <div className="flex space-x-1 bg-white dark:bg-slate-800 p-1 rounded-xl mb-6 sm:mb-8 max-w-md shadow-sm border border-slate-200 dark:border-slate-700">
             <Button
               variant={activeTab === 'overview' ? 'default' : 'ghost'}
               onClick={() => setActiveTab('overview')}
               className={`flex-1 transition-all duration-300 ${
                 activeTab === 'overview' 
-                  ? 'bg-teal-600 hover:bg-teal-700 text-white shadow-soft' 
-                  : 'warm-text hover:bg-sage-50 dark:hover:bg-charcoal-700'
+                  ? 'bg-teal-600 hover:bg-teal-700 text-white shadow-sm' 
+                  : 'warm-text hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}
             >
               <MessageSquare className="w-4 h-4 mr-2" />
@@ -136,8 +136,8 @@ const Dashboard = () => {
               onClick={() => setActiveTab('insights')}
               className={`flex-1 transition-all duration-300 ${
                 activeTab === 'insights' 
-                  ? 'bg-teal-600 hover:bg-teal-700 text-white shadow-soft' 
-                  : 'warm-text hover:bg-sage-50 dark:hover:bg-charcoal-700'
+                  ? 'bg-teal-600 hover:bg-teal-700 text-white shadow-sm' 
+                  : 'warm-text hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}
             >
               <Brain className="w-4 h-4 mr-2" />
@@ -172,7 +172,7 @@ const Dashboard = () => {
               <DashboardStats userId={user.id} />
             </AnimationWrapper>
 
-            {/* Coaching Philosophy with Warm Design */}
+            {/* Enhanced Coaching Philosophy */}
             <AnimationWrapper type="fade-in" delay={700}>
               <Card className="mt-8 warm-card">
                 <CardHeader>
@@ -191,14 +191,14 @@ const Dashboard = () => {
                       </p>
                     </div>
                     <div className="text-center p-6 warm-card warm-hover">
-                      <Shield className="w-10 h-10 text-sage-600 dark:text-sage-400 mx-auto mb-3 animate-organic-float" style={{ animationDelay: '2s' }} />
+                      <Shield className="w-10 h-10 text-slate-600 dark:text-slate-400 mx-auto mb-3 animate-organic-float" style={{ animationDelay: '2s' }} />
                       <h4 className="font-serif font-semibold warm-text mb-2">Safe Space</h4>
                       <p className="text-sm warm-text-muted">
                         Your conversations remain completely private and secure
                       </p>
                     </div>
                     <div className="text-center p-6 warm-card warm-hover">
-                      <TrendingUp className="w-10 h-10 text-terracotta-600 dark:text-terracotta-400 mx-auto mb-3 animate-organic-float" style={{ animationDelay: '4s' }} />
+                      <TrendingUp className="w-10 h-10 text-blue-600 dark:text-blue-400 mx-auto mb-3 animate-organic-float" style={{ animationDelay: '4s' }} />
                       <h4 className="font-serif font-semibold warm-text mb-2">Personal Growth</h4>
                       <p className="text-sm warm-text-muted">
                         Strategies that evolve with your unique relationship journey

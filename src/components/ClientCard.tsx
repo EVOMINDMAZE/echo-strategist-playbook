@@ -32,40 +32,34 @@ export const ClientCard = ({
 }: ClientCardProps) => {
   const hasExistingSessions = sessionCount > 0;
 
-  const cardClasses = isFavoriteView 
-    ? "group hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200 shadow-lg transform hover:-translate-y-1"
-    : "group hover:shadow-2xl transition-all duration-300 bg-white/90 backdrop-blur-sm border-0 shadow-lg transform hover:-translate-y-1";
-
-  const avatarClasses = isFavoriteView
-    ? "w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-lg group-hover:scale-110 transition-transform flex-shrink-0"
-    : "w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-lg group-hover:scale-110 transition-transform flex-shrink-0";
-
-  const titleHoverClass = isFavoriteView ? "group-hover:text-orange-600" : "group-hover:text-blue-600";
-
   return (
     <Card 
-      className={cardClasses}
+      className="group warm-card hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
       style={{ animationDelay: `${index * 0.1}s` }}
     >
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3 flex-1 min-w-0">
             <div className="relative">
-              <div className={avatarClasses}>
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg group-hover:scale-110 transition-transform flex-shrink-0 ${
+                isFavoriteView 
+                  ? 'bg-gradient-to-br from-amber-500 to-orange-600' 
+                  : 'bg-gradient-to-br from-teal-500 to-blue-600'
+              }`}>
                 {client.name.charAt(0).toUpperCase()}
               </div>
               {hasExistingSessions && (
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-600 rounded-full flex items-center justify-center shadow-sm">
                   <span className="text-xs text-white font-bold">{sessionCount}</span>
                 </div>
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <CardTitle className={`text-lg ${titleHoverClass} transition-colors flex items-center gap-2`}>
-                <span className="truncate" title={client.name}>{client.name}</span>
-                {isFavoriteView && <Star size={16} className="text-yellow-500 fill-yellow-500 flex-shrink-0" />}
+              <CardTitle className="text-lg warm-text group-hover:text-teal-600 transition-colors flex items-center gap-2 mb-1">
+                <span className="truncate font-serif" title={client.name}>{client.name}</span>
+                {isFavoriteView && <Star size={16} className="text-amber-500 fill-amber-500 flex-shrink-0" />}
               </CardTitle>
-              <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+              <p className="text-sm warm-text-muted flex items-center gap-1">
                 <Calendar size={12} />
                 <span className="truncate">
                   Added {new Date(client.created_at).toLocaleDateString()}
@@ -78,25 +72,28 @@ export const ClientCard = ({
               variant="ghost"
               size="icon"
               onClick={() => onToggleFavorite(client.id, client.name)}
-              className="h-8 w-8 hover:bg-yellow-50"
+              className="h-8 w-8 hover:bg-amber-50 dark:hover:bg-amber-900/20"
             >
               <Star 
                 size={16} 
-                className={`transition-colors ${
+                className={`transition-colors icon-interactive ${
                   client.is_favorite 
-                    ? 'text-yellow-500 fill-yellow-500' 
-                    : 'text-gray-400 hover:text-yellow-500'
+                    ? 'text-amber-500 fill-amber-500' 
+                    : 'hover:text-amber-500'
                 }`}
               />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreVertical size={16} />
+                  <MoreVertical size={16} className="icon-interactive" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => onToggleFavorite(client.id, client.name)}>
+              <DropdownMenuContent className="warm-card">
+                <DropdownMenuItem 
+                  onClick={() => onToggleFavorite(client.id, client.name)}
+                  className="warm-text cursor-pointer"
+                >
                   {client.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -106,24 +103,25 @@ export const ClientCard = ({
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <div className={`p-4 rounded-lg ${
+        <div className={`p-4 rounded-lg border ${
           isFavoriteView 
-            ? 'bg-gradient-to-r from-yellow-100 to-orange-100' 
+            ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 dark:from-amber-900/20 dark:to-orange-900/20 dark:border-amber-800/30' 
             : hasExistingSessions 
-              ? 'bg-gradient-to-r from-green-50 to-blue-50' 
-              : 'bg-gradient-to-r from-gray-50 to-blue-50'
+              ? 'bg-gradient-to-r from-green-50 to-teal-50 border-green-200 dark:from-green-900/20 dark:to-teal-900/20 dark:border-green-800/30'
+              : 'bg-gradient-to-r from-slate-50 to-blue-50 border-slate-200 dark:from-slate-800/50 dark:to-blue-900/20 dark:border-slate-700'
         }`}>
-          <div className="flex items-center justify-between text-sm">
-            <span className={`font-medium ${isFavoriteView ? 'text-gray-700' : 'text-gray-600'}`}>
+          <div className="flex items-center justify-between text-sm mb-2">
+            <span className="font-medium warm-text">
               {isFavoriteView ? '⭐ Favorite Client' : hasExistingSessions ? 'Session History' : 'Recent Activity'}
             </span>
-            <Badge variant={isFavoriteView ? undefined : "secondary"} className={
-              isFavoriteView ? "bg-yellow-200 text-yellow-800 text-xs" : "text-xs"
-            }>
+            <Badge 
+              variant={hasExistingSessions ? "success" : "secondary"} 
+              className="text-xs"
+            >
               {hasExistingSessions ? `${sessionCount} session${sessionCount !== 1 ? 's' : ''}` : 'New'}
             </Badge>
           </div>
-          <p className={`text-xs mt-2 ${isFavoriteView ? 'text-gray-600' : 'text-gray-500'}`}>
+          <p className="text-xs warm-text-muted">
             {isFavoriteView 
               ? hasExistingSessions 
                 ? 'Your starred client with ongoing coaching'
@@ -138,9 +136,9 @@ export const ClientCard = ({
         {hasExistingSessions ? (
           <Button 
             onClick={() => onContinueSession(client.id, client.name)}
-            className={`w-full flex items-center justify-center gap-2 group-hover:shadow-lg transition-all transform group-hover:scale-105 ${
+            className={`w-full flex items-center justify-center gap-2 warm-button font-medium ${
               isFavoriteView 
-                ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white'
+                ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700'
                 : 'bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700'
             }`}
           >
@@ -150,10 +148,10 @@ export const ClientCard = ({
         ) : (
           <Button 
             onClick={() => onStartSession(client.id, client.name)}
-            className={`w-full flex items-center justify-center gap-2 group-hover:shadow-lg transition-all transform group-hover:scale-105 ${
+            className={`w-full flex items-center justify-center gap-2 warm-button font-medium ${
               isFavoriteView 
-                ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white'
-                : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+                ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700'
+                : 'bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700'
             }`}
           >
             <PlayCircle size={16} />
@@ -161,7 +159,7 @@ export const ClientCard = ({
           </Button>
         )}
         
-        <div className="text-xs text-gray-500 text-center">
+        <div className="text-xs warm-text-muted text-center">
           {hasExistingSessions 
             ? 'Pick up where you left off with AI coaching'
             : 'Begin an AI-powered coaching conversation'
