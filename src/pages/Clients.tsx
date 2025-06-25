@@ -8,10 +8,11 @@ import { ClientsHeader } from '@/components/ClientsHeader';
 import { ClientCard } from '@/components/ClientCard';
 import { ClientsEmptyState } from '@/components/ClientsEmptyState';
 import { ClientsProTips } from '@/components/ClientsProTips';
-import { Users, Star, TrendingUp } from 'lucide-react';
+import { Users, Star, TrendingUp, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { Badge, Input, Search } from '@/components/ui';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 
 const Clients = () => {
   const [user, setUser] = useState<User | null>(null);
