@@ -192,13 +192,13 @@ const Clients = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* High Contrast Professional Header */}
+        {/* Clean Professional Header */}
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-8 space-y-6 lg:space-y-0">
           <div className="flex-1">
-            <h1 className="text-4xl font-bold font-serif professional-text-primary mb-3">
+            <h1 className="text-4xl font-bold text-foreground mb-3">
               My Clients
             </h1>
-            <p className="text-lg professional-text-secondary mb-6 font-medium">
+            <p className="text-lg text-muted-foreground mb-6">
               Manage your coaching relationships and track progress
             </p>
             <div className="flex flex-wrap items-center gap-4">
@@ -221,12 +221,12 @@ const Clients = () => {
           
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 professional-text-secondary w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
               <Input
                 placeholder="Search clients..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 w-full sm:w-80 professional-input text-base py-3"
+                className="pl-12 w-full sm:w-80 professional-input text-base py-3 bg-background border-border"
               />
             </div>
             <ClientsHeader
@@ -239,19 +239,19 @@ const Clients = () => {
           </div>
         </div>
 
-        {/* High Contrast Professional Tabs */}
+        {/* Clean Professional Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full max-w-lg grid-cols-2 bg-card shadow-lg border-2 border-border p-2 rounded-xl">
+          <TabsList className="grid w-full max-w-lg grid-cols-2 bg-muted p-1 rounded-lg h-12">
             <TabsTrigger 
               value="all" 
-              className="flex items-center gap-3 professional-tab-inactive data-[state=active]:professional-tab-active font-semibold text-base py-3 rounded-lg transition-all duration-200"
+              className="flex items-center gap-3 text-base py-2 rounded-md transition-all duration-200 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
             >
               <Users size={18} />
               All Clients ({clients.length})
             </TabsTrigger>
             <TabsTrigger 
               value="favorites" 
-              className="flex items-center gap-3 professional-tab-inactive data-[state=active]:professional-tab-active font-semibold text-base py-3 rounded-lg transition-all duration-200"
+              className="flex items-center gap-3 text-base py-2 rounded-md transition-all duration-200 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
             >
               <Star size={18} />
               Favorites ({favoriteClients.length})

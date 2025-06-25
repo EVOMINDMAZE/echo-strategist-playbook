@@ -168,7 +168,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
                         <Icon size={18} />
                         <span className="font-medium">{item.label}</span>
                         {item.badge && (
-                          <Badge variant="secondary" className="ml-auto text-xs">
+                          <Badge variant="secondary" className="ml-auto text-xs bg-muted text-muted-foreground">
                             {item.badge}
                           </Badge>
                         )}
@@ -216,7 +216,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
             <div className="mt-6 space-y-3 max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">
-                  <Bell className="w-12 h-12 mx-auto mb-3" />
+                  <Bell className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
                   <p>No notifications yet</p>
                 </div>
               ) : (

@@ -6,22 +6,22 @@
 
 @layer base {
   :root {
-    /* Simple Light Mode - High Contrast */
+    /* Clean Light Mode - High Contrast */
     --background: 255 255 255; /* Pure white */
-    --foreground: 17 17 17; /* Near black for text */
+    --foreground: 17 24 39; /* Dark gray for text */
     --card: 255 255 255; /* White cards */
-    --card-foreground: 17 17 17;
+    --card-foreground: 17 24 39;
     --popover: 255 255 255;
-    --popover-foreground: 17 17 17;
-    --primary: 59 130 246; /* Simple blue */
+    --popover-foreground: 17 24 39;
+    --primary: 59 130 246; /* Clean blue */
     --primary-foreground: 255 255 255;
-    --secondary: 107 114 128; /* Simple gray */
-    --secondary-foreground: 255 255 255;
+    --secondary: 243 244 246; /* Light gray */
+    --secondary-foreground: 17 24 39;
     --muted: 249 250 251; /* Very light gray */
-    --muted-foreground: 107 114 128;
-    --accent: 59 130 246; /* Same as primary */
-    --accent-foreground: 255 255 255;
-    --destructive: 239 68 68; /* Simple red */
+    --muted-foreground: 75 85 99;
+    --accent: 243 244 246; /* Light gray accent */
+    --accent-foreground: 17 24 39;
+    --destructive: 239 68 68; /* Red */
     --destructive-foreground: 255 255 255;
     --border: 229 231 235; /* Light border */
     --input: 255 255 255;
@@ -30,26 +30,26 @@
   }
 
   .dark {
-    /* Simple Dark Mode - High Contrast */
-    --background: 17 17 17; /* Near black */
-    --foreground: 245 245 245; /* Near white for text */
-    --card: 38 38 38; /* Dark gray cards */
-    --card-foreground: 245 245 245;
-    --popover: 38 38 38;
-    --popover-foreground: 245 245 245;
-    --primary: 96 165 250; /* Lighter blue for dark mode */
-    --primary-foreground: 17 17 17;
-    --secondary: 163 163 163; /* Light gray */
-    --secondary-foreground: 17 17 17;
-    --muted: 64 64 64; /* Medium dark gray */
-    --muted-foreground: 163 163 163;
-    --accent: 96 165 250; /* Same as primary */
-    --accent-foreground: 17 17 17;
-    --destructive: 248 113 113; /* Lighter red for dark */
-    --destructive-foreground: 17 17 17;
-    --border: 64 64 64; /* Dark border */
-    --input: 38 38 38;
-    --ring: 96 165 250;
+    /* Clean Dark Mode - High Contrast */
+    --background: 17 24 39; /* Dark blue-gray */
+    --foreground: 243 244 246; /* Light gray for text */
+    --card: 30 41 59; /* Slightly lighter dark */
+    --card-foreground: 243 244 246;
+    --popover: 30 41 59;
+    --popover-foreground: 243 244 246;
+    --primary: 59 130 246; /* Same blue */
+    --primary-foreground: 255 255 255;
+    --secondary: 51 65 85; /* Medium dark gray */
+    --secondary-foreground: 243 244 246;
+    --muted: 51 65 85; /* Medium dark gray */
+    --muted-foreground: 156 163 175;
+    --accent: 51 65 85; /* Medium dark gray */
+    --accent-foreground: 243 244 246;
+    --destructive: 239 68 68; /* Red */
+    --destructive-foreground: 255 255 255;
+    --border: 51 65 85; /* Dark border */
+    --input: 30 41 59;
+    --ring: 59 130 246;
   }
 }
 
@@ -67,31 +67,51 @@
     @apply text-foreground font-semibold;
   }
 
-  /* Simple focus styles */
+  /* Focus styles */
   *:focus-visible {
     @apply outline-2 outline-primary outline-offset-2;
   }
 }
 
-/* Remove all complex utilities, keep only simple ones */
+/* Clean, professional utilities */
 @layer utilities {
-  .simple-card {
+  .professional-card {
     @apply bg-card border border-border rounded-lg shadow-sm;
   }
 
-  .simple-button {
+  .professional-button {
     @apply bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-md font-medium transition-colors;
   }
 
-  .simple-input {
-    @apply bg-input border border-border text-foreground px-3 py-2 rounded-md;
+  .professional-input {
+    @apply bg-input border border-border text-foreground px-3 py-2 rounded-md placeholder:text-muted-foreground;
   }
 
-  .simple-text {
+  .professional-text-primary {
     @apply text-foreground;
   }
 
-  .simple-text-muted {
+  .professional-text-secondary {
     @apply text-muted-foreground;
+  }
+
+  .professional-text-muted {
+    @apply text-muted-foreground;
+  }
+
+  .professional-interactive {
+    @apply text-foreground hover:text-primary transition-colors;
+  }
+
+  .professional-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  }
+
+  .professional-tab-active {
+    @apply bg-primary text-primary-foreground shadow-sm;
+  }
+
+  .professional-tab-inactive {
+    @apply bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted;
   }
 }

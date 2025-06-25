@@ -34,14 +34,14 @@ export const ClientCard = ({
 
   return (
     <Card 
-      className="group professional-card hover:shadow-xl transition-all duration-300"
+      className="group professional-card hover:shadow-lg transition-all duration-300 bg-card border-border"
       style={{ animationDelay: `${index * 0.1}s` }}
     >
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-4 flex-1 min-w-0">
             <div className="relative">
-              <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform flex-shrink-0 shadow-lg ${
+              <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform flex-shrink-0 shadow-md ${
                 isFavoriteView 
                   ? 'bg-gradient-to-br from-amber-500 to-orange-600' 
                   : 'bg-gradient-to-br from-primary to-blue-600'
@@ -49,17 +49,17 @@ export const ClientCard = ({
                 {client.name.charAt(0).toUpperCase()}
               </div>
               {hasExistingSessions && (
-                <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-600 rounded-full flex items-center justify-center shadow-lg border-2 border-background">
                   <span className="text-sm text-white font-bold">{sessionCount}</span>
                 </div>
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <CardTitle className="text-xl professional-text-primary group-hover:text-primary transition-colors flex items-center gap-2 mb-2 font-serif">
+              <CardTitle className="text-xl text-foreground group-hover:text-primary transition-colors flex items-center gap-2 mb-2">
                 <span className="truncate" title={client.name}>{client.name}</span>
                 {isFavoriteView && <Star size={18} className="text-amber-500 fill-amber-500 flex-shrink-0" />}
               </CardTitle>
-              <p className="text-sm professional-text-secondary flex items-center gap-2 font-medium">
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
                 <Calendar size={14} />
                 <span className="truncate">
                   Added {new Date(client.created_at).toLocaleDateString()}
@@ -72,27 +72,27 @@ export const ClientCard = ({
               variant="ghost"
               size="icon"
               onClick={() => onToggleFavorite(client.id, client.name)}
-              className="h-10 w-10 hover:bg-muted border-2 border-transparent hover:border-amber-200"
+              className="h-10 w-10 hover:bg-muted border border-transparent hover:border-border"
             >
               <Star 
                 size={18} 
-                className={`transition-all professional-interactive ${
+                className={`transition-all ${
                   client.is_favorite 
                     ? 'text-amber-500 fill-amber-500 scale-110' 
-                    : 'hover:text-amber-500'
+                    : 'text-muted-foreground hover:text-amber-500'
                 }`}
               />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10 border-2 border-transparent hover:border-border">
-                  <MoreVertical size={18} className="professional-interactive" />
+                <Button variant="ghost" size="icon" className="h-10 w-10 border border-transparent hover:border-border hover:bg-muted">
+                  <MoreVertical size={18} className="text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="professional-card shadow-lg">
+              <DropdownMenuContent className="bg-card border-border shadow-lg">
                 <DropdownMenuItem 
                   onClick={() => onToggleFavorite(client.id, client.name)}
-                  className="professional-text-primary cursor-pointer font-medium hover:bg-muted"
+                  className="text-foreground cursor-pointer hover:bg-muted"
                 >
                   {client.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
                 </DropdownMenuItem>
@@ -103,7 +103,7 @@ export const ClientCard = ({
       </CardHeader>
       
       <CardContent className="space-y-5">
-        <div className={`p-5 rounded-lg border-2 ${
+        <div className={`p-4 rounded-lg border ${
           isFavoriteView 
             ? 'bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800/40' 
             : hasExistingSessions 
@@ -111,7 +111,7 @@ export const ClientCard = ({
               : 'bg-muted border-border'
         }`}>
           <div className="flex items-center justify-between text-sm mb-3">
-            <span className="font-semibold professional-text-primary">
+            <span className="font-semibold text-foreground">
               {isFavoriteView ? '⭐ Favorite Client' : hasExistingSessions ? 'Session History' : 'Recent Activity'}
             </span>
             <Badge 
@@ -121,7 +121,7 @@ export const ClientCard = ({
               {hasExistingSessions ? `${sessionCount} session${sessionCount !== 1 ? 's' : ''}` : 'New'}
             </Badge>
           </div>
-          <p className="text-sm professional-text-muted font-medium">
+          <p className="text-sm text-muted-foreground">
             {isFavoriteView 
               ? hasExistingSessions 
                 ? 'Your starred client with ongoing coaching'
@@ -136,10 +136,10 @@ export const ClientCard = ({
         {hasExistingSessions ? (
           <Button 
             onClick={() => onContinueSession(client.id, client.name)}
-            className={`w-full flex items-center justify-center gap-3 professional-button text-base py-4 ${
+            className={`w-full flex items-center justify-center gap-3 text-base py-4 ${
               isFavoriteView 
-                ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700'
-                : ''
+                ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white'
+                : 'professional-button'
             }`}
           >
             <ArrowRight size={18} />
@@ -148,10 +148,10 @@ export const ClientCard = ({
         ) : (
           <Button 
             onClick={() => onStartSession(client.id, client.name)}
-            className={`w-full flex items-center justify-center gap-3 professional-button text-base py-4 ${
+            className={`w-full flex items-center justify-center gap-3 text-base py-4 ${
               isFavoriteView 
-                ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700'
-                : ''
+                ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white'
+                : 'professional-button'
             }`}
           >
             <PlayCircle size={18} />
@@ -159,7 +159,7 @@ export const ClientCard = ({
           </Button>
         )}
         
-        <div className="text-sm professional-text-muted text-center font-medium">
+        <div className="text-sm text-muted-foreground text-center">
           {hasExistingSessions 
             ? 'Pick up where you left off with AI coaching'
             : 'Begin an AI-powered coaching conversation'
