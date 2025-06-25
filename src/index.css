@@ -6,50 +6,58 @@
 
 @layer base {
   :root {
-    /* New Light Mode - Clean & Professional */
-    --background: 248 249 250; /* #F8F9FA - Clean soft off-white */
-    --foreground: 33 37 41; /* #212529 - Dark readable charcoal */
+    /* Professional Light Mode - High Contrast */
+    --background: 255 255 255; /* Pure white background */
+    --foreground: 17 24 39; /* Dark slate for maximum readability */
     --card: 255 255 255; /* Pure white cards */
-    --card-foreground: 33 37 41;
+    --card-foreground: 17 24 39;
     --popover: 255 255 255;
-    --popover-foreground: 33 37 41;
-    --primary: 8 121 144; /* #087990 - Professional teal accent */
+    --popover-foreground: 17 24 39;
+    --primary: 37 99 235; /* Professional blue - high contrast */
     --primary-foreground: 255 255 255;
-    --secondary: 108 117 125; /* #6C757D - Clear secondary text */
+    --secondary: 71 85 105; /* Readable slate gray */
     --secondary-foreground: 255 255 255;
-    --muted: 233 236 239; /* #E9ECEF - Subtle backgrounds */
-    --muted-foreground: 108 117 125;
-    --accent: 8 121 144; /* Same as primary for consistency */
+    --muted: 248 250 252; /* Very light background for contrast */
+    --muted-foreground: 71 85 105; /* Darker for better readability */
+    --accent: 37 99 235; /* Same as primary for consistency */
     --accent-foreground: 255 255 255;
-    --destructive: 220 53 69; /* #DC3545 - Clear error red */
+    --destructive: 239 68 68; /* Clear red */
     --destructive-foreground: 255 255 255;
-    --border: 222 226 230; /* #DEE2E6 - Subtle borders */
-    --input: 255 255 255; /* White inputs with borders */
-    --ring: 8 121 144; /* Teal focus rings */
+    --border: 226 232 240; /* Clear border definition */
+    --input: 255 255 255; /* White inputs with clear borders */
+    --ring: 37 99 235; /* Blue focus rings */
     --radius: 0.5rem;
+    --success: 22 163 74; /* Clear green for success states */
+    --success-foreground: 255 255 255;
+    --warning: 245 158 11; /* Clear amber for warnings */
+    --warning-foreground: 255 255 255;
   }
 
   .dark {
-    /* New Dark Mode - True Dark with High Contrast */
-    --background: 24 26 27; /* #181A1B - Deep charcoal, not black */
-    --foreground: 232 234 237; /* #E8EAED - Soft readable off-white */
-    --card: 42 45 47; /* #2A2D2F - Slightly lighter for cards */
-    --card-foreground: 232 234 237;
-    --popover: 42 45 47;
-    --popover-foreground: 232 234 237;
-    --primary: 8 121 144; /* Same teal for brand consistency */
+    /* Professional Dark Mode - High Contrast */
+    --background: 15 23 42; /* Deep slate background */
+    --foreground: 248 250 252; /* Light text for maximum readability */
+    --card: 30 41 59; /* Slate card background */
+    --card-foreground: 248 250 252;
+    --popover: 30 41 59;
+    --popover-foreground: 248 250 252;
+    --primary: 59 130 246; /* Bright blue for dark mode */
     --primary-foreground: 255 255 255;
-    --secondary: 157 163 168; /* #9DA3A8 - Clear secondary text */
-    --secondary-foreground: 232 234 237;
-    --muted: 52 58 64; /* #343A40 - Subtle dark backgrounds */
-    --muted-foreground: 157 163 168;
-    --accent: 8 121 144; /* Same as primary */
+    --secondary: 148 163 184; /* Clear secondary text */
+    --secondary-foreground: 15 23 42;
+    --muted: 51 65 85; /* Muted backgrounds */
+    --muted-foreground: 148 163 184; /* Readable muted text */
+    --accent: 59 130 246; /* Same as primary */
     --accent-foreground: 255 255 255;
-    --destructive: 220 53 69; /* Same error red */
+    --destructive: 248 113 113; /* Clear red for dark */
     --destructive-foreground: 255 255 255;
-    --border: 73 80 87; /* #495057 - Visible dark borders */
-    --input: 42 45 47; /* Dark inputs */
-    --ring: 8 121 144; /* Same teal focus */
+    --border: 71 85 105; /* Clear borders in dark mode */
+    --input: 30 41 59; /* Dark inputs */
+    --ring: 59 130 246; /* Blue focus rings */
+    --success: 34 197 94; /* Bright green for dark mode */
+    --success-foreground: 255 255 255;
+    --warning: 251 191 36; /* Bright amber for dark mode */
+    --warning-foreground: 15 23 42;
   }
 }
 
@@ -64,11 +72,12 @@
     line-height: 1.6;
   }
 
-  /* Typography with clear hierarchy */
+  /* High contrast typography */
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Lora', Georgia, serif;
     line-height: 1.3;
     color: rgb(var(--foreground));
+    font-weight: 600;
   }
 
   h1 {
@@ -83,115 +92,137 @@
     @apply text-xl md:text-2xl font-medium;
   }
 
+  /* Improved text contrast */
   p {
     color: rgb(var(--secondary));
     line-height: 1.7;
   }
+
+  /* Ensure all interactive elements are visible */
+  button, input, select, textarea {
+    color: rgb(var(--foreground));
+  }
+
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* High contrast focus indicators */
+  *:focus-visible {
+    outline: 3px solid rgb(var(--primary));
+    outline-offset: 2px;
+  }
 }
 
 @layer utilities {
-  /* Professional component styles */
+  /* Professional component styles with high contrast */
   .professional-card {
-    @apply bg-card border border-border rounded-lg shadow-sm transition-all duration-200;
+    @apply bg-card border-2 border-border rounded-lg shadow-sm transition-all duration-200;
   }
 
   .professional-card:hover {
-    @apply shadow-md;
-    transform: translateY(-1px);
+    @apply shadow-lg border-primary/20;
+    transform: translateY(-2px);
   }
 
   .professional-button {
-    @apply bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-sm;
+    @apply bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-md;
   }
 
   .professional-button:hover {
-    @apply shadow-md;
+    @apply shadow-lg;
     transform: translateY(-1px);
   }
 
   .professional-input {
-    @apply bg-input border-2 border-border text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30 focus:border-primary rounded-lg;
+    @apply bg-input border-2 border-border text-foreground placeholder:text-muted-foreground focus:ring-4 focus:ring-primary/20 focus:border-primary rounded-lg px-4 py-3;
   }
 
+  /* High contrast text utilities */
   .professional-text-primary {
     color: rgb(var(--foreground));
+    font-weight: 600;
   }
 
   .professional-text-secondary {
     color: rgb(var(--secondary));
+    font-weight: 500;
   }
 
   .professional-text-muted {
     color: rgb(var(--muted-foreground));
+    font-weight: 400;
   }
 
-  /* Navigation styles */
+  /* Navigation with high contrast */
   .professional-nav {
-    @apply bg-card border-b border-border shadow-sm sticky top-0 z-50;
+    @apply bg-card border-b-2 border-border shadow-md sticky top-0 z-50;
   }
 
   .professional-sidebar {
-    @apply bg-card border-r border-border;
+    @apply bg-card border-r-2 border-border;
   }
 
-  /* Interactive elements */
+  /* High contrast interactive elements */
   .professional-interactive {
     color: rgb(var(--secondary));
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
+    font-weight: 500;
   }
 
   .professional-interactive:hover {
     color: rgb(var(--primary));
+    transform: scale(1.05);
   }
 
-  /* Badge system with proper contrast */
+  /* High contrast badge system */
   .professional-badge-primary {
-    @apply bg-primary text-primary-foreground border border-primary/20;
+    @apply bg-primary text-primary-foreground border-2 border-primary/30 font-semibold;
   }
 
   .professional-badge-secondary {
-    @apply bg-muted text-foreground border border-border;
+    @apply bg-secondary text-secondary-foreground border-2 border-secondary/30 font-semibold;
   }
 
   .professional-badge-success {
-    @apply bg-green-600 text-white border border-green-700;
+    background-color: rgb(var(--success));
+    color: rgb(var(--success-foreground));
+    @apply border-2 font-semibold;
+    border-color: rgb(var(--success) / 0.3);
   }
 
   .professional-badge-warning {
-    @apply bg-amber-600 text-white border border-amber-700;
+    background-color: rgb(var(--warning));
+    color: rgb(var(--warning-foreground));
+    @apply border-2 font-semibold;
+    border-color: rgb(var(--warning) / 0.3);
   }
 
   .professional-badge-info {
-    @apply bg-blue-600 text-white border border-blue-700;
+    @apply bg-blue-600 text-white border-2 border-blue-700/30 font-semibold;
+  }
+
+  /* High contrast tabs */
+  .professional-tab-active {
+    @apply bg-primary text-primary-foreground shadow-md border-2 border-primary/30;
+  }
+
+  .professional-tab-inactive {
+    @apply bg-muted text-foreground hover:bg-secondary/10 border-2 border-transparent;
   }
 }
 
 /* Responsive grid system */
 .professional-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
 }
 
 @media (max-width: 768px) {
   .professional-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 1.5rem;
   }
-}
-
-/* Ensure proper contrast for all interactive elements */
-button, input, select, textarea {
-  color: rgb(var(--foreground));
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Focus indicators for accessibility */
-*:focus-visible {
-  outline: 2px solid rgb(var(--primary));
-  outline-offset: 2px;
 }

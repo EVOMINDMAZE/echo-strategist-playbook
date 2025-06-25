@@ -192,41 +192,41 @@ const Clients = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Professional Header */}
-        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-8 space-y-4 lg:space-y-0">
+        {/* High Contrast Professional Header */}
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-8 space-y-6 lg:space-y-0">
           <div className="flex-1">
-            <h1 className="text-4xl font-bold font-serif professional-text-primary mb-2">
+            <h1 className="text-4xl font-bold font-serif professional-text-primary mb-3">
               My Clients
             </h1>
-            <p className="text-lg professional-text-secondary mb-4">
+            <p className="text-lg professional-text-secondary mb-6 font-medium">
               Manage your coaching relationships and track progress
             </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge variant="info" className="px-3 py-1 text-sm">
-                <Users className="w-4 h-4 mr-1" />
+            <div className="flex flex-wrap items-center gap-4">
+              <Badge variant="info" className="px-4 py-2 text-sm">
+                <Users className="w-4 h-4 mr-2" />
                 {clients.length} Total Client{clients.length !== 1 ? 's' : ''}
               </Badge>
               {favoriteClients.length > 0 && (
-                <Badge variant="warning" className="px-3 py-1 text-sm">
-                  <Star className="w-4 h-4 mr-1" />
+                <Badge variant="warning" className="px-4 py-2 text-sm">
+                  <Star className="w-4 h-4 mr-2" />
                   {favoriteClients.length} Favorite{favoriteClients.length !== 1 ? 's' : ''}
                 </Badge>
               )}
-              <Badge variant="success" className="px-3 py-1 text-sm">
-                <TrendingUp className="w-4 h-4 mr-1" />
+              <Badge variant="success" className="px-4 py-2 text-sm">
+                <TrendingUp className="w-4 h-4 mr-2" />
                 Growing Strong
               </Badge>
             </div>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 professional-interactive w-4 h-4" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 professional-text-secondary w-5 h-5" />
               <Input
                 placeholder="Search clients..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-full sm:w-64 professional-input"
+                className="pl-12 w-full sm:w-80 professional-input text-base py-3"
               />
             </div>
             <ClientsHeader
@@ -239,26 +239,26 @@ const Clients = () => {
           </div>
         </div>
 
-        {/* Professional Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2 bg-card shadow-professional border border-border">
+        {/* High Contrast Professional Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+          <TabsList className="grid w-full max-w-lg grid-cols-2 bg-card shadow-lg border-2 border-border p-2 rounded-xl">
             <TabsTrigger 
               value="all" 
-              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground professional-text-primary"
+              className="flex items-center gap-3 professional-tab-inactive data-[state=active]:professional-tab-active font-semibold text-base py-3 rounded-lg transition-all duration-200"
             >
-              <Users size={16} />
+              <Users size={18} />
               All Clients ({clients.length})
             </TabsTrigger>
             <TabsTrigger 
               value="favorites" 
-              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground professional-text-primary"
+              className="flex items-center gap-3 professional-tab-inactive data-[state=active]:professional-tab-active font-semibold text-base py-3 rounded-lg transition-all duration-200"
             >
-              <Star size={16} />
+              <Star size={18} />
               Favorites ({favoriteClients.length})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="all" className="space-y-6">
+          <TabsContent value="all" className="space-y-8">
             {filteredClients.length === 0 ? (
               <ClientsEmptyState
                 searchTerm={searchTerm}
@@ -283,7 +283,7 @@ const Clients = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="favorites" className="space-y-6">
+          <TabsContent value="favorites" className="space-y-8">
             {favoriteClients.filter(client => 
               client.name.toLowerCase().includes(searchTerm.toLowerCase())
             ).length === 0 ? (
