@@ -16,16 +16,13 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { 
-  Sparkles, 
-  Shield, 
-  Brain, 
   Heart,
-  TrendingUp,
-  MessageSquare,
   Users,
   Target,
-  Crown,
-  Zap
+  MessageSquare,
+  Brain,
+  Shield,
+  TrendingUp
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -71,11 +68,13 @@ const Dashboard = () => {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="min-h-screen warm-gradient">
         <div className="flex items-center justify-center h-screen">
           <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-2 border-purple-600 border-t-transparent mx-auto"></div>
-            <p className="text-slate-400 font-medium">Loading your coaching suite...</p>
+            <div className="animate-warm-pulse rounded-full h-12 w-12 bg-teal-600 mx-auto flex items-center justify-center">
+              <Heart className="w-6 h-6 text-white" />
+            </div>
+            <p className="warm-text font-medium">Preparing your coaching suite...</p>
           </div>
         </div>
       </div>
@@ -83,52 +82,50 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen warm-gradient">
       <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
         <AnimationWrapper type="fade-in" delay={0}>
           <DashboardHeader user={user} />
         </AnimationWrapper>
 
-        {/* Elite Branding Message */}
-        <AnimationWrapper type="slide-up" delay={50}>
-          <Card className="mb-6 sm:mb-8 bg-gradient-to-r from-purple-900/50 to-indigo-900/50 text-white border-purple-500/30 shadow-xl backdrop-blur-sm">
+        {/* Welcome Message with Warm Design */}
+        <AnimationWrapper type="fade-in" delay={50}>
+          <Card className="mb-6 sm:mb-8 warm-card border-teal-200 dark:border-teal-700/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-full shadow-lg">
-                    <Crown className="w-6 h-6 text-white" />
+                  <div className="p-3 bg-teal-100 dark:bg-teal-900/30 rounded-full shadow-soft">
+                    <Heart className="w-6 h-6 text-teal-700 dark:text-teal-300" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold mb-1 flex items-center">
-                      Your Elite Coaching Suite
-                      <Sparkles className="w-5 h-5 ml-2 text-yellow-400" />
+                    <h3 className="text-lg font-serif font-semibold mb-1 warm-text">
+                      Your Personal Coaching Journey
                     </h3>
-                    <p className="text-purple-100 text-sm">
-                      A premium, confidential workspace where relationship mastery meets strategic intelligence
+                    <p className="warm-text-muted text-sm">
+                      A thoughtful space where relationship wisdom meets personal growth
                     </p>
                   </div>
                 </div>
                 <div className="hidden sm:flex items-center space-x-3">
-                  <Badge className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-0">
-                    Professional Edition
+                  <Badge className="bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-700/30">
+                    Premium Experience
                   </Badge>
-                  <Zap className="w-5 h-5 text-yellow-400 animate-pulse-soft" />
                 </div>
               </div>
             </CardContent>
           </Card>
         </AnimationWrapper>
 
-        {/* Tab Navigation */}
-        <AnimationWrapper type="slide-up" delay={100}>
-          <div className="flex space-x-1 bg-slate-800/50 p-1 rounded-lg mb-6 sm:mb-8 max-w-md backdrop-blur-sm border border-slate-700/50">
+        {/* Tab Navigation with Warm Design */}
+        <AnimationWrapper type="fade-in" delay={100}>
+          <div className="flex space-x-1 bg-white dark:bg-charcoal-800 p-1 rounded-xl mb-6 sm:mb-8 max-w-md shadow-soft border border-sage-200 dark:border-charcoal-600">
             <Button
               variant={activeTab === 'overview' ? 'default' : 'ghost'}
               onClick={() => setActiveTab('overview')}
-              className={`flex-1 transition-all duration-200 ${
+              className={`flex-1 transition-all duration-300 ${
                 activeTab === 'overview' 
-                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg' 
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+                  ? 'bg-teal-600 hover:bg-teal-700 text-white shadow-soft' 
+                  : 'warm-text hover:bg-sage-50 dark:hover:bg-charcoal-700'
               }`}
             >
               <MessageSquare className="w-4 h-4 mr-2" />
@@ -137,10 +134,10 @@ const Dashboard = () => {
             <Button
               variant={activeTab === 'insights' ? 'default' : 'ghost'}
               onClick={() => setActiveTab('insights')}
-              className={`flex-1 transition-all duration-200 ${
+              className={`flex-1 transition-all duration-300 ${
                 activeTab === 'insights' 
-                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg' 
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+                  ? 'bg-teal-600 hover:bg-teal-700 text-white shadow-soft' 
+                  : 'warm-text hover:bg-sage-50 dark:hover:bg-charcoal-700'
               }`}
             >
               <Brain className="w-4 h-4 mr-2" />
@@ -152,54 +149,60 @@ const Dashboard = () => {
         {/* Tab Content */}
         {activeTab === 'overview' ? (
           <>
-            <AnimationWrapper type="slide-up" delay={200}>
+            <AnimationWrapper type="fade-in" delay={200}>
               <QuickStatsGrid stats={quickStats} />
             </AnimationWrapper>
             
-            <AnimationWrapper type="slide-up" delay={300}>
+            <AnimationWrapper type="fade-in" delay={300}>
               <AdvancedFeaturesGrid userId={user.id} />
             </AnimationWrapper>
             
-            <AnimationWrapper type="slide-up" delay={400}>
+            <AnimationWrapper type="fade-in" delay={400}>
               <QuickActionsGrid 
                 quickStats={quickStats}
                 recentActivity={recentActivity}
               />
             </AnimationWrapper>
             
-            <AnimationWrapper type="slide-up" delay={500}>
+            <AnimationWrapper type="fade-in" delay={500}>
               <RecentActivityCard recentActivity={recentActivity} />
             </AnimationWrapper>
             
-            <AnimationWrapper type="slide-up" delay={600}>
+            <AnimationWrapper type="fade-in" delay={600}>
               <DashboardStats userId={user.id} />
             </AnimationWrapper>
 
-            {/* Coaching Excellence Philosophy */}
-            <AnimationWrapper type="slide-up" delay={700}>
-              <Card className="mt-8 bg-gradient-to-r from-slate-800/50 to-slate-700/50 border-slate-600/50 backdrop-blur-sm">
+            {/* Coaching Philosophy with Warm Design */}
+            <AnimationWrapper type="fade-in" delay={700}>
+              <Card className="mt-8 warm-card">
                 <CardHeader>
-                  <CardTitle className="flex items-center text-slate-200">
-                    <Heart className="w-5 h-5 mr-2 text-purple-400" />
-                    Our Coaching Excellence Philosophy
+                  <CardTitle className="flex items-center warm-text font-serif">
+                    <Heart className="w-5 h-5 mr-2 text-teal-600 dark:text-teal-400" />
+                    Our Human-Centered Approach
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center p-4 rounded-lg glass-effect">
-                      <Brain className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-                      <h4 className="font-semibold text-slate-200 mb-1">Intelligent Analysis</h4>
-                      <p className="text-sm text-slate-400">AI-powered insights that understand the subtleties of human connection</p>
+                  <div className="organic-grid">
+                    <div className="text-center p-6 warm-card warm-hover">
+                      <Brain className="w-10 h-10 text-teal-600 dark:text-teal-400 mx-auto mb-3 animate-organic-float" />
+                      <h4 className="font-serif font-semibold warm-text mb-2">Thoughtful Analysis</h4>
+                      <p className="text-sm warm-text-muted">
+                        Gentle insights that honor the complexity of human connection
+                      </p>
                     </div>
-                    <div className="text-center p-4 rounded-lg glass-effect">
-                      <Shield className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-                      <h4 className="font-semibold text-slate-200 mb-1">Absolute Confidentiality</h4>
-                      <p className="text-sm text-slate-400">Your conversations and insights remain completely private and secure</p>
+                    <div className="text-center p-6 warm-card warm-hover">
+                      <Shield className="w-10 h-10 text-sage-600 dark:text-sage-400 mx-auto mb-3 animate-organic-float" style={{ animationDelay: '2s' }} />
+                      <h4 className="font-serif font-semibold warm-text mb-2">Safe Space</h4>
+                      <p className="text-sm warm-text-muted">
+                        Your conversations remain completely private and secure
+                      </p>
                     </div>
-                    <div className="text-center p-4 rounded-lg glass-effect">
-                      <TrendingUp className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-                      <h4 className="font-semibold text-slate-200 mb-1">Continuous Evolution</h4>
-                      <p className="text-sm text-slate-400">Personalized strategies that adapt and grow with your relationship journey</p>
+                    <div className="text-center p-6 warm-card warm-hover">
+                      <TrendingUp className="w-10 h-10 text-terracotta-600 dark:text-terracotta-400 mx-auto mb-3 animate-organic-float" style={{ animationDelay: '4s' }} />
+                      <h4 className="font-serif font-semibold warm-text mb-2">Personal Growth</h4>
+                      <p className="text-sm warm-text-muted">
+                        Strategies that evolve with your unique relationship journey
+                      </p>
                     </div>
                   </div>
                 </CardContent>

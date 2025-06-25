@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +15,7 @@ import {
   Clock,
   Award,
   Brain,
-  Sparkles
+  Shield
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -98,11 +97,13 @@ const Analytics = () => {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="min-h-screen warm-gradient">
         <div className="flex items-center justify-center h-screen">
           <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-2 border-purple-600 border-t-transparent mx-auto"></div>
-            <p className="text-slate-400 font-medium">Loading analytics...</p>
+            <div className="animate-warm-pulse rounded-full h-12 w-12 bg-teal-600 mx-auto flex items-center justify-center">
+              <BarChart3 className="w-6 h-6 text-white" />
+            </div>
+            <p className="warm-text font-medium">Loading your insights...</p>
           </div>
         </div>
       </div>
@@ -110,89 +111,98 @@ const Analytics = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen warm-gradient">
       <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
         <AnimationWrapper type="fade-in" delay={0}>
           <div className="mb-8">
             <div className="flex items-center space-x-3 mb-2">
-              <div className="p-2 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg">
-                <BarChart3 className="w-6 h-6 text-white" />
+              <div className="p-2 bg-teal-100 dark:bg-teal-900/30 rounded-lg shadow-soft">
+                <BarChart3 className="w-6 h-6 text-teal-700 dark:text-teal-300" />
               </div>
-              <h1 className="text-3xl font-bold gradient-text">
-                Coaching Analytics
+              <h1 className="text-3xl font-serif font-bold warm-text">
+                Your Growth Journey
               </h1>
             </div>
-            <p className="text-slate-400">
-              Track your coaching journey and relationship growth patterns
+            <p className="warm-text-muted">
+              Thoughtful insights into your coaching progress and relationship patterns
             </p>
           </div>
         </AnimationWrapper>
 
-        {/* Key Metrics */}
-        <AnimationWrapper type="slide-up" delay={100}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <Card className="coaching-card border-purple-500/30">
-              <CardContent className="p-6 text-center">
-                <MessageSquare className="w-8 h-8 text-purple-400 mx-auto mb-3" />
-                <div className="text-3xl font-bold text-slate-200 mb-1">{analytics.totalSessions}</div>
-                <div className="text-sm text-slate-400">Total Sessions</div>
+        {/* Key Metrics with Organic Layout */}
+        <AnimationWrapper type="fade-in" delay={100}>
+          <div className="organic-grid mb-8">
+            <Card className="warm-card border-teal-200 dark:border-teal-700/30 text-center warm-hover">
+              <CardContent className="p-6">
+                <MessageSquare className="w-8 h-8 text-teal-600 dark:text-teal-400 mx-auto mb-3 animate-gentle-pulse" />
+                <div className="text-3xl font-serif font-bold warm-text mb-1">{analytics.totalSessions}</div>
+                <div className="text-sm warm-text-muted">Meaningful Conversations</div>
               </CardContent>
             </Card>
 
-            <Card className="coaching-card border-indigo-500/30">
-              <CardContent className="p-6 text-center">
-                <Target className="w-8 h-8 text-indigo-400 mx-auto mb-3" />
-                <div className="text-3xl font-bold text-slate-200 mb-1">{analytics.completedSessions}</div>
-                <div className="text-sm text-slate-400">Completed Analysis</div>
+            <Card className="warm-card border-sage-200 dark:border-sage-700/30 text-center warm-hover">
+              <CardContent className="p-6">
+                <Target className="w-8 h-8 text-sage-600 dark:text-sage-400 mx-auto mb-3 animate-gentle-pulse" style={{ animationDelay: '0.5s' }} />
+                <div className="text-3xl font-serif font-bold warm-text mb-1">{analytics.completedSessions}</div>
+                <div className="text-sm warm-text-muted">Strategic Insights</div>
               </CardContent>
             </Card>
 
-            <Card className="coaching-card border-cyan-500/30">
-              <CardContent className="p-6 text-center">
-                <Users className="w-8 h-8 text-cyan-400 mx-auto mb-3" />
-                <div className="text-3xl font-bold text-slate-200 mb-1">{analytics.activeTargets}</div>
-                <div className="text-sm text-slate-400">Active Relationships</div>
+            <Card className="warm-card border-terracotta-200 dark:border-terracotta-700/30 text-center warm-hover">
+              <CardContent className="p-6">
+                <Users className="w-8 h-8 text-terracotta-600 dark:text-terracotta-400 mx-auto mb-3 animate-gentle-pulse" style={{ animationDelay: '1s' }} />
+                <div className="text-3xl font-serif font-bold warm-text mb-1">{analytics.activeTargets}</div>
+                <div className="text-sm warm-text-muted">Active Relationships</div>
               </CardContent>
             </Card>
           </div>
         </AnimationWrapper>
 
         {/* Progress Tracking */}
-        <AnimationWrapper type="slide-up" delay={200}>
-          <Card className="coaching-card mb-8">
+        <AnimationWrapper type="fade-in" delay={200}>
+          <Card className="warm-card mb-8">
             <CardHeader>
-              <CardTitle className="flex items-center text-slate-200">
-                <TrendingUp className="w-5 h-5 mr-2 text-purple-400" />
-                Your Growth Journey
+              <CardTitle className="flex items-center warm-text font-serif">
+                <TrendingUp className="w-5 h-5 mr-2 text-teal-600 dark:text-teal-400" />
+                Your Personal Growth
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-slate-300">Coaching Mastery</span>
-                  <span className="text-sm text-purple-400">{analytics.improvementRate}%</span>
+                  <span className="text-sm font-medium warm-text">Coaching Journey</span>
+                  <span className="text-sm warm-text-accent">{analytics.improvementRate}%</span>
                 </div>
-                <Progress value={analytics.improvementRate} className="h-3 bg-slate-800" />
+                <Progress 
+                  value={analytics.improvementRate} 
+                  className="h-3 bg-sage-100 dark:bg-charcoal-700"
+                />
               </div>
               
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-slate-300">Weekly Progress</span>
-                  <span className="text-sm text-indigo-400">{analytics.weeklyProgress}%</span>
+                  <span className="text-sm font-medium warm-text">Weekly Progress</span>
+                  <span className="text-sm warm-text-accent">{analytics.weeklyProgress}%</span>
                 </div>
-                <Progress value={analytics.weeklyProgress} className="h-3 bg-slate-800" />
+                <Progress 
+                  value={analytics.weeklyProgress} 
+                  className="h-3 bg-sage-100 dark:bg-charcoal-700"
+                />
               </div>
 
               {analytics.averageRating > 0 && (
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-slate-300">Satisfaction Rating</span>
+                    <span className="text-sm font-medium warm-text">Experience Quality</span>
                     <div className="flex items-center space-x-1">
-                      <span className="text-sm text-yellow-400">{analytics.averageRating}</span>
-                      <Award className="w-4 h-4 text-yellow-400" />
+                      <span className="text-sm text-terracotta-600 dark:text-terracotta-400">{analytics.averageRating}</span>
+                      <Award className="w-4 h-4 text-terracotta-600 dark:text-terracotta-400" />
                     </div>
                   </div>
-                  <Progress value={analytics.averageRating * 20} className="h-3 bg-slate-800" />
+                  <Progress 
+                    value={analytics.averageRating * 20} 
+                    className="h-3 bg-sage-100 dark:bg-charcoal-700"
+                  />
                 </div>
               )}
             </CardContent>
@@ -200,52 +210,61 @@ const Analytics = () => {
         </AnimationWrapper>
 
         {/* Detailed Analytics Tabs */}
-        <AnimationWrapper type="slide-up" delay={300}>
+        <AnimationWrapper type="fade-in" delay={300}>
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-slate-800/50 border border-slate-700/50">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600">
+            <TabsList className="grid w-full grid-cols-3 bg-white dark:bg-charcoal-800 shadow-soft border border-sage-200 dark:border-charcoal-600">
+              <TabsTrigger 
+                value="overview" 
+                className="data-[state=active]:bg-teal-600 data-[state=active]:text-white"
+              >
                 Overview
               </TabsTrigger>
-              <TabsTrigger value="insights" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600">
+              <TabsTrigger 
+                value="insights" 
+                className="data-[state=active]:bg-teal-600 data-[state=active]:text-white"
+              >
                 Insights
               </TabsTrigger>
-              <TabsTrigger value="trends" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600">
-                Trends
+              <TabsTrigger 
+                value="trends" 
+                className="data-[state=active]:bg-teal-600 data-[state=active]:text-white"
+              >
+                Patterns
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
-              <Card className="coaching-card">
+              <Card className="warm-card">
                 <CardHeader>
-                  <CardTitle className="text-slate-200">Session Overview</CardTitle>
+                  <CardTitle className="warm-text font-serif">Session Overview</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="organic-grid">
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Completion Rate</span>
-                        <Badge className="bg-green-600/20 text-green-400 border-green-500/30">
+                        <span className="warm-text-muted">Completion Rate</span>
+                        <Badge className="status-success">
                           {analytics.totalSessions > 0 ? Math.round((analytics.completedSessions / analytics.totalSessions) * 100) : 0}%
                         </Badge>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Active Relationships</span>
-                        <Badge className="bg-blue-600/20 text-blue-400 border-blue-500/30">
+                        <span className="warm-text-muted">Active Relationships</span>
+                        <Badge className="status-info">
                           {analytics.activeTargets}
                         </Badge>
                       </div>
                     </div>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Average Quality</span>
+                        <span className="warm-text-muted">Experience Quality</span>
                         <div className="flex items-center space-x-1">
                           {[...Array(5)].map((_, i) => (
                             <Heart 
                               key={i} 
                               className={`w-4 h-4 ${
                                 i < Math.round(analytics.averageRating) 
-                                  ? 'text-red-400 fill-current' 
-                                  : 'text-slate-600'
+                                  ? 'text-terracotta-500 fill-current' 
+                                  : 'text-sage-300 dark:text-charcoal-600'
                               }`} 
                             />
                           ))}
@@ -258,19 +277,19 @@ const Analytics = () => {
             </TabsContent>
 
             <TabsContent value="insights" className="space-y-6">
-              <Card className="coaching-card">
+              <Card className="warm-card">
                 <CardHeader>
-                  <CardTitle className="flex items-center text-slate-200">
-                    <Brain className="w-5 h-5 mr-2 text-purple-400" />
-                    AI-Powered Insights
+                  <CardTitle className="flex items-center warm-text font-serif">
+                    <Brain className="w-5 h-5 mr-2 text-teal-600 dark:text-teal-400" />
+                    Thoughtful Insights
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-8">
-                    <Sparkles className="w-16 h-16 text-purple-400 mx-auto mb-4 animate-pulse-soft" />
-                    <h3 className="text-lg font-semibold text-slate-200 mb-2">Advanced Insights Coming Soon</h3>
-                    <p className="text-slate-400">
-                      Complete more coaching sessions to unlock personalized relationship patterns and strategic recommendations.
+                    <Brain className="w-16 h-16 text-teal-600 dark:text-teal-400 mx-auto mb-4 animate-organic-float" />
+                    <h3 className="text-lg font-serif font-semibold warm-text mb-2">Deeper Insights Emerging</h3>
+                    <p className="warm-text-muted">
+                      Continue your coaching journey to unlock personalized relationship patterns and gentle guidance.
                     </p>
                   </div>
                 </CardContent>
@@ -278,16 +297,16 @@ const Analytics = () => {
             </TabsContent>
 
             <TabsContent value="trends" className="space-y-6">
-              <Card className="coaching-card">
+              <Card className="warm-card">
                 <CardHeader>
-                  <CardTitle className="text-slate-200">Growth Trends</CardTitle>
+                  <CardTitle className="warm-text font-serif">Growth Patterns</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-8">
-                    <TrendingUp className="w-16 h-16 text-indigo-400 mx-auto mb-4 animate-float" />
-                    <h3 className="text-lg font-semibold text-slate-200 mb-2">Trend Analysis</h3>
-                    <p className="text-slate-400">
-                      Historical data and trend analysis will appear here as you continue your coaching journey.
+                    <TrendingUp className="w-16 h-16 text-sage-600 dark:text-sage-400 mx-auto mb-4 animate-organic-float" />
+                    <h3 className="text-lg font-serif font-semibold warm-text mb-2">Your Unique Journey</h3>
+                    <p className="warm-text-muted">
+                      Relationship patterns and growth trends will emerge as you continue exploring together.
                     </p>
                   </div>
                 </CardContent>

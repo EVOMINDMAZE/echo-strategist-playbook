@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSupabaseCoaching } from '@/hooks/useSupabaseCoaching';
 import { useToast } from '@/hooks/use-toast';
-import { WorldClassNavigation } from '@/components/WorldClassNavigation';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { ClientsHeader } from '@/components/ClientsHeader';
 import { ClientCard } from '@/components/ClientCard';
@@ -86,7 +85,7 @@ const Clients = () => {
     try {
       await createClient(name);
       toast({
-        title: "Success! 🎉",
+        title: "Welcome! 🌟",
         description: `${name} has been added to your coaching roster.`
       });
     } catch (error) {
@@ -172,15 +171,14 @@ const Clients = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <WorldClassNavigation user={user} />
+      <div className="min-h-screen warm-gradient">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <LoadingSkeleton rows={2} />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="organic-grid">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="animate-pulse bg-white rounded-lg p-6 h-48"></div>
+              <div key={i} className="animate-warm-pulse warm-card h-48"></div>
             ))}
           </div>
         </div>
@@ -189,9 +187,7 @@ const Clients = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <WorldClassNavigation user={user} />
-      
+    <div className="min-h-screen warm-gradient">
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <ClientsHeader
           clients={clients}
@@ -202,12 +198,18 @@ const Clients = () => {
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="all" className="flex items-center gap-2">
+          <TabsList className="grid w-full max-w-md grid-cols-2 bg-white dark:bg-charcoal-800 shadow-soft border border-sage-200 dark:border-charcoal-600">
+            <TabsTrigger 
+              value="all" 
+              className="flex items-center gap-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white"
+            >
               <Users size={16} />
               All Clients ({clients.length})
             </TabsTrigger>
-            <TabsTrigger value="favorites" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="favorites" 
+              className="flex items-center gap-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white"
+            >
               <Star size={16} />
               Favorites ({favoriteClients.length})
             </TabsTrigger>
@@ -222,7 +224,7 @@ const Clients = () => {
                 type={searchTerm ? 'no-search-results' : 'no-clients'}
               />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="organic-grid">
                 {filteredClients.map((client, index) => (
                   <ClientCard
                     key={client.id}
@@ -242,7 +244,7 @@ const Clients = () => {
             {favoriteClients.length === 0 ? (
               <ClientsEmptyState type="no-favorites" />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="organic-grid">
                 {favoriteClients.filter(client => 
                   client.name.toLowerCase().includes(searchTerm.toLowerCase())
                 ).map((client, index) => (

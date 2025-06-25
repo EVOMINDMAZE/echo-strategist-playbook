@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -16,15 +15,15 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { 
-  Home, 
+  Heart, 
   MessageSquare, 
   BarChart3, 
   Settings, 
   User, 
   LogOut,
   Bell,
-  Zap,
   CreditCard
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -96,19 +95,19 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
     { 
       path: '/dashboard', 
       label: 'Dashboard', 
-      icon: Home,
+      icon: Heart,
       isActive: location.pathname === '/dashboard'
     },
     { 
       path: '/clients', 
-      label: 'Chats', 
+      label: 'Conversations', 
       icon: MessageSquare,
       isActive: location.pathname === '/clients' || location.pathname.startsWith('/chat/'),
       badge: loadingCounts ? '...' : (clientCount > 0 ? clientCount.toString() : undefined)
     },
     { 
       path: '/analytics', 
-      label: 'Analytics', 
+      label: 'Insights', 
       icon: BarChart3,
       isActive: location.pathname === '/analytics'
     },
@@ -126,21 +125,24 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
   if (!user) return null;
 
   return (
-    <Sidebar className="border-slate-800/50">
-      <SidebarHeader className="border-b border-slate-800/50 p-4">
+    <Sidebar className="warm-sidebar border-sage-200 dark:border-charcoal-700">
+      <SidebarHeader className="border-b border-sage-200 dark:border-charcoal-700 p-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
-            <Zap className="w-6 h-6 text-white" />
+          <div className="w-10 h-10 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center shadow-soft">
+            <Heart className="w-6 h-6 text-teal-700 dark:text-teal-300" />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold text-slate-200 truncate">
+            <h2 className="text-lg font-serif font-bold warm-text truncate">
               Coaching Suite
             </h2>
-            <p className="text-xs text-slate-400 truncate">
+            <p className="text-xs warm-text-muted truncate">
               {user.user_metadata?.full_name || user.email}
             </p>
           </div>
-          <SidebarTrigger className="text-slate-400 hover:text-slate-200" />
+          <div className="flex items-center space-x-1">
+            <ThemeToggle />
+            <SidebarTrigger className="warm-text-muted hover:warm-text" />
+          </div>
         </div>
       </SidebarHeader>
 
@@ -155,17 +157,17 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
                     <SidebarMenuButton
                       asChild
                       isActive={item.isActive}
-                      className={`w-full justify-start transition-all duration-200 ${
+                      className={`w-full justify-start transition-all duration-300 rounded-lg ${
                         item.isActive 
-                          ? 'bg-purple-600/20 text-purple-400 border-l-2 border-purple-400' 
-                          : 'hover:bg-slate-800/50 text-slate-400 hover:text-slate-200'
+                          ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-800 dark:text-teal-200 shadow-soft border-l-2 border-teal-600' 
+                          : 'warm-text-muted hover:bg-sage-50 dark:hover:bg-charcoal-700 hover:warm-text'
                       }`}
                     >
                       <button onClick={() => navigate(item.path)} className="flex items-center space-x-3 w-full">
                         <Icon size={18} />
                         <span className="font-medium">{item.label}</span>
                         {item.badge && (
-                          <Badge variant="secondary" className="ml-auto bg-slate-700 text-slate-200 text-xs">
+                          <Badge variant="secondary" className="ml-auto bg-sage-100 dark:bg-charcoal-700 warm-text text-xs">
                             {item.badge}
                           </Badge>
                         )}
@@ -179,67 +181,68 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-slate-800/50 p-3 space-y-2">
-        {/* Notifications with proper z-index */}
+      <SidebarFooter className="border-t border-sage-200 dark:border-charcoal-700 p-3 space-y-2">
+        {/* Notifications */}
         <Sheet>
           <SheetTrigger asChild>
             <Button 
               variant="ghost" 
-              className="w-full justify-start text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+              className="w-full justify-start warm-text-muted hover:warm-text hover:bg-sage-50 dark:hover:bg-charcoal-700 transition-all duration-300"
             >
               <Bell size={18} className="mr-3" />
               <span className="font-medium">Notifications</span>
               {unreadCount > 0 && (
-                <Badge className="ml-auto bg-red-500 text-white text-xs">
+                <Badge className="ml-auto bg-terracotta-500 text-white text-xs">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </Badge>
               )}
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-80 bg-slate-900 border-slate-800 z-[100]">
+          <SheetContent side="left" className="w-80 warm-gradient border-sage-200 dark:border-charcoal-700 z-[100]">
             <SheetHeader>
-              <SheetTitle className="text-slate-200">Notifications</SheetTitle>
+              <SheetTitle className="warm-text font-serif">Notifications</SheetTitle>
               {unreadCount > 0 && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={markAllAsRead}
-                  className="text-xs text-purple-400 hover:text-purple-300 w-fit"
+                  className="text-xs warm-text-accent hover:warm-text w-fit"
                 >
                   Mark all read
                 </Button>
               )}
             </SheetHeader>
-            <div className="mt-6 space-y-3 max-h-96 overflow-y-auto">
+            <div className="mt-6 space-y-3 max-h-96 overflow-y-auto warm-scrollbar">
               {notifications.length === 0 ? (
-                <div className="text-center text-slate-500 py-8">
-                  No notifications yet
+                <div className="text-center warm-text-muted py-8">
+                  <Bell className="w-12 h-12 mx-auto mb-3 text-sage-400" />
+                  <p>No notifications yet</p>
                 </div>
               ) : (
                 notifications.slice(0, 10).map((notification) => (
                   <div
                     key={notification.id}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                    className={`p-3 rounded-lg cursor-pointer transition-all duration-300 ${
                       !notification.is_read 
-                        ? 'bg-purple-900/20 border border-purple-500/30' 
-                        : 'bg-slate-800/50 hover:bg-slate-800'
+                        ? 'bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700/30 warm-hover' 
+                        : 'warm-card hover:shadow-soft'
                     }`}
                     onClick={() => handleNotificationClick(notification.id)}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium text-slate-200 truncate">
+                        <h4 className="text-sm font-medium warm-text truncate">
                           {notification.title}
                         </h4>
-                        <p className="text-xs text-slate-400 mt-1 line-clamp-2">
+                        <p className="text-xs warm-text-muted mt-1 line-clamp-2">
                           {notification.message}
                         </p>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-xs warm-text-muted mt-1">
                           {new Date(notification.created_at).toLocaleDateString()}
                         </p>
                       </div>
                       {!notification.is_read && (
-                        <div className="w-2 h-2 bg-purple-400 rounded-full flex-shrink-0 mt-1"></div>
+                        <div className="w-2 h-2 bg-teal-500 rounded-full flex-shrink-0 mt-1"></div>
                       )}
                     </div>
                   </div>
@@ -252,7 +255,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <SidebarMenuButton asChild>
           <button
             onClick={() => navigate('/profile')}
-            className="w-full justify-start text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+            className="w-full justify-start warm-text-muted hover:warm-text hover:bg-sage-50 dark:hover:bg-charcoal-700 transition-all duration-300"
           >
             <User size={18} className="mr-3" />
             <span className="font-medium">Profile</span>
@@ -262,7 +265,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <SidebarMenuButton asChild>
           <button
             onClick={() => navigate('/subscription')}
-            className="w-full justify-start text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+            className="w-full justify-start warm-text-muted hover:warm-text hover:bg-sage-50 dark:hover:bg-charcoal-700 transition-all duration-300"
           >
             <CreditCard size={18} className="mr-3" />
             <span className="font-medium">Subscription</span>
@@ -272,7 +275,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <SidebarMenuButton asChild>
           <button
             onClick={() => navigate('/settings')}
-            className="w-full justify-start text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+            className="w-full justify-start warm-text-muted hover:warm-text hover:bg-sage-50 dark:hover:bg-charcoal-700 transition-all duration-300"
           >
             <Settings size={18} className="mr-3" />
             <span className="font-medium">Settings</span>
@@ -282,7 +285,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <SidebarMenuButton asChild>
           <button
             onClick={handleSignOut}
-            className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-900/10"
+            className="w-full justify-start text-terracotta-600 hover:text-terracotta-700 dark:text-terracotta-400 dark:hover:text-terracotta-300 hover:bg-terracotta-50 dark:hover:bg-terracotta-900/10 transition-all duration-300"
           >
             <LogOut size={18} className="mr-3" />
             <span className="font-medium">Sign Out</span>

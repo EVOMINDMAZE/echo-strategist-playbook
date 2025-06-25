@@ -4,19 +4,32 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
 export const ThemeToggle = () => {
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' || 'dark';
-    setTheme(savedTheme);
-    document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    // Check system preference first, then localStorage
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
+    const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+    
+    setTheme(initialTheme);
+    applyTheme(initialTheme);
   }, []);
+
+  const applyTheme = (newTheme: 'light' | 'dark') => {
+    const root = document.documentElement;
+    if (newTheme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  };
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+    applyTheme(newTheme);
   };
 
   return (
@@ -24,7 +37,7 @@ export const ThemeToggle = () => {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      className="hover:bg-accent hover:text-accent-foreground transition-colors"
+      className="hover:bg-sage-100 hover:text-charcoal transition-colors"
     >
       {theme === 'light' ? (
         <Moon className="h-5 w-5" />
