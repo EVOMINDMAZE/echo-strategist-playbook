@@ -1,3 +1,4 @@
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
@@ -12,6 +13,7 @@ const Card = React.forwardRef<
       "rounded-lg border bg-card text-card-foreground shadow-sm",
       className
     )}
+    style={{ color: 'hsl(var(--card-foreground))' }}
     {...props}
   />
 ))
@@ -24,6 +26,7 @@ const CardHeader = React.forwardRef<
   <div
     ref={ref}
     className={cn("flex flex-col space-y-1.5 p-6", className)}
+    style={{ color: 'hsl(var(--card-foreground))' }}
     {...props}
   />
 ))
@@ -39,6 +42,7 @@ const CardTitle = React.forwardRef<
       "text-2xl font-semibold leading-none tracking-tight",
       className
     )}
+    style={{ color: 'hsl(var(--card-foreground))' }}
     {...props}
   />
 ))
@@ -51,6 +55,7 @@ const CardDescription = React.forwardRef<
   <p
     ref={ref}
     className={cn("text-sm text-muted-foreground", className)}
+    style={{ color: 'hsl(var(--muted-foreground))' }}
     {...props}
   />
 ))
@@ -60,7 +65,12 @@ const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+  <div 
+    ref={ref} 
+    className={cn("p-6 pt-0", className)} 
+    style={{ color: 'hsl(var(--card-foreground))' }}
+    {...props} 
+  />
 ))
 CardContent.displayName = "CardContent"
 
@@ -71,6 +81,7 @@ const CardFooter = React.forwardRef<
   <div
     ref={ref}
     className={cn("flex items-center p-6 pt-0", className)}
+    style={{ color: 'hsl(var(--card-foreground))' }}
     {...props}
   />
 ))

@@ -6,49 +6,49 @@
 
 @layer base {
   :root {
-    /* Clean Light Mode - High Contrast */
+    /* Simple Light Mode - High Contrast */
     --background: 255 255 255; /* Pure white */
-    --foreground: 17 24 39; /* Dark gray for text */
+    --foreground: 0 0 0; /* Pure black text */
     --card: 255 255 255; /* White cards */
-    --card-foreground: 17 24 39;
+    --card-foreground: 0 0 0; /* Black text on cards */
     --popover: 255 255 255;
-    --popover-foreground: 17 24 39;
-    --primary: 59 130 246; /* Clean blue */
-    --primary-foreground: 255 255 255;
-    --secondary: 243 244 246; /* Light gray */
-    --secondary-foreground: 17 24 39;
-    --muted: 249 250 251; /* Very light gray */
-    --muted-foreground: 75 85 99;
-    --accent: 243 244 246; /* Light gray accent */
-    --accent-foreground: 17 24 39;
-    --destructive: 239 68 68; /* Red */
+    --popover-foreground: 0 0 0;
+    --primary: 37 99 235; /* Blue-600 */
+    --primary-foreground: 255 255 255; /* White text on primary */
+    --secondary: 243 244 246; /* Gray-100 */
+    --secondary-foreground: 0 0 0; /* Black text on secondary */
+    --muted: 249 250 251; /* Gray-50 */
+    --muted-foreground: 107 114 128; /* Gray-500 for muted text */
+    --accent: 243 244 246; /* Gray-100 */
+    --accent-foreground: 0 0 0; /* Black text on accent */
+    --destructive: 220 38 38; /* Red-600 */
     --destructive-foreground: 255 255 255;
-    --border: 229 231 235; /* Light border */
+    --border: 229 231 235; /* Gray-200 */
     --input: 255 255 255;
-    --ring: 59 130 246;
+    --ring: 37 99 235;
     --radius: 0.5rem;
   }
 
   .dark {
-    /* Clean Dark Mode - High Contrast */
-    --background: 17 24 39; /* Dark blue-gray */
-    --foreground: 243 244 246; /* Light gray for text */
-    --card: 30 41 59; /* Slightly lighter dark */
-    --card-foreground: 243 244 246;
-    --popover: 30 41 59;
-    --popover-foreground: 243 244 246;
-    --primary: 59 130 246; /* Same blue */
+    /* Simple Dark Mode - High Contrast */
+    --background: 0 0 0; /* Pure black */
+    --foreground: 255 255 255; /* Pure white text */
+    --card: 17 24 39; /* Gray-900 */
+    --card-foreground: 255 255 255; /* White text on cards */
+    --popover: 17 24 39;
+    --popover-foreground: 255 255 255;
+    --primary: 59 130 246; /* Blue-500 */
     --primary-foreground: 255 255 255;
-    --secondary: 51 65 85; /* Medium dark gray */
-    --secondary-foreground: 243 244 246;
-    --muted: 51 65 85; /* Medium dark gray */
-    --muted-foreground: 156 163 175;
-    --accent: 51 65 85; /* Medium dark gray */
-    --accent-foreground: 243 244 246;
-    --destructive: 239 68 68; /* Red */
+    --secondary: 31 41 55; /* Gray-800 */
+    --secondary-foreground: 255 255 255; /* White text on secondary */
+    --muted: 17 24 39; /* Gray-900 */
+    --muted-foreground: 156 163 175; /* Gray-400 for muted text */
+    --accent: 31 41 55; /* Gray-800 */
+    --accent-foreground: 255 255 255; /* White text on accent */
+    --destructive: 239 68 68; /* Red-500 */
     --destructive-foreground: 255 255 255;
-    --border: 51 65 85; /* Dark border */
-    --input: 30 41 59;
+    --border: 75 85 99; /* Gray-600 */
+    --input: 17 24 39;
     --ring: 59 130 246;
   }
 }
@@ -67,51 +67,53 @@
     @apply text-foreground font-semibold;
   }
 
+  /* Ensure text is always visible */
+  p, span, div, button, a {
+    color: hsl(var(--foreground));
+  }
+
   /* Focus styles */
   *:focus-visible {
     @apply outline-2 outline-primary outline-offset-2;
   }
 }
 
-/* Clean, professional utilities */
+/* Simple, clean utilities */
 @layer utilities {
-  .professional-card {
+  .simple-card {
     @apply bg-card border border-border rounded-lg shadow-sm;
+    color: hsl(var(--card-foreground));
   }
 
-  .professional-button {
+  .simple-button {
     @apply bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-md font-medium transition-colors;
   }
 
-  .professional-input {
+  .simple-input {
     @apply bg-input border border-border text-foreground px-3 py-2 rounded-md placeholder:text-muted-foreground;
   }
 
-  .professional-text-primary {
-    @apply text-foreground;
+  .simple-text-primary {
+    color: hsl(var(--foreground)) !important;
   }
 
-  .professional-text-secondary {
-    @apply text-muted-foreground;
+  .simple-text-secondary {
+    color: hsl(var(--muted-foreground)) !important;
   }
 
-  .professional-text-muted {
-    @apply text-muted-foreground;
+  .simple-text-muted {
+    color: hsl(var(--muted-foreground)) !important;
   }
 
-  .professional-interactive {
-    @apply text-foreground hover:text-primary transition-colors;
+  .simple-interactive {
+    color: hsl(var(--foreground));
+  }
+  
+  .simple-interactive:hover {
+    color: hsl(var(--primary));
   }
 
-  .professional-grid {
+  .simple-grid {
     @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
-  }
-
-  .professional-tab-active {
-    @apply bg-primary text-primary-foreground shadow-sm;
-  }
-
-  .professional-tab-inactive {
-    @apply bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted;
   }
 }
