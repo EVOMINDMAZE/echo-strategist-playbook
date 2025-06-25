@@ -71,10 +71,10 @@ const Dashboard = () => {
       <div className="min-h-screen bg-background">
         <div className="flex items-center justify-center h-screen">
           <div className="text-center space-y-4">
-            <div className="animate-pulse rounded-full h-12 w-12 bg-primary mx-auto flex items-center justify-center">
-              <Heart className="w-6 h-6 text-primary-foreground" />
+            <div className="animate-pulse rounded-full h-12 w-12 bg-primary/20 mx-auto flex items-center justify-center">
+              <Heart className="w-6 h-6 text-primary" />
             </div>
-            <p className="professional-text-primary font-medium">Preparing your coaching suite...</p>
+            <p className="text-foreground font-medium">Preparing your coaching suite...</p>
           </div>
         </div>
       </div>
@@ -88,26 +88,26 @@ const Dashboard = () => {
           <DashboardHeader user={user} />
         </AnimationWrapper>
 
-        {/* Professional Welcome Message */}
+        {/* Simple Welcome Card */}
         <AnimationWrapper type="fade-in" delay={50}>
-          <Card className="mb-6 sm:mb-8 professional-card border-primary/20">
+          <Card className="mb-6 sm:mb-8 simple-card">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-primary/10 rounded-full shadow-professional">
+                  <div className="p-3 bg-primary/10 rounded-full">
                     <Heart className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-serif font-semibold mb-1 professional-text-primary">
+                    <h3 className="text-lg font-semibold mb-1 text-foreground">
                       Your Personal Coaching Journey
                     </h3>
-                    <p className="professional-text-secondary text-sm">
+                    <p className="text-muted-foreground text-sm">
                       A thoughtful space where relationship wisdom meets personal growth
                     </p>
                   </div>
                 </div>
                 <div className="hidden sm:flex items-center space-x-3">
-                  <Badge variant="info" className="text-sm">
+                  <Badge className="bg-primary text-primary-foreground text-sm">
                     Premium Experience
                   </Badge>
                 </div>
@@ -116,16 +116,16 @@ const Dashboard = () => {
           </Card>
         </AnimationWrapper>
 
-        {/* Professional Tab Navigation */}
+        {/* Simplified Tab Navigation */}
         <AnimationWrapper type="fade-in" delay={100}>
-          <div className="flex space-x-1 bg-card p-1 rounded-xl mb-6 sm:mb-8 max-w-md shadow-professional border border-border">
+          <div className="flex space-x-1 bg-muted p-1 rounded-lg mb-6 sm:mb-8 max-w-md">
             <Button
               variant={activeTab === 'overview' ? 'default' : 'ghost'}
               onClick={() => setActiveTab('overview')}
-              className={`flex-1 transition-all duration-300 ${
+              className={`flex-1 transition-colors ${
                 activeTab === 'overview' 
-                  ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-professional' 
-                  : 'professional-text-primary hover:bg-muted'
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-background'
               }`}
             >
               <MessageSquare className="w-4 h-4 mr-2" />
@@ -134,10 +134,10 @@ const Dashboard = () => {
             <Button
               variant={activeTab === 'insights' ? 'default' : 'ghost'}
               onClick={() => setActiveTab('insights')}
-              className={`flex-1 transition-all duration-300 ${
+              className={`flex-1 transition-colors ${
                 activeTab === 'insights' 
-                  ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-professional' 
-                  : 'professional-text-primary hover:bg-muted'
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-background'
               }`}
             >
               <Brain className="w-4 h-4 mr-2" />
@@ -172,35 +172,35 @@ const Dashboard = () => {
               <DashboardStats userId={user.id} />
             </AnimationWrapper>
 
-            {/* Professional Coaching Philosophy */}
+            {/* Simple Philosophy Card */}
             <AnimationWrapper type="fade-in" delay={700}>
-              <Card className="mt-8 professional-card">
+              <Card className="mt-8 simple-card">
                 <CardHeader>
-                  <CardTitle className="flex items-center professional-text-primary font-serif">
+                  <CardTitle className="flex items-center text-foreground">
                     <Heart className="w-5 h-5 mr-2 text-primary" />
                     Our Human-Centered Approach
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="professional-grid">
-                    <div className="text-center p-6 professional-card">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="text-center p-6 simple-card">
                       <Brain className="w-10 h-10 text-primary mx-auto mb-3" />
-                      <h4 className="font-serif font-semibold professional-text-primary mb-2">Thoughtful Analysis</h4>
-                      <p className="text-sm professional-text-secondary">
+                      <h4 className="font-semibold text-foreground mb-2">Thoughtful Analysis</h4>
+                      <p className="text-sm text-muted-foreground">
                         Gentle insights that honor the complexity of human connection
                       </p>
                     </div>
-                    <div className="text-center p-6 professional-card">
-                      <Shield className="w-10 h-10 text-secondary mx-auto mb-3" />
-                      <h4 className="font-serif font-semibold professional-text-primary mb-2">Safe Space</h4>
-                      <p className="text-sm professional-text-secondary">
+                    <div className="text-center p-6 simple-card">
+                      <Shield className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                      <h4 className="font-semibold text-foreground mb-2">Safe Space</h4>
+                      <p className="text-sm text-muted-foreground">
                         Your conversations remain completely private and secure
                       </p>
                     </div>
-                    <div className="text-center p-6 professional-card">
-                      <TrendingUp className="w-10 h-10 text-blue-600 mx-auto mb-3" />
-                      <h4 className="font-serif font-semibold professional-text-primary mb-2">Personal Growth</h4>
-                      <p className="text-sm professional-text-secondary">
+                    <div className="text-center p-6 simple-card">
+                      <TrendingUp className="w-10 h-10 text-primary mx-auto mb-3" />
+                      <h4 className="font-semibold text-foreground mb-2">Personal Growth</h4>
+                      <p className="text-sm text-muted-foreground">
                         Strategies that evolve with your unique relationship journey
                       </p>
                     </div>
