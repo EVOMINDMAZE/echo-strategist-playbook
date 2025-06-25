@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -173,14 +174,14 @@ const Clients = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen warm-gradient">
+      <div className="min-h-screen bg-background">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <LoadingSkeleton rows={2} />
           </div>
-          <div className="organic-grid">
+          <div className="professional-grid">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="animate-warm-pulse warm-card h-48"></div>
+              <div key={i} className="animate-pulse professional-card h-48"></div>
             ))}
           </div>
         </div>
@@ -189,15 +190,15 @@ const Clients = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cream-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Enhanced Header with Better Contrast */}
+        {/* Professional Header */}
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-8 space-y-4 lg:space-y-0">
           <div className="flex-1">
-            <h1 className="text-4xl font-bold font-serif warm-text mb-2">
+            <h1 className="text-4xl font-bold font-serif professional-text-primary mb-2">
               My Clients
             </h1>
-            <p className="text-lg warm-text-muted mb-4">
+            <p className="text-lg professional-text-secondary mb-4">
               Manage your coaching relationships and track progress
             </p>
             <div className="flex flex-wrap items-center gap-3">
@@ -220,12 +221,12 @@ const Clients = () => {
           
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 icon-visible w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 professional-interactive w-4 h-4" />
               <Input
                 placeholder="Search clients..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-full sm:w-64 warm-input"
+                className="pl-10 w-full sm:w-64 professional-input"
               />
             </div>
             <ClientsHeader
@@ -238,19 +239,19 @@ const Clients = () => {
           </div>
         </div>
 
-        {/* Enhanced Tabs with Consistent Structure */}
+        {/* Professional Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2 bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700">
+          <TabsList className="grid w-full max-w-md grid-cols-2 bg-card shadow-professional border border-border">
             <TabsTrigger 
               value="all" 
-              className="flex items-center gap-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white warm-text"
+              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground professional-text-primary"
             >
               <Users size={16} />
               All Clients ({clients.length})
             </TabsTrigger>
             <TabsTrigger 
               value="favorites" 
-              className="flex items-center gap-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white warm-text"
+              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground professional-text-primary"
             >
               <Star size={16} />
               Favorites ({favoriteClients.length})
@@ -266,7 +267,7 @@ const Clients = () => {
                 type={searchTerm ? 'no-search-results' : 'no-clients'}
               />
             ) : (
-              <div className="organic-grid">
+              <div className="professional-grid">
                 {filteredClients.map((client, index) => (
                   <ClientCard
                     key={client.id}
@@ -283,10 +284,12 @@ const Clients = () => {
           </TabsContent>
 
           <TabsContent value="favorites" className="space-y-6">
-            {favoriteClients.length === 0 ? (
+            {favoriteClients.filter(client => 
+              client.name.toLowerCase().includes(searchTerm.toLowerCase())
+            ).length === 0 ? (
               <ClientsEmptyState type="no-favorites" />
             ) : (
-              <div className="organic-grid">
+              <div className="professional-grid">
                 {favoriteClients.filter(client => 
                   client.name.toLowerCase().includes(searchTerm.toLowerCase())
                 ).map((client, index) => (

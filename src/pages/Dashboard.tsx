@@ -68,13 +68,13 @@ const Dashboard = () => {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen bg-cream-50 dark:bg-slate-900">
+      <div className="min-h-screen bg-background">
         <div className="flex items-center justify-center h-screen">
           <div className="text-center space-y-4">
-            <div className="animate-warm-pulse rounded-full h-12 w-12 bg-teal-600 mx-auto flex items-center justify-center">
-              <Heart className="w-6 h-6 text-white" />
+            <div className="animate-pulse rounded-full h-12 w-12 bg-primary mx-auto flex items-center justify-center">
+              <Heart className="w-6 h-6 text-primary-foreground" />
             </div>
-            <p className="warm-text font-medium">Preparing your coaching suite...</p>
+            <p className="professional-text-primary font-medium">Preparing your coaching suite...</p>
           </div>
         </div>
       </div>
@@ -82,26 +82,26 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cream-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
         <AnimationWrapper type="fade-in" delay={0}>
           <DashboardHeader user={user} />
         </AnimationWrapper>
 
-        {/* Enhanced Welcome Message */}
+        {/* Professional Welcome Message */}
         <AnimationWrapper type="fade-in" delay={50}>
-          <Card className="mb-6 sm:mb-8 warm-card border-teal-200 dark:border-teal-700/30">
+          <Card className="mb-6 sm:mb-8 professional-card border-primary/20">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-teal-100 dark:bg-teal-900/30 rounded-full shadow-sm">
-                    <Heart className="w-6 h-6 text-teal-700 dark:text-teal-300" />
+                  <div className="p-3 bg-primary/10 rounded-full shadow-professional">
+                    <Heart className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-serif font-semibold mb-1 warm-text">
+                    <h3 className="text-lg font-serif font-semibold mb-1 professional-text-primary">
                       Your Personal Coaching Journey
                     </h3>
-                    <p className="warm-text-muted text-sm">
+                    <p className="professional-text-secondary text-sm">
                       A thoughtful space where relationship wisdom meets personal growth
                     </p>
                   </div>
@@ -116,16 +116,16 @@ const Dashboard = () => {
           </Card>
         </AnimationWrapper>
 
-        {/* Enhanced Tab Navigation */}
+        {/* Professional Tab Navigation */}
         <AnimationWrapper type="fade-in" delay={100}>
-          <div className="flex space-x-1 bg-white dark:bg-slate-800 p-1 rounded-xl mb-6 sm:mb-8 max-w-md shadow-sm border border-slate-200 dark:border-slate-700">
+          <div className="flex space-x-1 bg-card p-1 rounded-xl mb-6 sm:mb-8 max-w-md shadow-professional border border-border">
             <Button
               variant={activeTab === 'overview' ? 'default' : 'ghost'}
               onClick={() => setActiveTab('overview')}
               className={`flex-1 transition-all duration-300 ${
                 activeTab === 'overview' 
-                  ? 'bg-teal-600 hover:bg-teal-700 text-white shadow-sm' 
-                  : 'warm-text hover:bg-slate-50 dark:hover:bg-slate-700'
+                  ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-professional' 
+                  : 'professional-text-primary hover:bg-muted'
               }`}
             >
               <MessageSquare className="w-4 h-4 mr-2" />
@@ -136,8 +136,8 @@ const Dashboard = () => {
               onClick={() => setActiveTab('insights')}
               className={`flex-1 transition-all duration-300 ${
                 activeTab === 'insights' 
-                  ? 'bg-teal-600 hover:bg-teal-700 text-white shadow-sm' 
-                  : 'warm-text hover:bg-slate-50 dark:hover:bg-slate-700'
+                  ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-professional' 
+                  : 'professional-text-primary hover:bg-muted'
               }`}
             >
               <Brain className="w-4 h-4 mr-2" />
@@ -172,35 +172,35 @@ const Dashboard = () => {
               <DashboardStats userId={user.id} />
             </AnimationWrapper>
 
-            {/* Enhanced Coaching Philosophy */}
+            {/* Professional Coaching Philosophy */}
             <AnimationWrapper type="fade-in" delay={700}>
-              <Card className="mt-8 warm-card">
+              <Card className="mt-8 professional-card">
                 <CardHeader>
-                  <CardTitle className="flex items-center warm-text font-serif">
-                    <Heart className="w-5 h-5 mr-2 text-teal-600 dark:text-teal-400" />
+                  <CardTitle className="flex items-center professional-text-primary font-serif">
+                    <Heart className="w-5 h-5 mr-2 text-primary" />
                     Our Human-Centered Approach
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="organic-grid">
-                    <div className="text-center p-6 warm-card warm-hover">
-                      <Brain className="w-10 h-10 text-teal-600 dark:text-teal-400 mx-auto mb-3 animate-organic-float" />
-                      <h4 className="font-serif font-semibold warm-text mb-2">Thoughtful Analysis</h4>
-                      <p className="text-sm warm-text-muted">
+                  <div className="professional-grid">
+                    <div className="text-center p-6 professional-card">
+                      <Brain className="w-10 h-10 text-primary mx-auto mb-3" />
+                      <h4 className="font-serif font-semibold professional-text-primary mb-2">Thoughtful Analysis</h4>
+                      <p className="text-sm professional-text-secondary">
                         Gentle insights that honor the complexity of human connection
                       </p>
                     </div>
-                    <div className="text-center p-6 warm-card warm-hover">
-                      <Shield className="w-10 h-10 text-slate-600 dark:text-slate-400 mx-auto mb-3 animate-organic-float" style={{ animationDelay: '2s' }} />
-                      <h4 className="font-serif font-semibold warm-text mb-2">Safe Space</h4>
-                      <p className="text-sm warm-text-muted">
+                    <div className="text-center p-6 professional-card">
+                      <Shield className="w-10 h-10 text-secondary mx-auto mb-3" />
+                      <h4 className="font-serif font-semibold professional-text-primary mb-2">Safe Space</h4>
+                      <p className="text-sm professional-text-secondary">
                         Your conversations remain completely private and secure
                       </p>
                     </div>
-                    <div className="text-center p-6 warm-card warm-hover">
-                      <TrendingUp className="w-10 h-10 text-blue-600 dark:text-blue-400 mx-auto mb-3 animate-organic-float" style={{ animationDelay: '4s' }} />
-                      <h4 className="font-serif font-semibold warm-text mb-2">Personal Growth</h4>
-                      <p className="text-sm warm-text-muted">
+                    <div className="text-center p-6 professional-card">
+                      <TrendingUp className="w-10 h-10 text-blue-600 mx-auto mb-3" />
+                      <h4 className="font-serif font-semibold professional-text-primary mb-2">Personal Growth</h4>
+                      <p className="text-sm professional-text-secondary">
                         Strategies that evolve with your unique relationship journey
                       </p>
                     </div>
