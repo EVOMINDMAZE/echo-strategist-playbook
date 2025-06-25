@@ -48,22 +48,22 @@ export const ChatMessages = ({
       {/* Welcome message if no messages */}
       {messages.length === 0 && !isLoading && (
         <div className="flex justify-start animate-fade-in">
-          <div className="max-w-[80%] rounded-2xl px-6 py-4 bg-slate-800/60 backdrop-blur-sm text-slate-100 shadow-lg border border-slate-700/50">
+          <div className="max-w-[80%] rounded-2xl px-6 py-4 bg-card text-card-foreground shadow-lg border border-border">
             <div className="prose prose-sm max-w-none">
-              <p className="mb-2 text-sm text-slate-100 leading-relaxed">
+              <p className="mb-2 text-sm text-card-foreground leading-relaxed">
                 Hi there! I'm here to help you navigate your relationship with this person. 
                 Feel free to share what's on your mind - whether it's a specific situation, 
                 ongoing challenges, or something you'd like advice on.
               </p>
-              <p className="mb-0 text-sm text-slate-300 leading-relaxed">
+              <p className="mb-0 text-sm text-muted-foreground leading-relaxed">
                 What would you like to talk about today?
               </p>
             </div>
-            <div className="flex justify-between items-center mt-3 pt-2 border-t border-slate-600/30">
-              <span className="text-xs opacity-70">
+            <div className="flex justify-between items-center mt-3 pt-2 border-t border-border/30">
+              <span className="text-xs text-muted-foreground">
                 {formatTimestamp(new Date().toISOString())}
               </span>
-              <div className="flex items-center space-x-1 text-xs opacity-70">
+              <div className="flex items-center space-x-1 text-xs text-muted-foreground">
                 <Lock className="w-3 h-3" />
                 <span>AI Response</span>
               </div>
@@ -89,7 +89,7 @@ export const ChatMessages = ({
               className={`max-w-[80%] rounded-2xl px-6 py-4 ${
                 message.sender === 'user'
                   ? 'bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-lg'
-                  : 'bg-slate-800/60 backdrop-blur-sm text-slate-100 shadow-lg border border-slate-700/50'
+                  : 'bg-card text-card-foreground shadow-lg border border-border'
               }`}
             >
               <div className="prose prose-sm max-w-none">
@@ -101,19 +101,23 @@ export const ChatMessages = ({
                     li: ({ children }) => <li className="mb-1 text-sm text-inherit">{children}</li>,
                     strong: ({ children }) => <strong className="font-semibold text-inherit">{children}</strong>,
                     code: ({ children }) => (
-                      <code className="bg-slate-700/50 px-1 py-0.5 rounded text-xs text-inherit">{children}</code>
+                      <code className="bg-muted px-1 py-0.5 rounded text-xs text-inherit">{children}</code>
                     ),
                   }}
                 >
                   {message.content}
                 </ReactMarkdown>
               </div>
-              <div className="flex justify-between items-center mt-3 pt-2 border-t border-slate-600/30">
-                <span className="text-xs opacity-70">
+              <div className={`flex justify-between items-center mt-3 pt-2 border-t ${
+                message.sender === 'user' ? 'border-white/30' : 'border-border/30'
+              }`}>
+                <span className={`text-xs ${
+                  message.sender === 'user' ? 'text-white/70' : 'text-muted-foreground'
+                }`}>
                   {formatTimestamp(message.timestamp || new Date().toISOString())}
                 </span>
                 {message.sender === 'ai' && (
-                  <div className="flex items-center space-x-1 text-xs opacity-70">
+                  <div className="flex items-center space-x-1 text-xs text-muted-foreground">
                     <Lock className="w-3 h-3" />
                     <span>AI Response</span>
                   </div>
@@ -136,7 +140,7 @@ export const ChatMessages = ({
       {/* AI Thinking Animation - Enhanced positioning and visibility */}
       {isLoading && (
         <div className="flex justify-start animate-fade-in">
-          <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl px-6 py-4 border border-slate-700/50 shadow-lg">
+          <div className="bg-card backdrop-blur-sm rounded-2xl px-6 py-4 border border-border shadow-lg">
             <ThinkingAnimation />
           </div>
         </div>

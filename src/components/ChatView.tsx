@@ -46,7 +46,7 @@ const ChatView = ({
   });
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
+    <div className="flex flex-col h-full bg-background overflow-hidden">
       <ChatViewHeader
         session={session}
         target={client}

@@ -50,7 +50,7 @@ export const ThemeToggle = () => {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      className="professional-interactive hover:bg-muted transition-all border-2 border-transparent hover:border-border h-12 w-12"
+      className="text-foreground hover:bg-muted transition-all border-2 border-transparent hover:border-border h-12 w-12"
     >
       {theme === 'light' ? (
         <Moon className="h-6 w-6" />

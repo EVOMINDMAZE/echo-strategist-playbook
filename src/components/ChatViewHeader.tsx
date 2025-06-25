@@ -36,7 +36,7 @@ export const ChatViewHeader = ({
   };
 
   return (
-    <div className="sticky top-0 z-10 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700/50 backdrop-blur-sm">
+    <div className="sticky top-0 z-10 bg-background border-b border-border backdrop-blur-sm">
       <div className="max-w-4xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Back button and target info */}
@@ -45,7 +45,7 @@ export const ChatViewHeader = ({
               variant="ghost"
               size="sm"
               onClick={onBackToTargets}
-              className="text-slate-300 hover:text-white hover:bg-slate-700/50"
+              className="text-foreground hover:text-foreground hover:bg-muted"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
@@ -56,8 +56,8 @@ export const ChatViewHeader = ({
                 <Target className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-white">{target.name}</h1>
-                <div className="flex items-center space-x-4 text-sm text-slate-400">
+                <h1 className="text-lg font-semibold text-foreground">{target.name}</h1>
+                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                   <span className="flex items-center">
                     <MessageSquare className="w-3 h-3 mr-1" />
                     {messages.length} messages
@@ -75,7 +75,7 @@ export const ChatViewHeader = ({
 
           {/* Action buttons */}
           <div className="flex items-center space-x-3">
-            <Badge variant="secondary" className="bg-slate-700/50 text-slate-300">
+            <Badge variant="secondary" className="bg-muted text-muted-foreground">
               <Clock className="w-3 h-3 mr-1" />
               {session.status === 'gathering_info' ? 'Active' : 
                session.status === 'analyzing' ? 'Analyzing' : 
