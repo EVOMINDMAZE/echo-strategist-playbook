@@ -18,7 +18,7 @@
     --secondary: 243 244 246; /* Gray-100 */
     --secondary-foreground: 0 0 0; /* Black text on secondary */
     --muted: 249 250 251; /* Gray-50 */
-    --muted-foreground: 107 114 128; /* Gray-500 for muted text */
+    --muted-foreground: 75 85 99; /* Gray-600 for better contrast */
     --accent: 243 244 246; /* Gray-100 */
     --accent-foreground: 0 0 0; /* Black text on accent */
     --destructive: 220 38 38; /* Red-600 */
@@ -33,22 +33,22 @@
     /* Simple Dark Mode - High Contrast */
     --background: 0 0 0; /* Pure black */
     --foreground: 255 255 255; /* Pure white text */
-    --card: 17 24 39; /* Gray-900 */
+    --card: 31 41 55; /* Gray-800 for better contrast */
     --card-foreground: 255 255 255; /* White text on cards */
-    --popover: 17 24 39;
+    --popover: 31 41 55;
     --popover-foreground: 255 255 255;
     --primary: 59 130 246; /* Blue-500 */
     --primary-foreground: 255 255 255;
-    --secondary: 31 41 55; /* Gray-800 */
+    --secondary: 55 65 81; /* Gray-700 for better contrast */
     --secondary-foreground: 255 255 255; /* White text on secondary */
-    --muted: 17 24 39; /* Gray-900 */
+    --muted: 31 41 55; /* Gray-800 */
     --muted-foreground: 156 163 175; /* Gray-400 for muted text */
-    --accent: 31 41 55; /* Gray-800 */
+    --accent: 55 65 81; /* Gray-700 */
     --accent-foreground: 255 255 255; /* White text on accent */
     --destructive: 239 68 68; /* Red-500 */
     --destructive-foreground: 255 255 255;
     --border: 75 85 99; /* Gray-600 */
-    --input: 17 24 39;
+    --input: 31 41 55;
     --ring: 59 130 246;
   }
 }
@@ -61,15 +61,22 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', system-ui, sans-serif;
+    color: hsl(var(--foreground)) !important;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply text-foreground font-semibold;
+    color: hsl(var(--foreground)) !important;
   }
 
-  /* Ensure text is always visible */
-  p, span, div, button, a {
-    color: hsl(var(--foreground));
+  /* Ensure ALL text is always visible with proper contrast */
+  p, span, div, button, a, label {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  /* Specific overrides for muted text */
+  .text-muted-foreground {
+    color: hsl(var(--muted-foreground)) !important;
   }
 
   /* Focus styles */
@@ -78,42 +85,49 @@
   }
 }
 
-/* Simple, clean utilities */
+/* Force visibility utilities */
 @layer utilities {
+  .force-visible {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .force-muted {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
   .simple-card {
     @apply bg-card border border-border rounded-lg shadow-sm;
-    color: hsl(var(--card-foreground));
+    color: hsl(var(--card-foreground)) !important;
   }
 
   .simple-button {
     @apply bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-md font-medium transition-colors;
+    color: hsl(var(--primary-foreground)) !important;
   }
 
   .simple-input {
     @apply bg-input border border-border text-foreground px-3 py-2 rounded-md placeholder:text-muted-foreground;
-  }
-
-  .simple-text-primary {
     color: hsl(var(--foreground)) !important;
   }
 
-  .simple-text-secondary {
-    color: hsl(var(--muted-foreground)) !important;
-  }
-
-  .simple-text-muted {
-    color: hsl(var(--muted-foreground)) !important;
-  }
-
   .simple-interactive {
-    color: hsl(var(--foreground));
+    color: hsl(var(--foreground)) !important;
   }
   
   .simple-interactive:hover {
-    color: hsl(var(--primary));
+    color: hsl(var(--primary)) !important;
   }
 
   .simple-grid {
     @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  }
+
+  /* Sidebar specific fixes */
+  .sidebar-text {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .sidebar-muted {
+    color: hsl(var(--muted-foreground)) !important;
   }
 }

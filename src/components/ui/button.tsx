@@ -47,6 +47,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        style={{
+          color: variant === 'default' ? 'hsl(var(--primary-foreground))' : 
+                 variant === 'ghost' ? 'hsl(var(--foreground))' :
+                 variant === 'secondary' ? 'hsl(var(--secondary-foreground))' :
+                 variant === 'destructive' ? 'hsl(var(--destructive-foreground))' :
+                 variant === 'outline' ? 'hsl(var(--foreground))' :
+                 'hsl(var(--primary))'
+        }}
         {...props}
       />
     )

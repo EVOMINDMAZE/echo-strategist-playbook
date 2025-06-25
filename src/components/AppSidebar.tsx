@@ -133,16 +133,16 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
             <Heart className="w-6 h-6 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-semibold text-foreground truncate">
+            <h2 className="text-lg font-semibold force-visible truncate">
               Coaching Suite
             </h2>
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-xs force-muted truncate">
               {user.user_metadata?.full_name || user.email}
             </p>
           </div>
           <div className="flex items-center space-x-1">
             <ThemeToggle />
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+            <SidebarTrigger className="force-muted hover:text-primary" />
           </div>
         </div>
       </SidebarHeader>
@@ -161,14 +161,14 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
                       className={`w-full justify-start transition-colors rounded-lg ${
                         item.isActive 
                           ? 'bg-primary text-primary-foreground font-medium' 
-                          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                          : 'force-muted hover:bg-muted hover:force-visible'
                       }`}
                     >
                       <button onClick={() => navigate(item.path)} className="flex items-center space-x-3 w-full">
                         <Icon size={18} />
                         <span className="font-medium">{item.label}</span>
                         {item.badge && (
-                          <Badge variant="secondary" className="ml-auto text-xs bg-muted text-muted-foreground">
+                          <Badge variant="secondary" className="ml-auto text-xs">
                             {item.badge}
                           </Badge>
                         )}
@@ -188,7 +188,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
           <SheetTrigger asChild>
             <Button 
               variant="ghost" 
-              className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted"
+              className="w-full justify-start force-muted hover:force-visible hover:bg-muted"
             >
               <Bell size={18} className="mr-3" />
               <span className="font-medium">Notifications</span>
@@ -201,7 +201,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
           </SheetTrigger>
           <SheetContent side="left" className="w-80 bg-background border-border">
             <SheetHeader>
-              <SheetTitle className="text-foreground">Notifications</SheetTitle>
+              <SheetTitle className="force-visible">Notifications</SheetTitle>
               {unreadCount > 0 && (
                 <Button
                   variant="ghost"
@@ -215,7 +215,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
             </SheetHeader>
             <div className="mt-6 space-y-3 max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
-                <div className="text-center text-muted-foreground py-8">
+                <div className="text-center force-muted py-8">
                   <Bell className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
                   <p>No notifications yet</p>
                 </div>
@@ -232,13 +232,13 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium text-foreground truncate">
+                        <h4 className="text-sm font-medium force-visible truncate">
                           {notification.title}
                         </h4>
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        <p className="text-xs force-muted mt-1 line-clamp-2">
                           {notification.message}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs force-muted mt-1">
                           {new Date(notification.created_at).toLocaleDateString()}
                         </p>
                       </div>
@@ -256,7 +256,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <SidebarMenuButton asChild>
           <button
             onClick={() => navigate('/profile')}
-            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted"
+            className="w-full justify-start force-muted hover:force-visible hover:bg-muted"
           >
             <User size={18} className="mr-3" />
             <span className="font-medium">Profile</span>
@@ -266,7 +266,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <SidebarMenuButton asChild>
           <button
             onClick={() => navigate('/subscription')}
-            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted"
+            className="w-full justify-start force-muted hover:force-visible hover:bg-muted"
           >
             <CreditCard size={18} className="mr-3" />
             <span className="font-medium">Subscription</span>
@@ -276,7 +276,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <SidebarMenuButton asChild>
           <button
             onClick={() => navigate('/settings')}
-            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted"
+            className="w-full justify-start force-muted hover:force-visible hover:bg-muted"
           >
             <Settings size={18} className="mr-3" />
             <span className="font-medium">Settings</span>

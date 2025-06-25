@@ -74,7 +74,7 @@ const Dashboard = () => {
             <div className="animate-pulse rounded-full h-12 w-12 bg-primary/20 mx-auto flex items-center justify-center">
               <Heart className="w-6 h-6 text-primary" />
             </div>
-            <p className="text-foreground font-medium">Preparing your coaching suite...</p>
+            <p className="force-visible font-medium">Preparing your coaching suite...</p>
           </div>
         </div>
       </div>
@@ -98,10 +98,10 @@ const Dashboard = () => {
                     <Heart className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold mb-1 text-foreground">
+                    <h3 className="text-lg font-semibold mb-1 force-visible">
                       Your Personal Coaching Journey
                     </h3>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="force-muted text-sm">
                       A thoughtful space where relationship wisdom meets personal growth
                     </p>
                   </div>
@@ -125,7 +125,7 @@ const Dashboard = () => {
               className={`flex-1 transition-colors ${
                 activeTab === 'overview' 
                   ? 'bg-primary text-primary-foreground' 
-                  : 'text-muted-foreground hover:text-foreground hover:bg-background'
+                  : 'force-muted hover:force-visible hover:bg-background'
               }`}
             >
               <MessageSquare className="w-4 h-4 mr-2" />
@@ -137,7 +137,7 @@ const Dashboard = () => {
               className={`flex-1 transition-colors ${
                 activeTab === 'insights' 
                   ? 'bg-primary text-primary-foreground' 
-                  : 'text-muted-foreground hover:text-foreground hover:bg-background'
+                  : 'force-muted hover:force-visible hover:bg-background'
               }`}
             >
               <Brain className="w-4 h-4 mr-2" />
@@ -176,7 +176,7 @@ const Dashboard = () => {
             <AnimationWrapper type="fade-in" delay={700}>
               <Card className="mt-8 simple-card">
                 <CardHeader>
-                  <CardTitle className="flex items-center text-foreground">
+                  <CardTitle className="flex items-center force-visible">
                     <Heart className="w-5 h-5 mr-2 text-primary" />
                     Our Human-Centered Approach
                   </CardTitle>
@@ -185,22 +185,22 @@ const Dashboard = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="text-center p-6 simple-card">
                       <Brain className="w-10 h-10 text-primary mx-auto mb-3" />
-                      <h4 className="font-semibold text-foreground mb-2">Thoughtful Analysis</h4>
-                      <p className="text-sm text-muted-foreground">
+                      <h4 className="font-semibold force-visible mb-2">Thoughtful Analysis</h4>
+                      <p className="text-sm force-muted">
                         Gentle insights that honor the complexity of human connection
                       </p>
                     </div>
                     <div className="text-center p-6 simple-card">
                       <Shield className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-                      <h4 className="font-semibold text-foreground mb-2">Safe Space</h4>
-                      <p className="text-sm text-muted-foreground">
+                      <h4 className="font-semibold force-visible mb-2">Safe Space</h4>
+                      <p className="text-sm force-muted">
                         Your conversations remain completely private and secure
                       </p>
                     </div>
                     <div className="text-center p-6 simple-card">
                       <TrendingUp className="w-10 h-10 text-primary mx-auto mb-3" />
-                      <h4 className="font-semibold text-foreground mb-2">Personal Growth</h4>
-                      <p className="text-sm text-muted-foreground">
+                      <h4 className="font-semibold force-visible mb-2">Personal Growth</h4>
+                      <p className="text-sm force-muted">
                         Strategies that evolve with your unique relationship journey
                       </p>
                     </div>
