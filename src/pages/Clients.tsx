@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -202,7 +201,7 @@ const Clients = () => {
               Manage your coaching relationships and track progress
             </p>
             <div className="flex flex-wrap items-center gap-4">
-              <Badge variant="info" className="px-4 py-2 text-sm">
+              <Badge variant="default" className="px-4 py-2 text-sm">
                 <Users className="w-4 h-4 mr-2" />
                 {clients.length} Total Client{clients.length !== 1 ? 's' : ''}
               </Badge>
