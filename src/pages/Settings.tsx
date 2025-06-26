@@ -8,18 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import { WorldClassNavigation } from '@/components/WorldClassNavigation';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { User } from '@supabase/supabase-js';
 import { 
   Settings as SettingsIcon, 
-  Brush, 
   Bell, 
-  Clock, 
   MessageSquare, 
   User as UserIcon,
-  Shield,
   Trash2, 
   AlertTriangle 
 } from 'lucide-react';
@@ -104,7 +100,6 @@ const Settings = () => {
           timezone: data.timezone ?? 'UTC'
         });
       } else if (error && error.code === 'PGRST116') {
-        // No preferences found, create default ones
         await createDefaultPreferences(userId);
       }
     } catch (error) {
@@ -194,33 +189,30 @@ const Settings = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
-        <WorldClassNavigation user={null} />
-        <div className="flex items-center justify-center h-[calc(100vh-80px)]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen bg-background">
+        <div className="flex items-center justify-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
-      <WorldClassNavigation user={user} />
-      
+    <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto py-4 sm:py-8 px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent dark:from-slate-100 dark:to-slate-400">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Settings & Preferences
           </h1>
-          <p className="mt-2 text-slate-600 dark:text-slate-400">
+          <p className="mt-2 text-muted-foreground">
             Customize your coaching experience to match your style
           </p>
         </div>
 
         {/* Profile Section */}
-        <Card className="border-slate-200 dark:border-slate-700 shadow-sm">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-slate-800 dark:text-slate-200">
+            <CardTitle className="flex items-center gap-2 text-foreground">
               <UserIcon className="w-5 h-5" />
               Profile Information
             </CardTitle>
@@ -228,12 +220,12 @@ const Settings = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email</Label>
-                <p className="text-slate-600 dark:text-slate-400 mt-1">{user.email}</p>
+                <Label className="text-sm font-medium text-foreground">Email</Label>
+                <p className="text-muted-foreground mt-1">{user.email}</p>
               </div>
               <div>
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Name</Label>
-                <p className="text-slate-600 dark:text-slate-400 mt-1">
+                <Label className="text-sm font-medium text-foreground">Name</Label>
+                <p className="text-muted-foreground mt-1">
                   {user.user_metadata?.full_name || 'Not set'}
                 </p>
               </div>
@@ -242,9 +234,9 @@ const Settings = () => {
         </Card>
 
         {/* Notification Preferences */}
-        <Card className="border-slate-200 dark:border-slate-700 shadow-sm">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-slate-800 dark:text-slate-200">
+            <CardTitle className="flex items-center gap-2 text-foreground">
               <Bell className="w-5 h-5" />
               Notification Preferences
             </CardTitle>
@@ -252,8 +244,8 @@ const Settings = () => {
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0 pr-4">
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email Notifications</Label>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                <Label className="text-sm font-medium text-foreground">Email Notifications</Label>
+                <p className="text-xs text-muted-foreground mt-1">
                   Receive session reminders and updates via email
                 </p>
               </div>
@@ -267,8 +259,8 @@ const Settings = () => {
             
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0 pr-4">
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Push Notifications</Label>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                <Label className="text-sm font-medium text-foreground">Push Notifications</Label>
+                <p className="text-xs text-muted-foreground mt-1">
                   Get notified about important coaching updates
                 </p>
               </div>
@@ -282,8 +274,8 @@ const Settings = () => {
             
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0 pr-4">
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Session Reminders</Label>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                <Label className="text-sm font-medium text-foreground">Session Reminders</Label>
+                <p className="text-xs text-muted-foreground mt-1">
                   Remind me before scheduled coaching sessions
                 </p>
               </div>
@@ -298,16 +290,16 @@ const Settings = () => {
         </Card>
 
         {/* Coaching Preferences */}
-        <Card className="border-slate-200 dark:border-slate-700 shadow-sm">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-slate-800 dark:text-slate-200">
+            <CardTitle className="flex items-center gap-2 text-foreground">
               <MessageSquare className="w-5 h-5" />
               Coaching Preferences
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+              <Label className="text-sm font-medium text-foreground mb-2 block">
                 Preferred Session Length
               </Label>
               <div className="px-2">
@@ -321,7 +313,7 @@ const Settings = () => {
                   step={5}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-2">
+                <div className="flex justify-between text-xs text-muted-foreground mt-2">
                   <span>15 min</span>
                   <span className="font-medium">{preferences.preferred_session_length} min</span>
                   <span>60 min</span>
@@ -330,7 +322,7 @@ const Settings = () => {
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+              <Label className="text-sm font-medium text-foreground mb-2 block">
                 Coaching Style
               </Label>
               <Select
@@ -339,10 +331,10 @@ const Settings = () => {
                   setPreferences(prev => ({ ...prev, coaching_style: value }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-background border-border text-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border-border">
                   <SelectItem value="supportive">Supportive & Encouraging</SelectItem>
                   <SelectItem value="direct">Direct & Straightforward</SelectItem>
                   <SelectItem value="balanced">Balanced Approach</SelectItem>
@@ -352,7 +344,7 @@ const Settings = () => {
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+              <Label className="text-sm font-medium text-foreground mb-2 block">
                 Timezone
               </Label>
               <Select
@@ -361,10 +353,10 @@ const Settings = () => {
                   setPreferences(prev => ({ ...prev, timezone: value }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-background border-border text-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border-border">
                   <SelectItem value="UTC">UTC</SelectItem>
                   <SelectItem value="America/New_York">Eastern Time</SelectItem>
                   <SelectItem value="America/Chicago">Central Time</SelectItem>
@@ -380,30 +372,30 @@ const Settings = () => {
         </Card>
 
         {/* Save Button */}
-        <div className="flex justify-end sticky bottom-4 z-10">
+        <div className="flex justify-end">
           <Button 
             onClick={savePreferences}
             disabled={saving}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-2 rounded-lg transition-colors shadow-lg"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {saving ? 'Saving...' : 'Save Preferences'}
           </Button>
         </div>
 
-        <Separator className="my-8" />
+        <Separator className="my-8 bg-border" />
 
         {/* Danger Zone */}
-        <Card className="border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10">
+        <Card className="bg-card border-destructive/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-400">
+            <CardTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="w-5 h-5" />
               Danger Zone
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Delete Account</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+              <h3 className="font-medium text-foreground mb-2">Delete Account</h3>
+              <p className="text-sm text-muted-foreground mb-4">
                 Permanently delete your account and all associated data. This action cannot be undone.
               </p>
               
@@ -414,20 +406,20 @@ const Settings = () => {
                     Delete Account
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="bg-background border-border">
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
+                    <AlertDialogTitle className="text-foreground">Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-muted-foreground">
                       This action cannot be undone. This will permanently delete your
                       account and remove all your data from our servers.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel className="bg-background text-foreground border-border">Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleDeleteAccount}
                       disabled={loading}
-                      className="bg-red-600 hover:bg-red-700"
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
                       {loading ? 'Deleting...' : 'Delete Account'}
                     </AlertDialogAction>
