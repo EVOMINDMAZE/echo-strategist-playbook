@@ -6,29 +6,29 @@
 
 @layer base {
   :root {
-    /* Clean, simple color palette with good contrast */
-    --background: 248 250 252; /* Light gray background */
-    --foreground: 30 41 59; /* Dark slate text */
-    --card: 255 255 255; /* Pure white cards */
-    --card-foreground: 30 41 59; /* Dark slate text on cards */
+    /* Clean, modern color palette */
+    --background: 249 250 251; /* gray-50 */
+    --foreground: 17 24 39; /* gray-900 */
+    --card: 255 255 255; /* white */
+    --card-foreground: 17 24 39; /* gray-900 */
     --popover: 255 255 255;
-    --popover-foreground: 30 41 59;
-    --primary: 59 130 246; /* Clear blue */
-    --primary-foreground: 255 255 255; /* White text on blue */
-    --secondary: 241 245 249; /* Very light gray */
-    --secondary-foreground: 30 41 59; /* Dark text */
-    --muted: 241 245 249; /* Light gray backgrounds */
-    --muted-foreground: 100 116 139; /* Medium gray text */
-    --accent: 240 249 255; /* Very light blue */
-    --accent-foreground: 30 41 59; /* Dark text on light accent */
-    --destructive: 239 68 68; /* Clear red for errors */
+    --popover-foreground: 17 24 39;
+    --primary: 37 99 235; /* blue-600 */
+    --primary-foreground: 255 255 255;
+    --secondary: 243 244 246; /* gray-100 */
+    --secondary-foreground: 17 24 39;
+    --muted: 243 244 246; /* gray-100 */
+    --muted-foreground: 75 85 99; /* gray-600 */
+    --accent: 239 246 255; /* blue-50 */
+    --accent-foreground: 17 24 39;
+    --destructive: 239 68 68; /* red-500 */
     --destructive-foreground: 255 255 255;
-    --border: 226 232 240; /* Light gray border */
-    --input: 255 255 255; /* White input background */
-    --ring: 59 130 246; /* Blue focus ring */
-    --success: 34 197 94; /* Green for success */
+    --border: 229 231 235; /* gray-200 */
+    --input: 255 255 255;
+    --ring: 37 99 235; /* blue-600 */
+    --success: 34 197 94; /* green-500 */
     --success-foreground: 255 255 255;
-    --warning: 245 158 11; /* Orange for warnings */
+    --warning: 245 158 11; /* amber-500 */
     --warning-foreground: 255 255 255;
     --radius: 0.5rem;
   }
@@ -42,16 +42,16 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', system-ui, sans-serif;
-    background-color: rgb(248 250 252);
-    color: rgb(30 41 59);
+    background-color: rgb(249 250 251);
+    color: rgb(17 24 39);
     line-height: 1.6;
   }
 
   /* Typography with proper spacing */
   h1, h2, h3, h4, h5, h6 {
     @apply text-foreground font-semibold;
-    color: rgb(30 41 59);
-    line-height: 1.4;
+    color: rgb(17 24 39);
+    line-height: 1.3;
     margin-bottom: 0.5rem;
   }
 
@@ -67,37 +67,37 @@
     line-height: 1.6;
   }
 
-  /* Input styling with proper contrast */
+  /* Input styling */
   input, textarea, select {
     @apply bg-white text-foreground border-border;
     background-color: rgb(255 255 255);
-    color: rgb(30 41 59);
-    border-color: rgb(226 232 240);
+    color: rgb(17 24 39);
+    border-color: rgb(229 231 235);
     line-height: 1.5;
   }
 
   input::placeholder, textarea::placeholder {
-    color: rgb(100 116 139);
+    color: rgb(75 85 99);
   }
 
   /* Button styling */
   button {
     @apply text-foreground;
-    color: rgb(30 41 59);
+    color: rgb(17 24 39);
     line-height: 1.5;
   }
 
   /* Link styling */
   a {
     @apply text-primary hover:text-primary/80;
-    color: rgb(59 130 246);
+    color: rgb(37 99 235);
   }
 
-  /* Card styling with proper spacing */
+  /* Card styling */
   .card {
     background-color: rgb(255 255 255);
-    color: rgb(30 41 59);
-    border-color: rgb(226 232 240);
+    color: rgb(17 24 39);
+    border-color: rgb(229 231 235);
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   }
 
@@ -106,11 +106,14 @@
     @apply outline-2 outline-primary outline-offset-2;
   }
 
-  /* Ensure no text overlap */
-  .text-truncate {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  /* Layout fixes */
+  .min-h-screen {
+    min-height: 100vh;
+  }
+
+  /* Sidebar layout fixes */
+  [data-sidebar="sidebar"] {
+    @apply border-r border-gray-200;
   }
 
   /* Custom scrollbar */
@@ -119,28 +122,28 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgb(241 245 249);
+    background: rgb(243 244 246);
     border-radius: 3px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgb(203 213 225);
+    background: rgb(156 163 175);
     border-radius: 3px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgb(148 163 184);
+    background: rgb(107 114 128);
   }
 }
 
-/* Status colors for better visibility */
+/* Status colors */
 .status-completed {
   background-color: rgb(34 197 94);
   color: rgb(255 255 255);
 }
 
 .status-in-progress {
-  background-color: rgb(59 130 246);
+  background-color: rgb(37 99 235);
   color: rgb(255 255 255);
 }
 
@@ -155,11 +158,24 @@
 }
 
 .priority-medium {
-  background-color: rgb(59 130 246);
+  background-color: rgb(37 99 235);
   color: rgb(255 255 255);
 }
 
 .priority-low {
   background-color: rgb(34 197 94);
   color: rgb(255 255 255);
+}
+
+/* Fix layout issues */
+.sidebar-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
 }

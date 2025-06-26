@@ -70,13 +70,13 @@ const Dashboard = () => {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gray-50">
         <div className="flex items-center justify-center h-screen">
           <div className="text-center space-y-4">
-            <div className="animate-pulse rounded-full h-12 w-12 bg-primary/20 mx-auto flex items-center justify-center">
-              <Heart className="w-6 h-6 text-primary" />
+            <div className="animate-pulse rounded-full h-12 w-12 bg-blue-100 mx-auto flex items-center justify-center">
+              <Heart className="w-6 h-6 text-blue-600" />
             </div>
-            <p className="text-foreground font-medium">Preparing your coaching suite...</p>
+            <p className="text-gray-700 font-medium">Preparing your coaching suite...</p>
           </div>
         </div>
       </div>
@@ -85,23 +85,24 @@ const Dashboard = () => {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-gray-50">
         <AppSidebar user={user} />
-        <SidebarInset className="flex-1 min-w-0">
-          {/* Header with sidebar trigger */}
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
+        <SidebarInset className="flex-1">
+          {/* Header */}
+          <header className="flex h-16 items-center gap-2 border-b bg-white px-6 shadow-sm">
             <SidebarTrigger className="-ml-1" />
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Heart className="w-4 h-4" />
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Heart className="w-4 h-4 text-blue-600" />
               <span>Welcome back, Coach!</span>
             </div>
           </header>
 
-          {/* Main content with proper padding */}
-          <main className="flex-1 overflow-auto p-4 lg:p-6">
-            <div className="max-w-7xl mx-auto space-y-6">
+          {/* Main content */}
+          <main className="flex-1 p-6">
+            <div className="max-w-7xl mx-auto space-y-8">
+              {/* Welcome Section */}
               <AnimationWrapper type="fade-in" delay={0}>
-                <div className="mb-6">
+                <div className="mb-8">
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">
                     Welcome back, Coach! 👋
                   </h1>
@@ -113,27 +114,25 @@ const Dashboard = () => {
 
               {/* Welcome Card */}
               <AnimationWrapper type="fade-in" delay={50}>
-                <Card className="mb-6">
+                <Card className="border-0 shadow-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <div className="p-3 bg-primary/10 rounded-full">
-                          <Heart className="w-6 h-6 text-primary" />
+                        <div className="p-3 bg-blue-50 rounded-full">
+                          <Heart className="w-6 h-6 text-blue-600" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold mb-1 text-foreground">
+                          <h3 className="text-lg font-semibold mb-1 text-gray-900">
                             Your Personal Coaching Journey
                           </h3>
-                          <p className="text-muted-foreground text-sm">
+                          <p className="text-gray-600 text-sm">
                             A thoughtful space where relationship wisdom meets personal growth
                           </p>
                         </div>
                       </div>
-                      <div className="hidden sm:flex items-center space-x-3">
-                        <Badge className="bg-primary text-primary-foreground text-sm">
-                          Premium Experience
-                        </Badge>
-                      </div>
+                      <Badge className="bg-blue-600 text-white text-sm px-3 py-1">
+                        Premium Experience
+                      </Badge>
                     </div>
                   </CardContent>
                 </Card>
@@ -141,14 +140,14 @@ const Dashboard = () => {
 
               {/* Tab Navigation */}
               <AnimationWrapper type="fade-in" delay={100}>
-                <div className="flex space-x-1 bg-muted p-1 rounded-lg mb-6 max-w-md">
+                <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-8 max-w-md">
                   <Button
                     variant={activeTab === 'overview' ? 'default' : 'ghost'}
                     onClick={() => setActiveTab('overview')}
                     className={`flex-1 transition-colors ${
                       activeTab === 'overview' 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-background'
+                        ? 'bg-white text-gray-900 shadow-sm' 
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
                     }`}
                   >
                     <MessageSquare className="w-4 h-4 mr-2" />
@@ -159,8 +158,8 @@ const Dashboard = () => {
                     onClick={() => setActiveTab('insights')}
                     className={`flex-1 transition-colors ${
                       activeTab === 'insights' 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-background'
+                        ? 'bg-white text-gray-900 shadow-sm' 
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
                     }`}
                   >
                     <Brain className="w-4 h-4 mr-2" />
@@ -171,7 +170,7 @@ const Dashboard = () => {
 
               {/* Tab Content */}
               {activeTab === 'overview' ? (
-                <>
+                <div className="space-y-8">
                   <AnimationWrapper type="fade-in" delay={200}>
                     <QuickStatsGrid stats={quickStats} />
                   </AnimationWrapper>
@@ -197,33 +196,33 @@ const Dashboard = () => {
 
                   {/* Philosophy Card */}
                   <AnimationWrapper type="fade-in" delay={700}>
-                    <Card>
+                    <Card className="border-0 shadow-sm">
                       <CardHeader>
-                        <CardTitle className="flex items-center text-foreground">
-                          <Heart className="w-5 h-5 mr-2 text-primary" />
+                        <CardTitle className="flex items-center text-gray-900">
+                          <Heart className="w-5 h-5 mr-2 text-blue-600" />
                           Our Human-Centered Approach
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-4">
+                      <CardContent className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          <div className="text-center p-6 bg-card border border-border rounded-lg">
-                            <Brain className="w-10 h-10 text-primary mx-auto mb-3" />
-                            <h4 className="font-semibold text-foreground mb-2">Thoughtful Analysis</h4>
-                            <p className="text-sm text-muted-foreground">
+                          <div className="text-center p-6 bg-gray-50 rounded-lg">
+                            <Brain className="w-10 h-10 text-blue-600 mx-auto mb-3" />
+                            <h4 className="font-semibold text-gray-900 mb-2">Thoughtful Analysis</h4>
+                            <p className="text-sm text-gray-600">
                               Gentle insights that honor the complexity of human connection
                             </p>
                           </div>
-                          <div className="text-center p-6 bg-card border border-border rounded-lg">
-                            <Shield className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-                            <h4 className="font-semibold text-foreground mb-2">Safe Space</h4>
-                            <p className="text-sm text-muted-foreground">
+                          <div className="text-center p-6 bg-gray-50 rounded-lg">
+                            <Shield className="w-10 h-10 text-gray-600 mx-auto mb-3" />
+                            <h4 className="font-semibold text-gray-900 mb-2">Safe Space</h4>
+                            <p className="text-sm text-gray-600">
                               Your conversations remain completely private and secure
                             </p>
                           </div>
-                          <div className="text-center p-6 bg-card border border-border rounded-lg">
-                            <TrendingUp className="w-10 h-10 text-primary mx-auto mb-3" />
-                            <h4 className="font-semibold text-foreground mb-2">Personal Growth</h4>
-                            <p className="text-sm text-muted-foreground">
+                          <div className="text-center p-6 bg-gray-50 rounded-lg">
+                            <TrendingUp className="w-10 h-10 text-blue-600 mx-auto mb-3" />
+                            <h4 className="font-semibold text-gray-900 mb-2">Personal Growth</h4>
+                            <p className="text-sm text-gray-600">
                               Strategies that evolve with your unique relationship journey
                             </p>
                           </div>
@@ -231,7 +230,7 @@ const Dashboard = () => {
                       </CardContent>
                     </Card>
                   </AnimationWrapper>
-                </>
+                </div>
               ) : (
                 <AnimationWrapper type="fade-in" delay={200}>
                   <PersonalInsights userId={user.id} />

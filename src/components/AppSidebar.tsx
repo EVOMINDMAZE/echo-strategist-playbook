@@ -157,11 +157,10 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
                           ? 'bg-blue-600 text-white font-medium' 
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
-                      tooltip={item.label}
                     >
                       <button 
-                        onClick={() => navigate(item.path)} 
-                        className="flex items-center space-x-3 w-full"
+                        onClick={() => navigate(item.path)}
+                        className="flex items-center space-x-3 w-full px-3 py-2"
                       >
                         <Icon size={18} />
                         <span className="font-medium group-data-[collapsible=icon]:sr-only">
@@ -188,7 +187,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
           <SheetTrigger asChild>
             <Button 
               variant="ghost" 
-              className="w-full justify-start text-gray-700 hover:bg-gray-100"
+              className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2"
             >
               <Bell size={18} className="mr-3 group-data-[collapsible=icon]:mr-0" />
               <span className="font-medium group-data-[collapsible=icon]:sr-only">Notifications</span>
@@ -256,7 +255,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <Button
           variant="ghost"
           onClick={() => navigate('/profile')}
-          className="w-full justify-start text-gray-700 hover:bg-gray-100"
+          className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2"
         >
           <User size={18} className="mr-3 group-data-[collapsible=icon]:mr-0" />
           <span className="font-medium group-data-[collapsible=icon]:sr-only">Profile</span>
@@ -265,7 +264,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <Button
           variant="ghost"
           onClick={() => navigate('/subscription')}
-          className="w-full justify-start text-gray-700 hover:bg-gray-100"
+          className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2"
         >
           <CreditCard size={18} className="mr-3 group-data-[collapsible=icon]:mr-0" />
           <span className="font-medium group-data-[collapsible=icon]:sr-only">Subscription</span>
@@ -274,7 +273,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <Button
           variant="ghost"
           onClick={() => navigate('/settings')}
-          className="w-full justify-start text-gray-700 hover:bg-gray-100"
+          className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2"
         >
           <Settings size={18} className="mr-3 group-data-[collapsible=icon]:mr-0" />
           <span className="font-medium group-data-[collapsible=icon]:sr-only">Settings</span>
@@ -283,7 +282,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <Button
           variant="ghost"
           onClick={handleSignOut}
-          className="w-full justify-start text-red-600 hover:bg-red-50"
+          className="w-full justify-start text-red-600 hover:bg-red-50 px-3 py-2"
         >
           <LogOut size={18} className="mr-3 group-data-[collapsible=icon]:mr-0" />
           <span className="font-medium group-data-[collapsible=icon]:sr-only">Sign Out</span>
