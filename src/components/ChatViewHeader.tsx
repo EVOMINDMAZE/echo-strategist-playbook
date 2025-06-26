@@ -1,7 +1,6 @@
 
 import { ArrowLeft, Sparkles, Users, MessageSquare, Clock, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SessionData, Client } from '@/hooks/useSupabaseCoaching';
 import { ChatMessage } from '@/types/coaching';
@@ -35,9 +34,22 @@ export const ChatViewHeader = ({
     onStrategistTrigger();
   };
 
+  const getStatusBadge = () => {
+    switch (session.status) {
+      case 'gathering_info':
+        return <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">Active</Badge>;
+      case 'analyzing':
+        return <Badge variant="warning" className="bg-orange-100 text-orange-800 border-orange-300">Analyzing</Badge>;
+      case 'complete':
+        return <Badge variant="success" className="bg-green-100 text-green-800 border-green-300">Complete</Badge>;
+      default:
+        return <Badge variant="outline">Unknown</Badge>;
+    }
+  };
+
   return (
-    <div className="sticky top-0 z-10 bg-background border-b border-border backdrop-blur-sm">
-      <div className="max-w-4xl mx-auto px-4 py-4">
+    <div className="sticky top-0 z-10 bg-white border-b-2 border-slate-200 shadow-sm">
+      <div className="max-w-4xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Back button and target info */}
           <div className="flex items-center space-x-4">
@@ -45,26 +57,26 @@ export const ChatViewHeader = ({
               variant="ghost"
               size="sm"
               onClick={onBackToTargets}
-              className="text-foreground hover:text-foreground hover:bg-muted"
+              className="text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
             
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                <Target className="w-5 h-5 text-white" />
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
+                <Target className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-foreground">{target.name}</h1>
-                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                <h1 className="text-xl font-bold text-slate-800">{target.name}</h1>
+                <div className="flex items-center space-x-4 text-sm text-slate-600">
                   <span className="flex items-center">
-                    <MessageSquare className="w-3 h-3 mr-1" />
+                    <MessageSquare className="w-4 h-4 mr-1" />
                     {messages.length} messages
                   </span>
                   {previousSessions.length > 0 && (
                     <span className="flex items-center">
-                      <Users className="w-3 h-3 mr-1" />
+                      <Users className="w-4 h-4 mr-1" />
                       {previousSessions.length} previous sessions
                     </span>
                   )}
@@ -74,19 +86,14 @@ export const ChatViewHeader = ({
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center space-x-3">
-            <Badge variant="secondary" className="bg-muted text-muted-foreground">
-              <Clock className="w-3 h-3 mr-1" />
-              {session.status === 'gathering_info' ? 'Active' : 
-               session.status === 'analyzing' ? 'Analyzing' : 
-               session.status === 'complete' ? 'Complete' : 'Unknown'}
-            </Badge>
+          <div className="flex items-center space-x-4">
+            {getStatusBadge()}
             
             {session.status === 'gathering_info' && messages.length >= 4 && (
               <Button
                 onClick={handleStrategistClick}
                 disabled={isGeneratingStrategy}
-                className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white shadow-lg"
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg border-0"
                 size="sm"
               >
                 {isGeneratingStrategy ? (

@@ -6,26 +6,30 @@
 
 @layer base {
   :root {
-    /* Simple, trustworthy color palette */
-    --background: 255 255 255; /* Clean white */
-    --foreground: 51 51 51; /* Professional dark gray */
-    --card: 255 255 255; /* White cards */
-    --card-foreground: 51 51 51; /* Dark gray text */
+    /* Clean, simple color palette with good contrast */
+    --background: 248 250 252; /* Light gray background */
+    --foreground: 30 41 59; /* Dark slate text */
+    --card: 255 255 255; /* Pure white cards */
+    --card-foreground: 30 41 59; /* Dark slate text on cards */
     --popover: 255 255 255;
-    --popover-foreground: 51 51 51;
-    --primary: 59 130 246; /* Trustworthy blue */
+    --popover-foreground: 30 41 59;
+    --primary: 59 130 246; /* Clear blue */
     --primary-foreground: 255 255 255; /* White text on blue */
-    --secondary: 248 250 252; /* Very light gray */
-    --secondary-foreground: 51 51 51; /* Dark gray text */
-    --muted: 248 250 252; /* Light gray backgrounds */
-    --muted-foreground: 107 114 128; /* Medium gray text */
-    --accent: 239 246 255; /* Light blue accent */
-    --accent-foreground: 51 51 51; /* Dark text on light accent */
-    --destructive: 239 68 68; /* Clean red for errors */
+    --secondary: 241 245 249; /* Very light gray */
+    --secondary-foreground: 30 41 59; /* Dark text */
+    --muted: 241 245 249; /* Light gray backgrounds */
+    --muted-foreground: 100 116 139; /* Medium gray text */
+    --accent: 240 249 255; /* Very light blue */
+    --accent-foreground: 30 41 59; /* Dark text on light accent */
+    --destructive: 239 68 68; /* Clear red for errors */
     --destructive-foreground: 255 255 255;
-    --border: 229 231 235; /* Light border */
+    --border: 226 232 240; /* Light gray border */
     --input: 255 255 255; /* White input background */
     --ring: 59 130 246; /* Blue focus ring */
+    --success: 34 197 94; /* Green for success */
+    --success-foreground: 255 255 255;
+    --warning: 245 158 11; /* Orange for warnings */
+    --warning-foreground: 255 255 255;
     --radius: 0.5rem;
   }
 }
@@ -38,49 +42,124 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', system-ui, sans-serif;
-    background-color: rgb(255 255 255);
-    color: rgb(51 51 51);
+    background-color: rgb(248 250 252);
+    color: rgb(30 41 59);
+    line-height: 1.6;
   }
 
-  /* Clean typography */
+  /* Typography with proper spacing */
   h1, h2, h3, h4, h5, h6 {
     @apply text-foreground font-semibold;
-    color: rgb(51 51 51);
+    color: rgb(30 41 59);
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
   }
 
-  /* Input styling */
+  h1 { @apply text-3xl; }
+  h2 { @apply text-2xl; }
+  h3 { @apply text-xl; }
+  h4 { @apply text-lg; }
+  h5 { @apply text-base; }
+  h6 { @apply text-sm; }
+
+  p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+
+  /* Input styling with proper contrast */
   input, textarea, select {
-    @apply bg-input text-foreground border-border;
+    @apply bg-white text-foreground border-border;
     background-color: rgb(255 255 255);
-    color: rgb(51 51 51);
-    border-color: rgb(229 231 235);
+    color: rgb(30 41 59);
+    border-color: rgb(226 232 240);
+    line-height: 1.5;
   }
 
   input::placeholder, textarea::placeholder {
-    color: rgb(107 114 128);
+    color: rgb(100 116 139);
   }
 
   /* Button styling */
   button {
     @apply text-foreground;
-    color: rgb(51 51 51);
+    color: rgb(30 41 59);
+    line-height: 1.5;
   }
 
   /* Link styling */
   a {
-    @apply text-foreground;
-    color: rgb(51 51 51);
+    @apply text-primary hover:text-primary/80;
+    color: rgb(59 130 246);
   }
 
-  /* Card styling */
+  /* Card styling with proper spacing */
   .card {
     background-color: rgb(255 255 255);
-    color: rgb(51 51 51);
-    border-color: rgb(229 231 235);
+    color: rgb(30 41 59);
+    border-color: rgb(226 232 240);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   }
 
   /* Focus styles */
   *:focus-visible {
     @apply outline-2 outline-primary outline-offset-2;
   }
+
+  /* Ensure no text overlap */
+  .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgb(241 245 249);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgb(203 213 225);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgb(148 163 184);
+  }
+}
+
+/* Status colors for better visibility */
+.status-completed {
+  background-color: rgb(34 197 94);
+  color: rgb(255 255 255);
+}
+
+.status-in-progress {
+  background-color: rgb(59 130 246);
+  color: rgb(255 255 255);
+}
+
+.status-pending {
+  background-color: rgb(245 158 11);
+  color: rgb(255 255 255);
+}
+
+.priority-high {
+  background-color: rgb(239 68 68);
+  color: rgb(255 255 255);
+}
+
+.priority-medium {
+  background-color: rgb(59 130 246);
+  color: rgb(255 255 255);
+}
+
+.priority-low {
+  background-color: rgb(34 197 94);
+  color: rgb(255 255 255);
 }
