@@ -129,8 +129,8 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
     <Sidebar className="bg-card border-r border-border">
       <SidebarHeader className="border-b border-border p-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-            <Heart className="w-6 h-6 text-primary" />
+          <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center border border-border">
+            <Heart className="w-6 h-6 text-foreground" />
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-semibold text-foreground truncate">
@@ -142,7 +142,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
           </div>
           <div className="flex items-center space-x-1">
             <ThemeToggle />
-            <SidebarTrigger className="text-muted-foreground hover:text-primary" />
+            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
           </div>
         </div>
       </SidebarHeader>
@@ -161,14 +161,14 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
                       className={`w-full justify-start transition-colors rounded-lg ${
                         item.isActive 
                           ? 'bg-primary text-primary-foreground font-medium' 
-                          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                          : 'text-foreground hover:bg-accent'
                       }`}
                     >
                       <button onClick={() => navigate(item.path)} className="flex items-center space-x-3 w-full">
                         <Icon size={18} />
                         <span className="font-medium">{item.label}</span>
                         {item.badge && (
-                          <Badge variant="secondary" className="ml-auto text-xs">
+                          <Badge variant="secondary" className="ml-auto text-xs bg-accent text-accent-foreground">
                             {item.badge}
                           </Badge>
                         )}
@@ -188,7 +188,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
           <SheetTrigger asChild>
             <Button 
               variant="ghost" 
-              className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted"
+              className="w-full justify-start text-foreground hover:bg-accent"
             >
               <Bell size={18} className="mr-3" />
               <span className="font-medium">Notifications</span>
@@ -207,7 +207,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
                   variant="ghost"
                   size="sm"
                   onClick={markAllAsRead}
-                  className="text-xs text-primary hover:text-primary w-fit"
+                  className="text-xs text-foreground hover:bg-accent w-fit"
                 >
                   Mark all read
                 </Button>
@@ -223,10 +223,10 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
                 notifications.slice(0, 10).map((notification) => (
                   <div
                     key={notification.id}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                    className={`p-3 rounded-lg cursor-pointer transition-colors border ${
                       !notification.is_read 
-                        ? 'bg-primary/10 border border-primary/20' 
-                        : 'bg-card hover:bg-muted'
+                        ? 'bg-accent border-border' 
+                        : 'bg-card hover:bg-accent border-border'
                     }`}
                     onClick={() => handleNotificationClick(notification.id)}
                   >
@@ -243,7 +243,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
                         </p>
                       </div>
                       {!notification.is_read && (
-                        <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1"></div>
+                        <div className="w-2 h-2 bg-foreground rounded-full flex-shrink-0 mt-1"></div>
                       )}
                     </div>
                   </div>
@@ -256,7 +256,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <SidebarMenuButton asChild>
           <button
             onClick={() => navigate('/profile')}
-            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted"
+            className="w-full justify-start text-foreground hover:bg-accent"
           >
             <User size={18} className="mr-3" />
             <span className="font-medium">Profile</span>
@@ -266,7 +266,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <SidebarMenuButton asChild>
           <button
             onClick={() => navigate('/subscription')}
-            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted"
+            className="w-full justify-start text-foreground hover:bg-accent"
           >
             <CreditCard size={18} className="mr-3" />
             <span className="font-medium">Subscription</span>
@@ -276,7 +276,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <SidebarMenuButton asChild>
           <button
             onClick={() => navigate('/settings')}
-            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted"
+            className="w-full justify-start text-foreground hover:bg-accent"
           >
             <Settings size={18} className="mr-3" />
             <span className="font-medium">Settings</span>
@@ -286,7 +286,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <SidebarMenuButton asChild>
           <button
             onClick={handleSignOut}
-            className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+            className="w-full justify-start text-destructive hover:bg-destructive/10"
           >
             <LogOut size={18} className="mr-3" />
             <span className="font-medium">Sign Out</span>

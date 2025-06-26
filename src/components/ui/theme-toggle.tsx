@@ -31,11 +31,8 @@ export const ThemeToggle = () => {
 
   const applyTheme = (newTheme: 'light' | 'dark') => {
     const root = document.documentElement;
-    if (newTheme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
+    root.classList.remove('light', 'dark');
+    root.classList.add(newTheme);
   };
 
   const toggleTheme = () => {
@@ -50,12 +47,12 @@ export const ThemeToggle = () => {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      className="text-foreground hover:bg-muted transition-all border-2 border-transparent hover:border-border h-12 w-12"
+      className="h-10 w-10 rounded-lg border border-border bg-background hover:bg-accent transition-colors"
     >
       {theme === 'light' ? (
-        <Moon className="h-6 w-6" />
+        <Moon className="h-5 w-5 text-foreground" />
       ) : (
-        <Sun className="h-6 w-6" />
+        <Sun className="h-5 w-5 text-foreground" />
       )}
       <span className="sr-only">Toggle theme</span>
     </Button>

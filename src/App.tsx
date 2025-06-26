@@ -62,8 +62,8 @@ const AppContent = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-primary border-t-transparent mx-auto"></div>
-          <p className="text-muted-foreground font-medium">Loading your coaching suite...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-foreground border-t-transparent mx-auto"></div>
+          <p className="text-foreground font-medium">Loading your coaching suite...</p>
         </div>
       </div>
     );
@@ -94,7 +94,7 @@ const AppContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className="min-h-screen bg-background">
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Auth />} />
