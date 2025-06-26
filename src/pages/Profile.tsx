@@ -74,87 +74,85 @@ const Profile = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-white">
         <div className="flex items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-foreground border-t-transparent"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-blue-600 border-t-transparent"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto py-4 sm:py-8 px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             Profile
           </h1>
-          <p className="mt-2 text-muted-foreground">
+          <p className="mt-2 text-gray-600">
             Manage your account settings
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="bg-card border-border">
+          <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-card-foreground">
+              <CardTitle className="flex items-center gap-2">
                 <UserIcon size={20} />
                 Account Information
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Email Address
                 </label>
                 <div className="flex items-center gap-2">
-                  <Mail size={16} className="text-muted-foreground" />
+                  <Mail size={16} className="text-gray-500" />
                   <Input 
                     value={user.email || ''} 
                     disabled 
-                    className="bg-input text-foreground border-border"
                   />
                 </div>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   User ID
                 </label>
                 <Input 
                   value={user.id} 
                   disabled 
-                  className="font-mono text-xs bg-input text-foreground border-border" 
+                  className="font-mono text-xs" 
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Account Created
                 </label>
                 <Input 
                   value={new Date(user.created_at).toLocaleDateString()}
                   disabled 
-                  className="bg-input text-foreground border-border"
                 />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-card-foreground">Security</CardTitle>
+              <CardTitle>Security</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className="text-sm text-gray-600 mb-4">
                   Reset your password to keep your account secure.
                 </p>
                 <Button 
                   onClick={handlePasswordReset}
                   disabled={loading}
                   variant="outline"
-                  className="w-full bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                  className="w-full"
                 >
                   {loading ? 'Sending...' : 'Send Password Reset Email'}
                 </Button>

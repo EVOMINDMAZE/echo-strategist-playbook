@@ -126,23 +126,23 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
   if (!user) return null;
 
   return (
-    <Sidebar className="bg-card border-r border-border">
-      <SidebarHeader className="border-b border-border p-4">
+    <Sidebar className="bg-white border-r border-gray-200">
+      <SidebarHeader className="border-b border-gray-200 p-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center border border-border">
-            <Heart className="w-6 h-6 text-foreground" />
+          <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center border border-gray-200">
+            <Heart className="w-6 h-6 text-blue-600" />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-semibold text-foreground truncate">
+            <h2 className="text-lg font-semibold text-gray-900 truncate">
               Coaching Suite
             </h2>
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-xs text-gray-600 truncate">
               {user.user_metadata?.full_name || user.email}
             </p>
           </div>
           <div className="flex items-center space-x-1">
             <ThemeToggle />
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+            <SidebarTrigger className="text-gray-500 hover:text-gray-700" />
           </div>
         </div>
       </SidebarHeader>
@@ -160,15 +160,15 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
                       isActive={item.isActive}
                       className={`w-full justify-start transition-colors rounded-lg ${
                         item.isActive 
-                          ? 'bg-primary text-primary-foreground font-medium' 
-                          : 'text-foreground hover:bg-accent'
+                          ? 'bg-blue-600 text-white font-medium' 
+                          : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     >
                       <button onClick={() => navigate(item.path)} className="flex items-center space-x-3 w-full">
                         <Icon size={18} />
                         <span className="font-medium">{item.label}</span>
                         {item.badge && (
-                          <Badge variant="secondary" className="ml-auto text-xs bg-accent text-accent-foreground">
+                          <Badge variant="secondary" className="ml-auto text-xs bg-gray-100 text-gray-600">
                             {item.badge}
                           </Badge>
                         )}
@@ -182,32 +182,32 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border p-3 space-y-2">
+      <SidebarFooter className="border-t border-gray-200 p-3 space-y-2">
         {/* Notifications */}
         <Sheet>
           <SheetTrigger asChild>
             <Button 
               variant="ghost" 
-              className="w-full justify-start text-foreground hover:bg-accent"
+              className="w-full justify-start text-gray-700 hover:bg-gray-100"
             >
               <Bell size={18} className="mr-3" />
               <span className="font-medium">Notifications</span>
               {unreadCount > 0 && (
-                <Badge className="ml-auto bg-destructive text-destructive-foreground text-xs">
+                <Badge className="ml-auto bg-red-600 text-white text-xs">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </Badge>
               )}
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-80 bg-background border-border">
+          <SheetContent side="left" className="w-80 bg-white border-gray-200">
             <SheetHeader>
-              <SheetTitle className="text-foreground">Notifications</SheetTitle>
+              <SheetTitle className="text-gray-900">Notifications</SheetTitle>
               {unreadCount > 0 && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={markAllAsRead}
-                  className="text-xs text-foreground hover:bg-accent w-fit"
+                  className="text-xs text-gray-700 hover:bg-gray-100 w-fit"
                 >
                   Mark all read
                 </Button>
@@ -215,8 +215,8 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
             </SheetHeader>
             <div className="mt-6 space-y-3 max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
-                <div className="text-center text-muted-foreground py-8">
-                  <Bell className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                <div className="text-center text-gray-500 py-8">
+                  <Bell className="w-12 h-12 mx-auto mb-3 text-gray-400" />
                   <p>No notifications yet</p>
                 </div>
               ) : (
@@ -225,25 +225,25 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
                     key={notification.id}
                     className={`p-3 rounded-lg cursor-pointer transition-colors border ${
                       !notification.is_read 
-                        ? 'bg-accent border-border' 
-                        : 'bg-card hover:bg-accent border-border'
+                        ? 'bg-blue-50 border-blue-200' 
+                        : 'bg-white hover:bg-gray-50 border-gray-200'
                     }`}
                     onClick={() => handleNotificationClick(notification.id)}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium text-foreground truncate">
+                        <h4 className="text-sm font-medium text-gray-900 truncate">
                           {notification.title}
                         </h4>
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        <p className="text-xs text-gray-600 mt-1 line-clamp-2">
                           {notification.message}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-gray-500 mt-1">
                           {new Date(notification.created_at).toLocaleDateString()}
                         </p>
                       </div>
                       {!notification.is_read && (
-                        <div className="w-2 h-2 bg-foreground rounded-full flex-shrink-0 mt-1"></div>
+                        <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-1"></div>
                       )}
                     </div>
                   </div>
@@ -256,7 +256,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <SidebarMenuButton asChild>
           <button
             onClick={() => navigate('/profile')}
-            className="w-full justify-start text-foreground hover:bg-accent"
+            className="w-full justify-start text-gray-700 hover:bg-gray-100"
           >
             <User size={18} className="mr-3" />
             <span className="font-medium">Profile</span>
@@ -266,7 +266,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <SidebarMenuButton asChild>
           <button
             onClick={() => navigate('/subscription')}
-            className="w-full justify-start text-foreground hover:bg-accent"
+            className="w-full justify-start text-gray-700 hover:bg-gray-100"
           >
             <CreditCard size={18} className="mr-3" />
             <span className="font-medium">Subscription</span>
@@ -276,7 +276,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <SidebarMenuButton asChild>
           <button
             onClick={() => navigate('/settings')}
-            className="w-full justify-start text-foreground hover:bg-accent"
+            className="w-full justify-start text-gray-700 hover:bg-gray-100"
           >
             <Settings size={18} className="mr-3" />
             <span className="font-medium">Settings</span>
@@ -286,7 +286,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <SidebarMenuButton asChild>
           <button
             onClick={handleSignOut}
-            className="w-full justify-start text-destructive hover:bg-destructive/10"
+            className="w-full justify-start text-red-600 hover:bg-red-50"
           >
             <LogOut size={18} className="mr-3" />
             <span className="font-medium">Sign Out</span>

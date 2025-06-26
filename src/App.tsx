@@ -30,28 +30,6 @@ const AppContent = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize theme on app start
-    const initializeTheme = () => {
-      const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
-      
-      const root = document.documentElement;
-      root.classList.remove('light', 'dark');
-      root.classList.add(initialTheme);
-      root.setAttribute('data-theme', initialTheme);
-      
-      // Set body styles immediately
-      document.body.style.backgroundColor = initialTheme === 'dark' 
-        ? 'hsl(0 0% 0%)' 
-        : 'hsl(255 255 255)';
-      document.body.style.color = initialTheme === 'dark' 
-        ? 'hsl(255 255 255)' 
-        : 'hsl(0 0% 0%)';
-    };
-
-    initializeTheme();
-
     const getUser = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -82,10 +60,10 @@ const AppContent = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-foreground border-t-transparent mx-auto"></div>
-          <p className="text-foreground font-medium">Loading your coaching suite...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-blue-600 border-t-transparent mx-auto"></div>
+          <p className="text-gray-700 font-medium">Loading your coaching suite...</p>
         </div>
       </div>
     );
@@ -94,10 +72,10 @@ const AppContent = () => {
   if (shouldShowSidebar) {
     return (
       <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-background overflow-hidden">
+        <div className="min-h-screen flex w-full bg-white overflow-hidden">
           <AppSidebar user={user} />
           <SidebarInset className="flex-1 overflow-hidden">
-            <main className="flex-1 h-screen overflow-auto bg-background">
+            <main className="flex-1 h-screen overflow-auto bg-white">
               <Routes>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/clients" element={<Clients />} />
@@ -116,7 +94,7 @@ const AppContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Auth />} />
