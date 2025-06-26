@@ -27,6 +27,14 @@
     --input: 255 255 255; /* White input background */
     --ring: 0 0 0; /* Black focus ring */
     --radius: 0.5rem;
+    
+    /* Additional semantic colors */
+    --success: 22 163 74; /* Green */
+    --success-foreground: 255 255 255;
+    --warning: 245 158 11; /* Orange */
+    --warning-foreground: 255 255 255;
+    --info: 59 130 246; /* Blue */
+    --info-foreground: 255 255 255;
   }
 
   .dark {
@@ -50,110 +58,240 @@
     --border: 64 64 64; /* Dark gray border */
     --input: 24 24 24; /* Dark input background */
     --ring: 255 255 255; /* White focus ring */
+    
+    /* Additional semantic colors for dark mode */
+    --success: 34 197 94; /* Brighter green */
+    --success-foreground: 0 0 0;
+    --warning: 251 191 36; /* Brighter orange */
+    --warning-foreground: 0 0 0;
+    --info: 96 165 250; /* Brighter blue */
+    --info-foreground: 0 0 0;
   }
 }
 
 @layer base {
   * {
     @apply border-border;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   }
   
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', system-ui, sans-serif;
-    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
+  /* Ensure all headings use proper colors */
   h1, h2, h3, h4, h5, h6 {
     @apply text-foreground font-semibold;
   }
 
-  /* Ensure all text inherits proper colors */
-  p, span, div, label {
+  /* Ensure all text elements inherit proper colors */
+  p, span, div, label, li, td, th {
     @apply text-foreground;
   }
 
-  /* Focus styles */
+  /* Focus styles with high contrast */
   *:focus-visible {
     @apply outline-2 outline-ring outline-offset-2;
   }
 
-  /* Form elements */
+  /* Form elements with proper theming */
   input, textarea, select {
-    @apply bg-background text-foreground border-border;
+    @apply bg-input text-foreground border-border;
+    color: hsl(var(--foreground)) !important;
+    background-color: hsl(var(--input)) !important;
+    border-color: hsl(var(--border)) !important;
   }
 
-  /* Buttons */
+  input::placeholder, textarea::placeholder {
+    @apply text-muted-foreground;
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  /* Button theming */
   button {
+    @apply text-foreground;
+    transition: all 0.2s ease;
+  }
+
+  /* Link theming */
+  a {
+    @apply text-foreground hover:text-muted-foreground;
+    transition: color 0.2s ease;
+  }
+
+  /* Card and container theming */
+  .card, [data-card] {
+    @apply bg-card text-card-foreground border-border;
+    background-color: hsl(var(--card)) !important;
+    color: hsl(var(--card-foreground)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+
+  /* Dropdown and popover theming */
+  [data-radix-popper-content-wrapper],
+  [data-radix-dropdown-menu-content],
+  [data-radix-select-content],
+  [data-radix-popover-content] {
+    @apply bg-popover text-popover-foreground border-border;
+    background-color: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+    border-color: hsl(var(--border)) !important;
+    z-index: 50;
+  }
+
+  /* Switch component theming */
+  [data-state="checked"] {
+    background-color: hsl(var(--primary)) !important;
+  }
+
+  [data-state="unchecked"] {
+    background-color: hsl(var(--muted)) !important;
+  }
+
+  /* Slider theming */
+  [data-radix-slider-track] {
+    background-color: hsl(var(--muted)) !important;
+  }
+
+  [data-radix-slider-range] {
+    background-color: hsl(var(--primary)) !important;
+  }
+
+  [data-radix-slider-thumb] {
+    background-color: hsl(var(--primary)) !important;
+    border-color: hsl(var(--primary)) !important;
+  }
+
+  /* Table theming */
+  table {
     @apply text-foreground;
   }
 
-  /* Links */
-  a {
-    @apply text-foreground hover:text-foreground/80;
+  th {
+    @apply bg-muted text-muted-foreground;
+    background-color: hsl(var(--muted)) !important;
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  td {
+    @apply border-border;
+    border-color: hsl(var(--border)) !important;
+  }
+
+  /* Alert and notification theming */
+  .alert {
+    @apply bg-card text-card-foreground border-border;
+  }
+
+  .alert-destructive {
+    @apply bg-destructive/10 text-destructive border-destructive/20;
+  }
+
+  /* Custom scrollbar with theme awareness */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.5) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.5);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.7);
+  }
+
+  /* Animation utilities */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.5s ease-out;
+  }
+
+  /* Override any hardcoded styles */
+  .bg-white {
+    background-color: hsl(var(--background)) !important;
+  }
+
+  .bg-black {
+    background-color: hsl(var(--foreground)) !important;
+  }
+
+  .text-white {
+    color: hsl(var(--background)) !important;
+  }
+
+  .text-black {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .text-gray-900 {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .text-gray-100 {
+    color: hsl(var(--background)) !important;
   }
 }
 
-/* Custom scrollbar with theme awareness */
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: hsl(var(--muted-foreground) / 0.5) transparent;
+/* Utility classes for semantic colors */
+.text-success {
+  color: hsl(var(--success)) !important;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+.bg-success {
+  background-color: hsl(var(--success)) !important;
+  color: hsl(var(--success-foreground)) !important;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+.text-warning {
+  color: hsl(var(--warning)) !important;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--muted-foreground) / 0.5);
-  border-radius: 3px;
+.bg-warning {
+  background-color: hsl(var(--warning)) !important;
+  color: hsl(var(--warning-foreground)) !important;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(var(--muted-foreground) / 0.7);
+.text-info {
+  color: hsl(var(--info)) !important;
 }
 
-/* Animation utilities */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.5s ease-out;
-}
-
-/* Ensure dropdown menus are properly themed */
-.dropdown-menu {
-  @apply bg-background border-border text-foreground;
-}
-
-/* Override any hardcoded styles */
-[data-radix-popper-content-wrapper] {
-  @apply bg-background text-foreground;
+.bg-info {
+  background-color: hsl(var(--info)) !important;
+  color: hsl(var(--info-foreground)) !important;
 }

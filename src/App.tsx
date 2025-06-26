@@ -30,6 +30,28 @@ const AppContent = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Initialize theme on app start
+    const initializeTheme = () => {
+      const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+      
+      const root = document.documentElement;
+      root.classList.remove('light', 'dark');
+      root.classList.add(initialTheme);
+      root.setAttribute('data-theme', initialTheme);
+      
+      // Set body styles immediately
+      document.body.style.backgroundColor = initialTheme === 'dark' 
+        ? 'hsl(0 0% 0%)' 
+        : 'hsl(255 255 255)';
+      document.body.style.color = initialTheme === 'dark' 
+        ? 'hsl(255 255 255)' 
+        : 'hsl(0 0% 0%)';
+    };
+
+    initializeTheme();
+
     const getUser = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
