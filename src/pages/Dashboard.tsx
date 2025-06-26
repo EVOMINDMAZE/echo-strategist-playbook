@@ -87,7 +87,7 @@ const Dashboard = () => {
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar user={user} />
-        <SidebarInset className="flex-1">
+        <SidebarInset className="flex-1 min-w-0">
           {/* Header with sidebar trigger */}
           <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
             <SidebarTrigger className="-ml-1" />
@@ -97,11 +97,11 @@ const Dashboard = () => {
             </div>
           </header>
 
-          {/* Main content */}
-          <div className="flex-1 overflow-auto">
-            <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
+          {/* Main content with proper padding */}
+          <main className="flex-1 overflow-auto p-4 lg:p-6">
+            <div className="max-w-7xl mx-auto space-y-6">
               <AnimationWrapper type="fade-in" delay={0}>
-                <div className="mb-6 sm:mb-8">
+                <div className="mb-6">
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">
                     Welcome back, Coach! 👋
                   </h1>
@@ -113,7 +113,7 @@ const Dashboard = () => {
 
               {/* Welcome Card */}
               <AnimationWrapper type="fade-in" delay={50}>
-                <Card className="mb-6 sm:mb-8">
+                <Card className="mb-6">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
@@ -141,7 +141,7 @@ const Dashboard = () => {
 
               {/* Tab Navigation */}
               <AnimationWrapper type="fade-in" delay={100}>
-                <div className="flex space-x-1 bg-muted p-1 rounded-lg mb-6 sm:mb-8 max-w-md">
+                <div className="flex space-x-1 bg-muted p-1 rounded-lg mb-6 max-w-md">
                   <Button
                     variant={activeTab === 'overview' ? 'default' : 'ghost'}
                     onClick={() => setActiveTab('overview')}
@@ -197,7 +197,7 @@ const Dashboard = () => {
 
                   {/* Philosophy Card */}
                   <AnimationWrapper type="fade-in" delay={700}>
-                    <Card className="mt-8">
+                    <Card>
                       <CardHeader>
                         <CardTitle className="flex items-center text-foreground">
                           <Heart className="w-5 h-5 mr-2 text-primary" />
@@ -238,7 +238,7 @@ const Dashboard = () => {
                 </AnimationWrapper>
               )}
             </div>
-          </div>
+          </main>
         </SidebarInset>
       </div>
     </SidebarProvider>

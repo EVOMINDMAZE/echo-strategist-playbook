@@ -124,13 +124,13 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
   if (!user) return null;
 
   return (
-    <Sidebar className="bg-white border-r border-gray-200">
+    <Sidebar className="bg-white border-r border-gray-200" collapsible="icon">
       <SidebarHeader className="border-b border-gray-200 p-4">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center border border-gray-200">
             <Heart className="w-6 h-6 text-blue-600" />
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
             <h2 className="text-lg font-semibold text-gray-900 truncate">
               Coaching Suite
             </h2>
@@ -157,12 +157,18 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
                           ? 'bg-blue-600 text-white font-medium' 
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
+                      tooltip={item.label}
                     >
-                      <button onClick={() => navigate(item.path)} className="flex items-center space-x-3 w-full">
+                      <button 
+                        onClick={() => navigate(item.path)} 
+                        className="flex items-center space-x-3 w-full"
+                      >
                         <Icon size={18} />
-                        <span className="font-medium">{item.label}</span>
+                        <span className="font-medium group-data-[collapsible=icon]:sr-only">
+                          {item.label}
+                        </span>
                         {item.badge && (
-                          <Badge variant="secondary" className="ml-auto text-xs bg-gray-100 text-gray-600">
+                          <Badge variant="secondary" className="ml-auto text-xs bg-gray-100 text-gray-600 group-data-[collapsible=icon]:hidden">
                             {item.badge}
                           </Badge>
                         )}
@@ -184,10 +190,10 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
               variant="ghost" 
               className="w-full justify-start text-gray-700 hover:bg-gray-100"
             >
-              <Bell size={18} className="mr-3" />
-              <span className="font-medium">Notifications</span>
+              <Bell size={18} className="mr-3 group-data-[collapsible=icon]:mr-0" />
+              <span className="font-medium group-data-[collapsible=icon]:sr-only">Notifications</span>
               {unreadCount > 0 && (
-                <Badge className="ml-auto bg-red-600 text-white text-xs">
+                <Badge className="ml-auto bg-red-600 text-white text-xs group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:top-1 group-data-[collapsible=icon]:right-1 group-data-[collapsible=icon]:ml-0">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </Badge>
               )}
@@ -247,45 +253,41 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
           </SheetContent>
         </Sheet>
 
-        <SidebarMenuButton asChild>
-          <button
-            onClick={() => navigate('/profile')}
-            className="w-full justify-start text-gray-700 hover:bg-gray-100"
-          >
-            <User size={18} className="mr-3" />
-            <span className="font-medium">Profile</span>
-          </button>
-        </SidebarMenuButton>
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/profile')}
+          className="w-full justify-start text-gray-700 hover:bg-gray-100"
+        >
+          <User size={18} className="mr-3 group-data-[collapsible=icon]:mr-0" />
+          <span className="font-medium group-data-[collapsible=icon]:sr-only">Profile</span>
+        </Button>
 
-        <SidebarMenuButton asChild>
-          <button
-            onClick={() => navigate('/subscription')}
-            className="w-full justify-start text-gray-700 hover:bg-gray-100"
-          >
-            <CreditCard size={18} className="mr-3" />
-            <span className="font-medium">Subscription</span>
-          </button>
-        </SidebarMenuButton>
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/subscription')}
+          className="w-full justify-start text-gray-700 hover:bg-gray-100"
+        >
+          <CreditCard size={18} className="mr-3 group-data-[collapsible=icon]:mr-0" />
+          <span className="font-medium group-data-[collapsible=icon]:sr-only">Subscription</span>
+        </Button>
 
-        <SidebarMenuButton asChild>
-          <button
-            onClick={() => navigate('/settings')}
-            className="w-full justify-start text-gray-700 hover:bg-gray-100"
-          >
-            <Settings size={18} className="mr-3" />
-            <span className="font-medium">Settings</span>
-          </button>
-        </SidebarMenuButton>
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/settings')}
+          className="w-full justify-start text-gray-700 hover:bg-gray-100"
+        >
+          <Settings size={18} className="mr-3 group-data-[collapsible=icon]:mr-0" />
+          <span className="font-medium group-data-[collapsible=icon]:sr-only">Settings</span>
+        </Button>
 
-        <SidebarMenuButton asChild>
-          <button
-            onClick={handleSignOut}
-            className="w-full justify-start text-red-600 hover:bg-red-50"
-          >
-            <LogOut size={18} className="mr-3" />
-            <span className="font-medium">Sign Out</span>
-          </button>
-        </SidebarMenuButton>
+        <Button
+          variant="ghost"
+          onClick={handleSignOut}
+          className="w-full justify-start text-red-600 hover:bg-red-50"
+        >
+          <LogOut size={18} className="mr-3 group-data-[collapsible=icon]:mr-0" />
+          <span className="font-medium group-data-[collapsible=icon]:sr-only">Sign Out</span>
+        </Button>
       </SidebarFooter>
     </Sidebar>
   );
