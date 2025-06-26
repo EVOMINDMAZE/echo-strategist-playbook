@@ -60,10 +60,10 @@ const AppContent = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-purple-600 border-t-transparent mx-auto"></div>
-          <p className="text-slate-400 font-medium">Loading your coaching suite...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-primary border-t-transparent mx-auto"></div>
+          <p className="text-muted-foreground font-medium">Loading your coaching suite...</p>
         </div>
       </div>
     );
@@ -72,10 +72,10 @@ const AppContent = () => {
   if (shouldShowSidebar) {
     return (
       <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 overflow-hidden">
+        <div className="min-h-screen flex w-full bg-background overflow-hidden">
           <AppSidebar user={user} />
           <SidebarInset className="flex-1 overflow-hidden">
-            <main className="flex-1 h-screen overflow-auto">
+            <main className="flex-1 h-screen overflow-auto bg-background">
               <Routes>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/clients" element={<Clients />} />
@@ -94,7 +94,7 @@ const AppContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Auth />} />

@@ -6,49 +6,49 @@
 
 @layer base {
   :root {
-    /* Simple Light Mode - High Contrast */
+    /* Clean Light Mode - High Contrast */
     --background: 255 255 255; /* Pure white */
-    --foreground: 0 0 0; /* Pure black text */
+    --foreground: 0 0 0; /* Pure black */
     --card: 255 255 255; /* White cards */
-    --card-foreground: 0 0 0; /* Black text on cards */
+    --card-foreground: 0 0 0; /* Black text */
     --popover: 255 255 255;
     --popover-foreground: 0 0 0;
     --primary: 37 99 235; /* Blue-600 */
-    --primary-foreground: 255 255 255; /* White text on primary */
-    --secondary: 243 244 246; /* Gray-100 */
-    --secondary-foreground: 0 0 0; /* Black text on secondary */
-    --muted: 249 250 251; /* Gray-50 */
-    --muted-foreground: 75 85 99; /* Gray-600 for better contrast */
-    --accent: 243 244 246; /* Gray-100 */
-    --accent-foreground: 0 0 0; /* Black text on accent */
-    --destructive: 220 38 38; /* Red-600 */
+    --primary-foreground: 255 255 255;
+    --secondary: 248 250 252; /* Slate-50 */
+    --secondary-foreground: 15 23 42; /* Slate-900 */
+    --muted: 248 250 252; /* Slate-50 */
+    --muted-foreground: 100 116 139; /* Slate-500 */
+    --accent: 241 245 249; /* Slate-100 */
+    --accent-foreground: 15 23 42; /* Slate-900 */
+    --destructive: 239 68 68; /* Red-500 */
     --destructive-foreground: 255 255 255;
-    --border: 229 231 235; /* Gray-200 */
+    --border: 226 232 240; /* Slate-200 */
     --input: 255 255 255;
     --ring: 37 99 235;
     --radius: 0.5rem;
   }
 
   .dark {
-    /* Simple Dark Mode - High Contrast */
-    --background: 0 0 0; /* Pure black */
-    --foreground: 255 255 255; /* Pure white text */
-    --card: 31 41 55; /* Gray-800 for better contrast */
-    --card-foreground: 255 255 255; /* White text on cards */
-    --popover: 31 41 55;
-    --popover-foreground: 255 255 255;
+    /* Clean Dark Mode - High Contrast */
+    --background: 2 6 23; /* Slate-950 */
+    --foreground: 248 250 252; /* Slate-50 */
+    --card: 15 23 42; /* Slate-900 */
+    --card-foreground: 248 250 252; /* Slate-50 */
+    --popover: 15 23 42;
+    --popover-foreground: 248 250 252;
     --primary: 59 130 246; /* Blue-500 */
     --primary-foreground: 255 255 255;
-    --secondary: 55 65 81; /* Gray-700 for better contrast */
-    --secondary-foreground: 255 255 255; /* White text on secondary */
-    --muted: 31 41 55; /* Gray-800 */
-    --muted-foreground: 156 163 175; /* Gray-400 for muted text */
-    --accent: 55 65 81; /* Gray-700 */
-    --accent-foreground: 255 255 255; /* White text on accent */
+    --secondary: 30 41 59; /* Slate-800 */
+    --secondary-foreground: 248 250 252; /* Slate-50 */
+    --muted: 30 41 59; /* Slate-800 */
+    --muted-foreground: 148 163 184; /* Slate-400 */
+    --accent: 51 65 85; /* Slate-700 */
+    --accent-foreground: 248 250 252; /* Slate-50 */
     --destructive: 239 68 68; /* Red-500 */
     --destructive-foreground: 255 255 255;
-    --border: 75 85 99; /* Gray-600 */
-    --input: 31 41 55;
+    --border: 51 65 85; /* Slate-700 */
+    --input: 30 41 59;
     --ring: 59 130 246;
   }
 }
@@ -61,22 +61,10 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', system-ui, sans-serif;
-    color: hsl(var(--foreground)) !important;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply text-foreground font-semibold;
-    color: hsl(var(--foreground)) !important;
-  }
-
-  /* Ensure ALL text is always visible with proper contrast */
-  p, span, div, button, a, label {
-    color: hsl(var(--foreground)) !important;
-  }
-
-  /* Specific overrides for muted text */
-  .text-muted-foreground {
-    color: hsl(var(--muted-foreground)) !important;
   }
 
   /* Focus styles */
@@ -85,49 +73,56 @@
   }
 }
 
-/* Force visibility utilities */
-@layer utilities {
-  .force-visible {
-    color: hsl(var(--foreground)) !important;
-  }
+/* Custom scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+}
 
-  .force-muted {
-    color: hsl(var(--muted-foreground)) !important;
-  }
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
 
-  .simple-card {
-    @apply bg-card border border-border rounded-lg shadow-sm;
-    color: hsl(var(--card-foreground)) !important;
-  }
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-  .simple-button {
-    @apply bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-md font-medium transition-colors;
-    color: hsl(var(--primary-foreground)) !important;
-  }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
 
-  .simple-input {
-    @apply bg-input border border-border text-foreground px-3 py-2 rounded-md placeholder:text-muted-foreground;
-    color: hsl(var(--foreground)) !important;
-  }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground) / 0.5);
+}
 
-  .simple-interactive {
-    color: hsl(var(--foreground)) !important;
+/* Animation utilities */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  
-  .simple-interactive:hover {
-    color: hsl(var(--primary)) !important;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
+}
 
-  .simple-grid {
-    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-  /* Sidebar specific fixes */
-  .sidebar-text {
-    color: hsl(var(--foreground)) !important;
-  }
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
 
-  .sidebar-muted {
-    color: hsl(var(--muted-foreground)) !important;
-  }
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out;
 }
