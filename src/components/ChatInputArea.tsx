@@ -44,7 +44,7 @@ export const ChatInputArea = ({
   };
 
   return (
-    <div className="border-t border-slate-200 bg-white shadow-sm">
+    <div className="border-t border-gray-200 bg-white shadow-sm">
       <div className="px-6 py-4">
         <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="flex space-x-4">
           <div className="flex-1 relative">
@@ -52,7 +52,7 @@ export const ChatInputArea = ({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={getPlaceholderText()}
-              className="min-h-[60px] max-h-32 resize-none bg-white border-2 border-slate-200 text-slate-800 placeholder-slate-500 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl text-sm leading-relaxed p-4"
+              className="min-h-[60px] max-h-32 resize-none bg-white border-2 border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl text-sm leading-relaxed p-4"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -60,7 +60,7 @@ export const ChatInputArea = ({
                 }
               }}
             />
-            <div className="absolute bottom-3 right-3 flex items-center space-x-2 text-xs text-slate-500">
+            <div className="absolute bottom-3 right-3 flex items-center space-x-2 text-xs text-gray-500">
               <Shield className="w-3 h-3" />
               <span>Encrypted</span>
             </div>
@@ -73,7 +73,7 @@ export const ChatInputArea = ({
             <Send className="w-4 h-4" />
           </Button>
         </form>
-        <div className="mt-3 text-xs text-slate-500 text-center">
+        <div className="mt-3 text-xs text-gray-500 text-center">
           Press Enter to send • Shift+Enter for new line
         </div>
       </div>

@@ -37,18 +37,18 @@ export const ChatViewHeader = ({
   const getStatusBadge = () => {
     switch (session.status) {
       case 'gathering_info':
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">Active</Badge>;
+        return <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">Active</Badge>;
       case 'analyzing':
-        return <Badge variant="warning" className="bg-orange-100 text-orange-800 border-orange-300">Analyzing</Badge>;
+        return <Badge variant="warning" className="bg-orange-100 text-orange-800 border-orange-200">Analyzing</Badge>;
       case 'complete':
-        return <Badge variant="success" className="bg-green-100 text-green-800 border-green-300">Complete</Badge>;
+        return <Badge variant="success" className="bg-green-100 text-green-800 border-green-200">Complete</Badge>;
       default:
-        return <Badge variant="outline">Unknown</Badge>;
+        return <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-300">Unknown</Badge>;
     }
   };
 
   return (
-    <div className="sticky top-0 z-10 bg-white border-b-2 border-slate-200 shadow-sm">
+    <div className="sticky top-0 z-10 bg-white border-b-2 border-gray-200 shadow-sm">
       <div className="max-w-4xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Back button and target info */}
@@ -57,7 +57,7 @@ export const ChatViewHeader = ({
               variant="ghost"
               size="sm"
               onClick={onBackToTargets}
-              className="text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
+              className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 border border-gray-300"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
@@ -68,8 +68,8 @@ export const ChatViewHeader = ({
                 <Target className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-slate-800">{target.name}</h1>
-                <div className="flex items-center space-x-4 text-sm text-slate-600">
+                <h1 className="text-xl font-bold text-gray-900">{target.name}</h1>
+                <div className="flex items-center space-x-4 text-sm text-gray-600">
                   <span className="flex items-center">
                     <MessageSquare className="w-4 h-4 mr-1" />
                     {messages.length} messages

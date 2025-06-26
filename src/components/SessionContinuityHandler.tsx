@@ -1,148 +1,159 @@
 
-import { useEffect, useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { useState } from 'react';
+import { Clock, MessageSquare, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, MessageSquare, Target, ArrowRight, Clock } from 'lucide-react';
-import type { SessionData } from '@/types/coaching';
+import { SessionData } from '@/hooks/useSupabaseCoaching';
 
 interface SessionContinuityHandlerProps {
   previousSessions: SessionData[];
-  onFollowUpSelect: (question: string, context: any) => void;
+  onFollowUpSelect: (message: string) => void;
 }
 
-export const SessionContinuityHandler = ({ previousSessions, onFollowUpSelect }: SessionContinuityHandlerProps) => {
-  const [followUpQuestions, setFollowUpQuestions] = useState<Array<{
-    question: string;
-    context: any;
-    priority: 'high' | 'medium' | 'low';
-  }>>([]);
+export const SessionContinuityHandler = ({ 
+  previousSessions, 
+  onFollowUpSelect 
+}: SessionContinuityHandlerProps) => {
+  const [expandedSession, setExpandedSession] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (previousSessions.length === 0) return;
-
-    const questions: Array<{
-      question: string;
-      context: any;
-      priority: 'high' | 'medium' | 'low';
-    }> = [];
-
-    // Get the most recent completed session
-    const lastCompletedSession = previousSessions.find(s => s.status === 'complete');
-    
-    if (lastCompletedSession?.strategist_output?.suggestions) {
-      lastCompletedSession.strategist_output.suggestions.forEach((suggestion, index) => {
-        questions.push({
-          question: `How did it go when you tried: "${suggestion.title}"?`,
-          context: {
-            type: 'strategy_follow_up',
-            suggestion,
-            sessionId: lastCompletedSession.id,
-            sessionDate: lastCompletedSession.created_at
-          },
-          priority: index === 0 ? 'high' : 'medium'
-        });
-      });
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch {
+      return 'Recent';
     }
+  };
 
-    // Add general follow-up questions
-    if (lastCompletedSession) {
-      const daysSince = Math.floor((Date.now() - new Date(lastCompletedSession.created_at).getTime()) / (1000 * 60 * 60 * 24));
-      
-      if (daysSince <= 7) {
-        questions.push({
-          question: `It's been ${daysSince} day${daysSince !== 1 ? 's' : ''} since our last session. What's been happening?`,
-          context: {
-            type: 'general_follow_up',
-            sessionId: lastCompletedSession.id,
-            daysSince
-          },
-          priority: 'medium'
-        });
-      }
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'complete':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'gathering_info':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
 
-    // Sort by priority
-    questions.sort((a, b) => {
-      const priorityOrder = { high: 3, medium: 2, low: 1 };
-      return priorityOrder[b.priority] - priorityOrder[a.priority];
-    });
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'complete':
+        return 'Completed';
+      case 'gathering_info':
+        return 'In Progress';
+      default:
+        return 'Unknown';
+    }
+  };
 
-    setFollowUpQuestions(questions.slice(0, 3)); // Show top 3 questions
-  }, [previousSessions]);
-
-  if (followUpQuestions.length === 0) {
-    return null;
-  }
+  if (!previousSessions.length) return null;
 
   return (
-    <Card className="mb-6 bg-white border-2 border-blue-200 shadow-lg">
-      <CardContent className="p-6">
-        <div className="flex items-center mb-4">
-          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-            <ArrowRight className="w-4 h-4 text-blue-600" />
-          </div>
-          <h3 className="text-lg font-semibold text-slate-800">Let's Continue Where We Left Off</h3>
-          <Badge className="ml-3 bg-blue-100 text-blue-800 border-blue-300">
-            Follow-up
+    <div className="mb-6">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Clock className="w-5 h-5 text-blue-600" />
+          <h3 className="font-semibold text-gray-900">Previous Sessions</h3>
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+            {previousSessions.length} sessions
           </Badge>
         </div>
         
-        <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-          Based on your previous sessions, here are some questions to help us continue your journey:
+        <p className="text-gray-700 mb-4 text-sm leading-relaxed">
+          You have previous conversations with this person. Here are some ways we can continue your journey:
         </p>
-        
+
         <div className="space-y-3">
-          {followUpQuestions.map((item, index) => (
-            <Button
-              key={index}
-              variant="outline"
-              className="w-full text-left justify-start h-auto p-4 border-2 border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-800 transition-all duration-200"
-              onClick={() => onFollowUpSelect(item.question, item.context)}
-            >
-              <div className="flex items-start space-x-4 w-full">
-                <div className="flex-shrink-0 mt-1">
-                  {item.context.type === 'strategy_follow_up' ? (
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <Target className="w-4 h-4 text-green-600" />
-                    </div>
-                  ) : (
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <MessageSquare className="w-4 h-4 text-blue-600" />
-                    </div>
-                  )}
+          {previousSessions.slice(0, 3).map((session) => (
+            <div key={session.id} className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-900">
+                    {formatDate(session.created_at)}
+                  </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-800 leading-relaxed font-medium">
-                    {item.question}
-                  </p>
-                  {item.context.type === 'strategy_follow_up' && (
-                    <p className="text-xs text-slate-500 mt-1 flex items-center">
-                      <Clock className="w-3 h-3 mr-1" />
-                      Strategy from {new Date(item.context.sessionDate).toLocaleDateString()}
-                    </p>
-                  )}
+                <div className="flex items-center gap-2">
+                  <Badge className={`text-xs px-2 py-1 ${getStatusColor(session.status)}`}>
+                    {getStatusText(session.status)}
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setExpandedSession(
+                      expandedSession === session.id ? null : session.id
+                    )}
+                    className="p-1 h-6 w-6"
+                  >
+                    {expandedSession === session.id ? 
+                      <ChevronUp className="w-4 h-4" /> : 
+                      <ChevronDown className="w-4 h-4" />
+                    }
+                  </Button>
                 </div>
-                <Badge 
-                  className={`text-xs font-medium ${
-                    item.priority === 'high' 
-                      ? 'bg-red-100 text-red-700 border-red-300' 
-                      : 'bg-blue-100 text-blue-700 border-blue-300'
-                  }`}
-                >
-                  {item.priority}
-                </Badge>
               </div>
-            </Button>
+
+              <div className="text-sm text-gray-600 mb-2">
+                {session.messages.length} messages exchanged
+              </div>
+
+              {expandedSession === session.id && session.strategist_output && (
+                <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded">
+                  <p className="text-sm font-medium text-gray-900 mb-2">Last strategies suggested:</p>
+                  <div className="space-y-2">
+                    {session.strategist_output.strategies?.slice(0, 2).map((strategy: any, index: number) => (
+                      <div key={index} className="flex items-start gap-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="flex-1 min-w-0">
+                          <Button
+                            variant="ghost"
+                            onClick={() => onFollowUpSelect(`How did it go when you tried: "${strategy.title}"?`)}
+                            className="p-0 h-auto text-left justify-start text-sm text-gray-800 hover:text-blue-600 font-normal break-words whitespace-normal"
+                          >
+                            <span className="break-words">{strategy.title}</span>
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           ))}
         </div>
-        
-        <div className="mt-6 p-4 bg-slate-50 rounded-lg">
-          <p className="text-xs text-slate-600 text-center">
-            Click any question to start the conversation, or type your own message below
-          </p>
+
+        <div className="mt-4 pt-3 border-t border-blue-200">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onFollowUpSelect("What's new since our last conversation?")}
+              className="text-sm border-blue-200 text-gray-800 hover:bg-blue-50 hover:text-blue-700"
+            >
+              <ArrowRight className="w-4 h-4 mr-1" />
+              What's new?
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onFollowUpSelect("I'd like to continue working on our previous strategies.")}
+              className="text-sm border-blue-200 text-gray-800 hover:bg-blue-50 hover:text-blue-700"
+            >
+              <ArrowRight className="w-4 h-4 mr-1" />
+              Continue strategies
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onFollowUpSelect("I have a new situation to discuss.")}
+              className="text-sm border-blue-200 text-gray-800 hover:bg-blue-50 hover:text-blue-700"
+            >
+              <ArrowRight className="w-4 h-4 mr-1" />
+              New situation
+            </Button>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
