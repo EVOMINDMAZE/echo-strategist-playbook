@@ -12,6 +12,8 @@ import { AnimationWrapper } from '@/components/AnimationWrapper';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/AppSidebar';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -82,140 +84,164 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
-        <AnimationWrapper type="fade-in" delay={0}>
-          <DashboardHeader user={user} />
-        </AnimationWrapper>
+    <SidebarProvider defaultOpen={true}>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar user={user} />
+        <SidebarInset className="flex-1">
+          {/* Header with sidebar trigger */}
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
+            <SidebarTrigger className="-ml-1" />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Heart className="w-4 h-4" />
+              <span>Welcome back, Coach!</span>
+            </div>
+          </header>
 
-        {/* Welcome Card */}
-        <AnimationWrapper type="fade-in" delay={50}>
-          <Card className="mb-6 sm:mb-8">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-primary/10 rounded-full">
-                    <Heart className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-1 text-foreground">
-                      Your Personal Coaching Journey
-                    </h3>
-                    <p className="text-muted-foreground text-sm">
-                      A thoughtful space where relationship wisdom meets personal growth
-                    </p>
-                  </div>
+          {/* Main content */}
+          <div className="flex-1 overflow-auto">
+            <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
+              <AnimationWrapper type="fade-in" delay={0}>
+                <div className="mb-6 sm:mb-8">
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    Welcome back, Coach! 👋
+                  </h1>
+                  <p className="text-gray-600">
+                    Ready to make today's coaching sessions impactful?
+                  </p>
                 </div>
-                <div className="hidden sm:flex items-center space-x-3">
-                  <Badge className="bg-primary text-primary-foreground text-sm">
-                    Premium Experience
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </AnimationWrapper>
+              </AnimationWrapper>
 
-        {/* Tab Navigation */}
-        <AnimationWrapper type="fade-in" delay={100}>
-          <div className="flex space-x-1 bg-muted p-1 rounded-lg mb-6 sm:mb-8 max-w-md">
-            <Button
-              variant={activeTab === 'overview' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('overview')}
-              className={`flex-1 transition-colors ${
-                activeTab === 'overview' 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'text-muted-foreground hover:text-foreground hover:bg-background'
-              }`}
-            >
-              <MessageSquare className="w-4 h-4 mr-2" />
-              Overview
-            </Button>
-            <Button
-              variant={activeTab === 'insights' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('insights')}
-              className={`flex-1 transition-colors ${
-                activeTab === 'insights' 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'text-muted-foreground hover:text-foreground hover:bg-background'
-              }`}
-            >
-              <Brain className="w-4 h-4 mr-2" />
-              Personal Insights
-            </Button>
+              {/* Welcome Card */}
+              <AnimationWrapper type="fade-in" delay={50}>
+                <Card className="mb-6 sm:mb-8">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="p-3 bg-primary/10 rounded-full">
+                          <Heart className="w-6 h-6 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold mb-1 text-foreground">
+                            Your Personal Coaching Journey
+                          </h3>
+                          <p className="text-muted-foreground text-sm">
+                            A thoughtful space where relationship wisdom meets personal growth
+                          </p>
+                        </div>
+                      </div>
+                      <div className="hidden sm:flex items-center space-x-3">
+                        <Badge className="bg-primary text-primary-foreground text-sm">
+                          Premium Experience
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </AnimationWrapper>
+
+              {/* Tab Navigation */}
+              <AnimationWrapper type="fade-in" delay={100}>
+                <div className="flex space-x-1 bg-muted p-1 rounded-lg mb-6 sm:mb-8 max-w-md">
+                  <Button
+                    variant={activeTab === 'overview' ? 'default' : 'ghost'}
+                    onClick={() => setActiveTab('overview')}
+                    className={`flex-1 transition-colors ${
+                      activeTab === 'overview' 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-background'
+                    }`}
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Overview
+                  </Button>
+                  <Button
+                    variant={activeTab === 'insights' ? 'default' : 'ghost'}
+                    onClick={() => setActiveTab('insights')}
+                    className={`flex-1 transition-colors ${
+                      activeTab === 'insights' 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-background'
+                    }`}
+                  >
+                    <Brain className="w-4 h-4 mr-2" />
+                    Personal Insights
+                  </Button>
+                </div>
+              </AnimationWrapper>
+
+              {/* Tab Content */}
+              {activeTab === 'overview' ? (
+                <>
+                  <AnimationWrapper type="fade-in" delay={200}>
+                    <QuickStatsGrid stats={quickStats} />
+                  </AnimationWrapper>
+                  
+                  <AnimationWrapper type="fade-in" delay={300}>
+                    <AdvancedFeaturesGrid userId={user.id} />
+                  </AnimationWrapper>
+                  
+                  <AnimationWrapper type="fade-in" delay={400}>
+                    <QuickActionsGrid 
+                      quickStats={quickStats}
+                      recentActivity={recentActivity}
+                    />
+                  </AnimationWrapper>
+                  
+                  <AnimationWrapper type="fade-in" delay={500}>
+                    <RecentActivityCard recentActivity={recentActivity} />
+                  </AnimationWrapper>
+                  
+                  <AnimationWrapper type="fade-in" delay={600}>
+                    <DashboardStats userId={user.id} />
+                  </AnimationWrapper>
+
+                  {/* Philosophy Card */}
+                  <AnimationWrapper type="fade-in" delay={700}>
+                    <Card className="mt-8">
+                      <CardHeader>
+                        <CardTitle className="flex items-center text-foreground">
+                          <Heart className="w-5 h-5 mr-2 text-primary" />
+                          Our Human-Centered Approach
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div className="text-center p-6 bg-card border border-border rounded-lg">
+                            <Brain className="w-10 h-10 text-primary mx-auto mb-3" />
+                            <h4 className="font-semibold text-foreground mb-2">Thoughtful Analysis</h4>
+                            <p className="text-sm text-muted-foreground">
+                              Gentle insights that honor the complexity of human connection
+                            </p>
+                          </div>
+                          <div className="text-center p-6 bg-card border border-border rounded-lg">
+                            <Shield className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                            <h4 className="font-semibold text-foreground mb-2">Safe Space</h4>
+                            <p className="text-sm text-muted-foreground">
+                              Your conversations remain completely private and secure
+                            </p>
+                          </div>
+                          <div className="text-center p-6 bg-card border border-border rounded-lg">
+                            <TrendingUp className="w-10 h-10 text-primary mx-auto mb-3" />
+                            <h4 className="font-semibold text-foreground mb-2">Personal Growth</h4>
+                            <p className="text-sm text-muted-foreground">
+                              Strategies that evolve with your unique relationship journey
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </AnimationWrapper>
+                </>
+              ) : (
+                <AnimationWrapper type="fade-in" delay={200}>
+                  <PersonalInsights userId={user.id} />
+                </AnimationWrapper>
+              )}
+            </div>
           </div>
-        </AnimationWrapper>
-
-        {/* Tab Content */}
-        {activeTab === 'overview' ? (
-          <>
-            <AnimationWrapper type="fade-in" delay={200}>
-              <QuickStatsGrid stats={quickStats} />
-            </AnimationWrapper>
-            
-            <AnimationWrapper type="fade-in" delay={300}>
-              <AdvancedFeaturesGrid userId={user.id} />
-            </AnimationWrapper>
-            
-            <AnimationWrapper type="fade-in" delay={400}>
-              <QuickActionsGrid 
-                quickStats={quickStats}
-                recentActivity={recentActivity}
-              />
-            </AnimationWrapper>
-            
-            <AnimationWrapper type="fade-in" delay={500}>
-              <RecentActivityCard recentActivity={recentActivity} />
-            </AnimationWrapper>
-            
-            <AnimationWrapper type="fade-in" delay={600}>
-              <DashboardStats userId={user.id} />
-            </AnimationWrapper>
-
-            {/* Philosophy Card */}
-            <AnimationWrapper type="fade-in" delay={700}>
-              <Card className="mt-8">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-foreground">
-                    <Heart className="w-5 h-5 mr-2 text-primary" />
-                    Our Human-Centered Approach
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="text-center p-6 bg-card border border-border rounded-lg">
-                      <Brain className="w-10 h-10 text-primary mx-auto mb-3" />
-                      <h4 className="font-semibold text-foreground mb-2">Thoughtful Analysis</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Gentle insights that honor the complexity of human connection
-                      </p>
-                    </div>
-                    <div className="text-center p-6 bg-card border border-border rounded-lg">
-                      <Shield className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-                      <h4 className="font-semibold text-foreground mb-2">Safe Space</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Your conversations remain completely private and secure
-                      </p>
-                    </div>
-                    <div className="text-center p-6 bg-card border border-border rounded-lg">
-                      <TrendingUp className="w-10 h-10 text-primary mx-auto mb-3" />
-                      <h4 className="font-semibold text-foreground mb-2">Personal Growth</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Strategies that evolve with your unique relationship journey
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </AnimationWrapper>
-          </>
-        ) : (
-          <AnimationWrapper type="fade-in" delay={200}>
-            <PersonalInsights userId={user.id} />
-          </AnimationWrapper>
-        )}
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 

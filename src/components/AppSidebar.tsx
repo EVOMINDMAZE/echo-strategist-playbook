@@ -10,13 +10,11 @@ import {
   SidebarMenuItem,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupContent,
-  SidebarTrigger
+  SidebarGroupContent
 } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { 
   Heart, 
   MessageSquare, 
@@ -139,10 +137,6 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
             <p className="text-xs text-gray-600 truncate">
               {user.user_metadata?.full_name || user.email}
             </p>
-          </div>
-          <div className="flex items-center space-x-1">
-            <ThemeToggle />
-            <SidebarTrigger className="text-gray-500 hover:text-gray-700" />
           </div>
         </div>
       </SidebarHeader>
