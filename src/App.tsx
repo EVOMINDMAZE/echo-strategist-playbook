@@ -72,21 +72,19 @@ const AppContent = () => {
   if (shouldShowSidebar) {
     return (
       <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-white overflow-hidden">
+        <div className="min-h-screen flex w-full bg-white">
           <AppSidebar user={user} />
-          <SidebarInset className="flex-1 overflow-hidden">
-            <main className="flex-1 h-screen overflow-auto bg-white">
-              <Routes>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/clients" element={<Clients />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/subscription" element={<Subscription />} />
-                <Route path="/chat/:sessionId" element={<Chat />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </main>
+          <SidebarInset className="flex-1">
+            <Routes>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/clients" element={<Clients />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/subscription" element={<Subscription />} />
+              <Route path="/chat/:sessionId" element={<Chat />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           </SidebarInset>
         </div>
       </SidebarProvider>

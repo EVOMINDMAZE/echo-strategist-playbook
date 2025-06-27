@@ -6,33 +6,31 @@
 
 @layer base {
   :root {
-    /* Clean, modern color palette */
-    --background: 255 255 255; /* white */
-    --foreground: 17 24 39; /* gray-900 */
-    --card: 255 255 255; /* white */
-    --card-foreground: 17 24 39; /* gray-900 */
+    --background: 255 255 255;
+    --foreground: 17 24 39;
+    --card: 255 255 255;
+    --card-foreground: 17 24 39;
     --popover: 255 255 255;
     --popover-foreground: 17 24 39;
-    --primary: 37 99 235; /* blue-600 */
+    --primary: 37 99 235;
     --primary-foreground: 255 255 255;
-    --secondary: 243 244 246; /* gray-100 */
+    --secondary: 243 244 246;
     --secondary-foreground: 17 24 39;
-    --muted: 249 250 251; /* gray-50 */
-    --muted-foreground: 75 85 99; /* gray-600 */
-    --accent: 239 246 255; /* blue-50 */
+    --muted: 249 250 251;
+    --muted-foreground: 75 85 99;
+    --accent: 239 246 255;
     --accent-foreground: 17 24 39;
-    --destructive: 239 68 68; /* red-500 */
+    --destructive: 239 68 68;
     --destructive-foreground: 255 255 255;
-    --border: 229 231 235; /* gray-200 */
+    --border: 229 231 235;
     --input: 255 255 255;
-    --ring: 37 99 235; /* blue-600 */
-    --success: 34 197 94; /* green-500 */
+    --ring: 37 99 235;
+    --success: 34 197 94;
     --success-foreground: 255 255 255;
-    --warning: 245 158 11; /* amber-500 */
+    --warning: 245 158 11;
     --warning-foreground: 255 255 255;
     --radius: 0.5rem;
     
-    /* Sidebar variables */
     --sidebar-background: 255 255 255;
     --sidebar-foreground: 71 85 105;
     --sidebar-primary: 37 99 235;
@@ -47,6 +45,11 @@
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
+  }
+  
+  html, body {
+    overflow-x: hidden;
   }
   
   body {
@@ -55,10 +58,8 @@
     background-color: rgb(255 255 255);
     color: rgb(17 24 39);
     line-height: 1.6;
-    overflow-x: hidden;
   }
 
-  /* Typography with proper spacing */
   h1, h2, h3, h4, h5, h6 {
     @apply text-foreground font-semibold;
     color: rgb(17 24 39);
@@ -78,7 +79,6 @@
     line-height: 1.6;
   }
 
-  /* Input styling */
   input, textarea, select {
     @apply bg-white text-foreground border-border;
     background-color: rgb(255 255 255);
@@ -91,20 +91,17 @@
     color: rgb(107 114 128);
   }
 
-  /* Button styling */
   button {
     @apply text-foreground;
     color: rgb(17 24 39);
     line-height: 1.5;
   }
 
-  /* Link styling */
   a {
     @apply text-primary hover:text-primary/80;
     color: rgb(37 99 235);
   }
 
-  /* Card styling */
   .card {
     background-color: rgb(255 255 255);
     color: rgb(17 24 39);
@@ -112,29 +109,20 @@
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   }
 
-  /* Focus styles */
   *:focus-visible {
     @apply outline-2 outline-primary outline-offset-2;
   }
 
-  /* Layout fixes */
   .min-h-screen {
     min-height: 100vh;
   }
 
-  /* Sidebar layout fixes */
   [data-sidebar="sidebar"] {
     @apply bg-white border-r-border;
     background-color: rgb(255 255 255);
     color: rgb(71 85 105);
   }
 
-  /* Prevent horizontal scroll */
-  html, body {
-    overflow-x: hidden;
-  }
-
-  /* Responsive improvements */
   @media (max-width: 768px) {
     .container {
       padding-left: 1rem;
@@ -142,7 +130,6 @@
     }
   }
 
-  /* Custom scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
@@ -159,6 +146,13 @@
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgb(107 114 128);
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
 
@@ -191,31 +185,4 @@
 .priority-low {
   background-color: rgb(34 197 94);
   color: rgb(255 255 255);
-}
-
-/* Fix layout issues */
-.sidebar-layout {
-  display: flex;
-  min-height: 100vh;
-  width: 100%;
-  overflow-x: hidden;
-}
-
-.main-content {
-  flex: 1;
-  min-width: 0;
-  overflow-x: hidden;
-}
-
-/* Prevent content overflow */
-* {
-  box-sizing: border-box;
-}
-
-/* Line clamp utility */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
