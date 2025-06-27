@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AnimatedCounter } from '@/components/ui/animated-counter';
@@ -47,9 +46,9 @@ export const PersonalInsights = ({ userId }: PersonalInsightsProps) => {
           .eq('user_id', userId)
           .order('created_at', { ascending: false });
 
-        // Calculate insights
+        // Calculate insights - use default duration since duration field doesn't exist
         const avgLength = sessions?.length ? 
-          sessions.reduce((sum, s) => sum + (s.duration || 15), 0) / sessions.length : 0;
+          sessions.reduce((sum, s) => sum + 15, 0) / sessions.length : 0; // Default 15 min per session
 
         // Find most active day
         const dayCount: { [key: string]: number } = {};
