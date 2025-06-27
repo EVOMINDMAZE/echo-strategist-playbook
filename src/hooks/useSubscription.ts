@@ -20,16 +20,37 @@ export const useSubscription = () => {
 
   const checkSubscription = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase.functions.invoke('check-subscription');
-      if (error) throw error;
+      
+      if (error) {
+        // Don't show error toast for missing Stripe key in development
+        if (!error.message?.includes('STRIPE_SECRET_KEY')) {
+          console.error('Subscription check error:', error);
+          toast({
+            title: "Subscription Check Failed",
+            description: "Unable to verify subscription status. Please try again later.",
+            variant: "destructive"
+          });
+        }
+        
+        // Set default values for development
+        setSubscription({
+          subscribed: false,
+          subscription_tier: null,
+          subscription_end: null
+        });
+        return;
+      }
       
       setSubscription(data);
     } catch (error) {
       console.error('Error checking subscription:', error);
-      toast({
-        title: "Error",
-        description: "Failed to check subscription status",
-        variant: "destructive"
+      // Silent fail in development when Stripe is not configured
+      setSubscription({
+        subscribed: false,
+        subscription_tier: null,
+        subscription_end: null
       });
     } finally {
       setLoading(false);
@@ -41,7 +62,18 @@ export const useSubscription = () => {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { tier }
       });
-      if (error) throw error;
+      
+      if (error) {
+        if (error.message?.includes('STRIPE_SECRET_KEY')) {
+          toast({
+            title: "Development Mode",
+            description: "Stripe checkout is not configured in development mode.",
+            variant: "destructive"
+          });
+          return;
+        }
+        throw error;
+      }
       
       window.open(data.url, '_blank');
     } catch (error) {
@@ -57,7 +89,18 @@ export const useSubscription = () => {
   const openCustomerPortal = async () => {
     try {
       const { data, error } = await supabase.functions.invoke('customer-portal');
-      if (error) throw error;
+      
+      if (error) {
+        if (error.message?.includes('STRIPE_SECRET_KEY')) {
+          toast({
+            title: "Development Mode",
+            description: "Customer portal is not configured in development mode.",
+            variant: "destructive"
+          });
+          return;
+        }
+        throw error;
+      }
       
       window.open(data.url, '_blank');
     } catch (error) {

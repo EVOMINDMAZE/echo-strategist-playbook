@@ -40,12 +40,11 @@ export const AchievementBadge = ({
     <div className={cn(
       "relative p-4 rounded-lg border transition-all duration-300 hover:shadow-md",
       colorMap[type],
-      isNew && "animate-bounce",
       className
     )}>
       {isNew && (
         <div className="absolute -top-2 -right-2">
-          <Badge className="bg-red-500 text-white animate-pulse">NEW!</Badge>
+          <Badge className="bg-red-500 text-white">NEW!</Badge>
         </div>
       )}
       <div className="flex items-center space-x-3">

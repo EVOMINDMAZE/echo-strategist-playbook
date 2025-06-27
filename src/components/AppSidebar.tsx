@@ -125,13 +125,13 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
 
   return (
     <Sidebar className="border-r border-gray-200" collapsible="icon">
-      <SidebarHeader className="border-b border-gray-100 p-4">
+      <SidebarHeader className="border-b border-gray-100 p-3">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
             <Heart className="w-5 h-5 text-blue-600" />
           </div>
           <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-            <h2 className="text-base font-semibold text-gray-900 truncate">
+            <h2 className="text-sm font-semibold text-gray-900 truncate">
               Coaching Suite
             </h2>
             <p className="text-xs text-gray-500 truncate">
@@ -152,7 +152,7 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
                     <SidebarMenuButton
                       asChild
                       isActive={item.isActive}
-                      className={`w-full justify-start transition-colors rounded-lg ${
+                      className={`w-full justify-start transition-colors rounded-lg relative ${
                         item.isActive 
                           ? 'bg-blue-600 text-white font-medium hover:bg-blue-700' 
                           : 'text-gray-700 hover:bg-gray-100'
@@ -160,14 +160,17 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
                     >
                       <button 
                         onClick={() => navigate(item.path)}
-                        className="flex items-center space-x-3 w-full px-3 py-2.5"
+                        className="flex items-center w-full px-3 py-2.5 group-data-[collapsible=icon]:justify-center"
                       >
-                        <Icon size={18} />
-                        <span className="font-medium group-data-[collapsible=icon]:sr-only">
+                        <Icon size={18} className="flex-shrink-0" />
+                        <span className="font-medium ml-3 group-data-[collapsible=icon]:sr-only">
                           {item.label}
                         </span>
                         {item.badge && (
-                          <Badge variant="secondary" className="ml-auto text-xs bg-gray-100 text-gray-600 group-data-[collapsible=icon]:hidden">
+                          <Badge 
+                            variant="secondary" 
+                            className="ml-auto text-xs bg-gray-100 text-gray-600 group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:-top-1 group-data-[collapsible=icon]:-right-1 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:text-xs group-data-[collapsible=icon]:bg-red-500 group-data-[collapsible=icon]:text-white"
+                          >
                             {item.badge}
                           </Badge>
                         )}
@@ -187,12 +190,12 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
           <SheetTrigger asChild>
             <Button 
               variant="ghost" 
-              className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2 relative"
+              className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2 relative group-data-[collapsible=icon]:justify-center"
             >
-              <Bell size={16} className="mr-3 group-data-[collapsible=icon]:mr-0" />
-              <span className="font-medium text-sm group-data-[collapsible=icon]:sr-only">Notifications</span>
+              <Bell size={16} className="flex-shrink-0 group-data-[collapsible=icon]:mr-0" />
+              <span className="font-medium text-sm ml-3 group-data-[collapsible=icon]:sr-only">Notifications</span>
               {unreadCount > 0 && (
-                <Badge className="ml-auto bg-red-600 text-white text-xs group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:top-1 group-data-[collapsible=icon]:right-1 group-data-[collapsible=icon]:ml-0">
+                <Badge className="ml-auto bg-red-600 text-white text-xs group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:-top-1 group-data-[collapsible=icon]:-right-1 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5 group-data-[collapsible=icon]:rounded-full">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </Badge>
               )}
@@ -255,37 +258,37 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         <Button
           variant="ghost"
           onClick={() => navigate('/profile')}
-          className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2"
+          className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2 group-data-[collapsible=icon]:justify-center"
         >
-          <User size={16} className="mr-3 group-data-[collapsible=icon]:mr-0" />
-          <span className="font-medium text-sm group-data-[collapsible=icon]:sr-only">Profile</span>
+          <User size={16} className="flex-shrink-0 group-data-[collapsible=icon]:mr-0" />
+          <span className="font-medium text-sm ml-3 group-data-[collapsible=icon]:sr-only">Profile</span>
         </Button>
 
         <Button
           variant="ghost"
           onClick={() => navigate('/subscription')}
-          className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2"
+          className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2 group-data-[collapsible=icon]:justify-center"
         >
-          <CreditCard size={16} className="mr-3 group-data-[collapsible=icon]:mr-0" />
-          <span className="font-medium text-sm group-data-[collapsible=icon]:sr-only">Subscription</span>
+          <CreditCard size={16} className="flex-shrink-0 group-data-[collapsible=icon]:mr-0" />
+          <span className="font-medium text-sm ml-3 group-data-[collapsible=icon]:sr-only">Subscription</span>
         </Button>
 
         <Button
           variant="ghost"
           onClick={() => navigate('/settings')}
-          className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2"
+          className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2 group-data-[collapsible=icon]:justify-center"
         >
-          <Settings size={16} className="mr-3 group-data-[collapsible=icon]:mr-0" />
-          <span className="font-medium text-sm group-data-[collapsible=icon]:sr-only">Settings</span>
+          <Settings size={16} className="flex-shrink-0 group-data-[collapsible=icon]:mr-0" />
+          <span className="font-medium text-sm ml-3 group-data-[collapsible=icon]:sr-only">Settings</span>
         </Button>
 
         <Button
           variant="ghost"
           onClick={handleSignOut}
-          className="w-full justify-start text-red-600 hover:bg-red-50 px-3 py-2"
+          className="w-full justify-start text-red-600 hover:bg-red-50 px-3 py-2 group-data-[collapsible=icon]:justify-center"
         >
-          <LogOut size={16} className="mr-3 group-data-[collapsible=icon]:mr-0" />
-          <span className="font-medium text-sm group-data-[collapsible=icon]:sr-only">Sign Out</span>
+          <LogOut size={16} className="flex-shrink-0 group-data-[collapsible=icon]:mr-0" />
+          <span className="font-medium text-sm ml-3 group-data-[collapsible=icon]:sr-only">Sign Out</span>
         </Button>
       </SidebarFooter>
     </Sidebar>
