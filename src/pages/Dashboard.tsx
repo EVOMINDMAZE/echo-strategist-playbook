@@ -70,14 +70,12 @@ const Dashboard = () => {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-center space-y-4">
-            <div className="animate-pulse rounded-full h-12 w-12 bg-blue-100 mx-auto flex items-center justify-center">
-              <Heart className="w-6 h-6 text-blue-600" />
-            </div>
-            <p className="text-gray-700 font-medium">Preparing your coaching suite...</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-pulse rounded-full h-12 w-12 bg-blue-100 mx-auto flex items-center justify-center">
+            <Heart className="w-6 h-6 text-blue-600" />
           </div>
+          <p className="text-gray-700 font-medium">Preparing your coaching suite...</p>
         </div>
       </div>
     );
@@ -85,11 +83,11 @@ const Dashboard = () => {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-gray-50">
+      <div className="min-h-screen flex w-full">
         <AppSidebar user={user} />
-        <SidebarInset className="flex-1">
+        <SidebarInset className="flex-1 min-w-0">
           {/* Header */}
-          <header className="flex h-16 items-center gap-2 border-b bg-white px-6 shadow-sm">
+          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4 shadow-sm">
             <SidebarTrigger className="-ml-1" />
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Heart className="w-4 h-4 text-blue-600" />
@@ -98,12 +96,12 @@ const Dashboard = () => {
           </header>
 
           {/* Main content */}
-          <main className="flex-1 p-6">
-            <div className="max-w-7xl mx-auto space-y-8">
+          <main className="flex-1 overflow-auto p-4 md:p-6">
+            <div className="max-w-7xl mx-auto space-y-6">
               {/* Welcome Section */}
               <AnimationWrapper type="fade-in" delay={0}>
-                <div className="mb-8">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                <div className="mb-6">
+                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
                     Welcome back, Coach! 👋
                   </h1>
                   <p className="text-gray-600">
@@ -115,8 +113,8 @@ const Dashboard = () => {
               {/* Welcome Card */}
               <AnimationWrapper type="fade-in" delay={50}>
                 <Card className="border-0 shadow-sm">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
+                  <CardContent className="p-4 md:p-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div className="flex items-center space-x-4">
                         <div className="p-3 bg-blue-50 rounded-full">
                           <Heart className="w-6 h-6 text-blue-600" />
@@ -130,7 +128,7 @@ const Dashboard = () => {
                           </p>
                         </div>
                       </div>
-                      <Badge className="bg-blue-600 text-white text-sm px-3 py-1">
+                      <Badge className="bg-blue-600 text-white text-sm px-3 py-1 whitespace-nowrap">
                         Premium Experience
                       </Badge>
                     </div>
@@ -140,7 +138,7 @@ const Dashboard = () => {
 
               {/* Tab Navigation */}
               <AnimationWrapper type="fade-in" delay={100}>
-                <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-8 max-w-md">
+                <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6 max-w-md">
                   <Button
                     variant={activeTab === 'overview' ? 'default' : 'ghost'}
                     onClick={() => setActiveTab('overview')}
@@ -170,7 +168,7 @@ const Dashboard = () => {
 
               {/* Tab Content */}
               {activeTab === 'overview' ? (
-                <div className="space-y-8">
+                <div className="space-y-6">
                   <AnimationWrapper type="fade-in" delay={200}>
                     <QuickStatsGrid stats={quickStats} />
                   </AnimationWrapper>
@@ -204,22 +202,22 @@ const Dashboard = () => {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          <div className="text-center p-6 bg-gray-50 rounded-lg">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                          <div className="text-center p-4 md:p-6 bg-gray-50 rounded-lg">
                             <Brain className="w-10 h-10 text-blue-600 mx-auto mb-3" />
                             <h4 className="font-semibold text-gray-900 mb-2">Thoughtful Analysis</h4>
                             <p className="text-sm text-gray-600">
                               Gentle insights that honor the complexity of human connection
                             </p>
                           </div>
-                          <div className="text-center p-6 bg-gray-50 rounded-lg">
+                          <div className="text-center p-4 md:p-6 bg-gray-50 rounded-lg">
                             <Shield className="w-10 h-10 text-gray-600 mx-auto mb-3" />
                             <h4 className="font-semibold text-gray-900 mb-2">Safe Space</h4>
                             <p className="text-sm text-gray-600">
                               Your conversations remain completely private and secure
                             </p>
                           </div>
-                          <div className="text-center p-6 bg-gray-50 rounded-lg">
+                          <div className="text-center p-4 md:p-6 bg-gray-50 rounded-lg">
                             <TrendingUp className="w-10 h-10 text-blue-600 mx-auto mb-3" />
                             <h4 className="font-semibold text-gray-900 mb-2">Personal Growth</h4>
                             <p className="text-sm text-gray-600">

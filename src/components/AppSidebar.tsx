@@ -124,24 +124,24 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
   if (!user) return null;
 
   return (
-    <Sidebar className="bg-white border-r border-gray-200" collapsible="icon">
-      <SidebarHeader className="border-b border-gray-200 p-4">
+    <Sidebar className="border-r border-gray-200" collapsible="icon">
+      <SidebarHeader className="border-b border-gray-100 p-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center border border-gray-200">
-            <Heart className="w-6 h-6 text-blue-600" />
+          <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Heart className="w-5 h-5 text-blue-600" />
           </div>
           <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-            <h2 className="text-lg font-semibold text-gray-900 truncate">
+            <h2 className="text-base font-semibold text-gray-900 truncate">
               Coaching Suite
             </h2>
-            <p className="text-xs text-gray-600 truncate">
+            <p className="text-xs text-gray-500 truncate">
               {user.user_metadata?.full_name || user.email}
             </p>
           </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4">
+      <SidebarContent className="px-2 py-2">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -154,13 +154,13 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
                       isActive={item.isActive}
                       className={`w-full justify-start transition-colors rounded-lg ${
                         item.isActive 
-                          ? 'bg-blue-600 text-white font-medium' 
+                          ? 'bg-blue-600 text-white font-medium hover:bg-blue-700' 
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     >
                       <button 
                         onClick={() => navigate(item.path)}
-                        className="flex items-center space-x-3 w-full px-3 py-2"
+                        className="flex items-center space-x-3 w-full px-3 py-2.5"
                       >
                         <Icon size={18} />
                         <span className="font-medium group-data-[collapsible=icon]:sr-only">
@@ -181,16 +181,16 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-gray-200 p-3 space-y-2">
+      <SidebarFooter className="border-t border-gray-100 p-2 space-y-1">
         {/* Notifications */}
         <Sheet>
           <SheetTrigger asChild>
             <Button 
               variant="ghost" 
-              className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2"
+              className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2 relative"
             >
-              <Bell size={18} className="mr-3 group-data-[collapsible=icon]:mr-0" />
-              <span className="font-medium group-data-[collapsible=icon]:sr-only">Notifications</span>
+              <Bell size={16} className="mr-3 group-data-[collapsible=icon]:mr-0" />
+              <span className="font-medium text-sm group-data-[collapsible=icon]:sr-only">Notifications</span>
               {unreadCount > 0 && (
                 <Badge className="ml-auto bg-red-600 text-white text-xs group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:top-1 group-data-[collapsible=icon]:right-1 group-data-[collapsible=icon]:ml-0">
                   {unreadCount > 9 ? '9+' : unreadCount}
@@ -198,15 +198,15 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
               )}
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-80 bg-white border-gray-200">
+          <SheetContent side="left" className="w-80">
             <SheetHeader>
-              <SheetTitle className="text-gray-900">Notifications</SheetTitle>
+              <SheetTitle>Notifications</SheetTitle>
               {unreadCount > 0 && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={markAllAsRead}
-                  className="text-xs text-gray-700 hover:bg-gray-100 w-fit"
+                  className="text-xs w-fit"
                 >
                   Mark all read
                 </Button>
@@ -257,8 +257,8 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
           onClick={() => navigate('/profile')}
           className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2"
         >
-          <User size={18} className="mr-3 group-data-[collapsible=icon]:mr-0" />
-          <span className="font-medium group-data-[collapsible=icon]:sr-only">Profile</span>
+          <User size={16} className="mr-3 group-data-[collapsible=icon]:mr-0" />
+          <span className="font-medium text-sm group-data-[collapsible=icon]:sr-only">Profile</span>
         </Button>
 
         <Button
@@ -266,8 +266,8 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
           onClick={() => navigate('/subscription')}
           className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2"
         >
-          <CreditCard size={18} className="mr-3 group-data-[collapsible=icon]:mr-0" />
-          <span className="font-medium group-data-[collapsible=icon]:sr-only">Subscription</span>
+          <CreditCard size={16} className="mr-3 group-data-[collapsible=icon]:mr-0" />
+          <span className="font-medium text-sm group-data-[collapsible=icon]:sr-only">Subscription</span>
         </Button>
 
         <Button
@@ -275,8 +275,8 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
           onClick={() => navigate('/settings')}
           className="w-full justify-start text-gray-700 hover:bg-gray-100 px-3 py-2"
         >
-          <Settings size={18} className="mr-3 group-data-[collapsible=icon]:mr-0" />
-          <span className="font-medium group-data-[collapsible=icon]:sr-only">Settings</span>
+          <Settings size={16} className="mr-3 group-data-[collapsible=icon]:mr-0" />
+          <span className="font-medium text-sm group-data-[collapsible=icon]:sr-only">Settings</span>
         </Button>
 
         <Button
@@ -284,8 +284,8 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
           onClick={handleSignOut}
           className="w-full justify-start text-red-600 hover:bg-red-50 px-3 py-2"
         >
-          <LogOut size={18} className="mr-3 group-data-[collapsible=icon]:mr-0" />
-          <span className="font-medium group-data-[collapsible=icon]:sr-only">Sign Out</span>
+          <LogOut size={16} className="mr-3 group-data-[collapsible=icon]:mr-0" />
+          <span className="font-medium text-sm group-data-[collapsible=icon]:sr-only">Sign Out</span>
         </Button>
       </SidebarFooter>
     </Sidebar>
